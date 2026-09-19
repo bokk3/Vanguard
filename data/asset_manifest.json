@@ -1,0 +1,259 @@
+{
+  "version": "1.0",
+  "project_name": "lucid-davinci",
+  "grid_size_cm": 200.0,
+  "assets": {
+    "Modular_SciFi_Wall_01": {
+      "category": "Environment/Walls",
+      "dimensions_cm": {
+        "width": 200.0,
+        "height": 300.0,
+        "depth": 25.0
+      },
+      "grid_units": [
+        1,
+        1
+      ],
+      "source_type": "Fusion360",
+      "files": {
+        "step": "assets/cad/environment/Modular_SciFi_Wall_01.step",
+        "fbx": "assets/meshes/environment/Modular_SciFi_Wall_01_game_ready.fbx"
+      },
+      "ue5_package_path": "/Game/Environment/Walls/SM_Modular_SciFi_Wall_01",
+      "has_collision": true,
+      "nanite_enabled": true,
+      "sockets": [
+        "Wall_Top",
+        "Wall_Left",
+        "Wall_Right"
+      ]
+    },
+    "Modular_SciFi_Panel_01": {
+      "category": "Environment/Walls",
+      "dimensions_cm": {
+        "width": 200.0,
+        "height": 300.0,
+        "depth": 25.0
+      },
+      "grid_units": [
+        1.0,
+        0.1
+      ],
+      "files": {
+        "fbx": "assets/meshes/environment/Modular_SciFi_Panel_01_game_ready.fbx",
+        "step": null
+      },
+      "ue5_package_path": "/Game/Environment/Walls/SM_Modular_SciFi_Panel_01",
+      "has_collision": true,
+      "nanite_enabled": true,
+      "sockets": [
+        "Socket_Top",
+        "Socket_Base"
+      ]
+    },
+    "Spaceship_Interceptor_HD": {
+      "category": "Vehicles/Starfighters",
+      "dimensions_cm": {
+        "width": 980.0,
+        "height": 250.0,
+        "depth": 1100.0
+      },
+      "grid_units": [
+        4.9,
+        5.5
+      ],
+      "files": {
+        "fbx": "assets/meshes/vehicles/Spaceship_Interceptor_HD_game_ready.fbx",
+        "step": "assets/cad/vehicles/Spaceship_Interceptor_HD.step"
+      },
+      "ue5_package_path": "/Game/Vehicles/Starfighters/SM_Spaceship_Interceptor_HD",
+      "has_collision": true,
+      "nanite_enabled": true,
+      "sockets": [
+        "Cockpit_Seat",
+        "Wing_Pylon_L",
+        "Wing_Pylon_R",
+        "Engine_L_Thrust",
+        "Engine_R_Thrust"
+      ]
+    },
+    "Spaceship_Viper_Supreme_HD": {
+      "category": "Vehicles/Fighters",
+      "dimensions_cm": {
+        "width": 980.0,
+        "height": 224.0,
+        "depth": 1059.0
+      },
+      "grid_units": [
+        4.9,
+        5.3
+      ],
+      "files": {
+        "fbx": "assets/meshes/vehicles/Spaceship_Viper_Supreme_HD.fbx",
+        "step": "assets/cad/vehicles/Spaceship_Viper_Supreme_HD.step"
+      },
+      "ue5_package_path": "/Game/Vehicles/Fighters/SM_Spaceship_Viper_Supreme_HD",
+      "has_collision": true,
+      "nanite_enabled": true,
+      "sockets": [
+        {
+          "name": "Socket_Cockpit_Camera",
+          "relative_location": [
+            0.0,
+            180.0,
+            68.0
+          ]
+        },
+        {
+          "name": "Socket_Engine_Exhaust_R",
+          "relative_location": [
+            95.0,
+            -475.0,
+            0.0
+          ]
+        },
+        {
+          "name": "Socket_Engine_Exhaust_L",
+          "relative_location": [
+            -95.0,
+            -475.0,
+            0.0
+          ]
+        },
+        {
+          "name": "Socket_Chin_Gun_R",
+          "relative_location": [
+            52.0,
+            260.0,
+            0.0
+          ]
+        },
+        {
+          "name": "Socket_Chin_Gun_L",
+          "relative_location": [
+            -52.0,
+            260.0,
+            0.0
+          ]
+        },
+        {
+          "name": "Socket_Missile_Hardpoint_01",
+          "relative_location": [
+            270.0,
+            -200.0,
+            -32.0
+          ]
+        },
+        {
+          "name": "Socket_Missile_Hardpoint_02",
+          "relative_location": [
+            370.0,
+            -200.0,
+            -32.0
+          ]
+        },
+        {
+          "name": "Socket_Missile_Hardpoint_03",
+          "relative_location": [
+            -270.0,
+            -200.0,
+            -32.0
+          ]
+        },
+        {
+          "name": "Socket_Missile_Hardpoint_04",
+          "relative_location": [
+            -370.0,
+            -200.0,
+            -32.0
+          ]
+        }
+      ]
+    },
+    "Spaceship_Sculpted_V_Hull": {
+      "category": "Vehicles/Fighters",
+      "dimensions_cm": {
+        "width": 980.0,
+        "height": 215.0,
+        "depth": 1030.0
+      },
+      "grid_units": [
+        4.9,
+        5.2
+      ],
+      "files": {
+        "fbx": "assets/meshes/vehicles/Spaceship_Sculpted_V_Hull.fbx",
+        "step": "assets/cad/vehicles/Spaceship_Sculpted_V_Hull.step"
+      },
+      "ue5_package_path": "/Game/Vehicles/Fighters/SM_Spaceship_Sculpted_V_Hull",
+      "has_collision": true,
+      "nanite_enabled": true,
+      "sockets": [
+        {
+          "name": "Socket_Cockpit_Camera",
+          "relative_location": [
+            0.0,
+            180.0,
+            64.0
+          ]
+        },
+        {
+          "name": "Socket_Engine_Exhaust_R",
+          "relative_location": [
+            95.0,
+            -460.0,
+            -5.0
+          ]
+        },
+        {
+          "name": "Socket_Engine_Exhaust_L",
+          "relative_location": [
+            -95.0,
+            -460.0,
+            -5.0
+          ]
+        },
+        {
+          "name": "Socket_Ventral_Sensor_FLIR",
+          "relative_location": [
+            0.0,
+            275.0,
+            -70.0
+          ]
+        },
+        {
+          "name": "Socket_Missile_01",
+          "relative_location": [
+            260.0,
+            -200.0,
+            -30.0
+          ]
+        },
+        {
+          "name": "Socket_Missile_02",
+          "relative_location": [
+            360.0,
+            -200.0,
+            -30.0
+          ]
+        },
+        {
+          "name": "Socket_Missile_03",
+          "relative_location": [
+            -260.0,
+            -200.0,
+            -30.0
+          ]
+        },
+        {
+          "name": "Socket_Missile_04",
+          "relative_location": [
+            -360.0,
+            -200.0,
+            -30.0
+          ]
+        }
+      ]
+    }
+  }
+}

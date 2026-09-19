@@ -1,0 +1,13 @@
+{
+	"autodeskProduct":	"Fusion",
+	"type":	"addin",
+	"id":	"antigravity_fusion_bridge",
+	"author":	"Antigravity",
+	"description":	{
+		"":	"Live bidirectional bridge enabling real-time remote modeling and asset generation from Antigravity."
+	},
+	"version":	"1.0.0",
+	"runOnStartup":	false,
+	"supportedOS":	"windows",
+	"editEnabled":	true
+}
