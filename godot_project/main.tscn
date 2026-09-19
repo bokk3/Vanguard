@@ -1,0 +1,82 @@
+[gd_scene load_steps=12 format=3 uid="uid://b6q0a6p4n8k11"]
+
+[ext_resource type="Script" path="res://spaceship_controller.gd" id="1_ctrl"]
+[ext_resource type="PackedScene" uid="uid://c21sm6f7vcpq4" path="res://Spaceship_Sculpted_V_Hull.glb" id="2_ship"]
+[ext_resource type="Script" path="res://hud.gd" id="3_hud"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
+sky_top_color = Color(0.12, 0.25, 0.45, 1)
+sky_horizon_color = Color(0.6, 0.7, 0.85, 1)
+ground_bottom_color = Color(0.15, 0.18, 0.2, 1)
+ground_horizon_color = Color(0.45, 0.5, 0.55, 1)
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("ProceduralSkyMaterial_1")
+
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 2
+sky = SubResource("Sky_1")
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 1.0
+glow_bloom = 0.15
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ship"]
+size = Vector3(9.8, 2.7, 10.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+albedo_color = Color(0.18, 0.22, 0.26, 1)
+roughness = 0.85
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
+material = SubResource("StandardMaterial3D_ground")
+size = Vector2(4000, 4000)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tower"]
+albedo_color = Color(0.9, 0.4, 0.1, 1)
+metallic = 0.6
+roughness = 0.35
+
+[sub_resource type="BoxMesh" id="BoxMesh_tower"]
+material = SubResource("StandardMaterial3D_tower")
+size = Vector3(16, 200, 16)
+
+[node name="Main" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_1")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 0, 100, 0)
+shadow_enabled = true
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_ground")
+
+[node name="Pylon1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 100, -300)
+mesh = SubResource("BoxMesh_tower")
+
+[node name="Pylon2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -150, 100, -600)
+mesh = SubResource("BoxMesh_tower")
+
+[node name="Pylon3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 150, 100, -600)
+mesh = SubResource("BoxMesh_tower")
+
+[node name="Spaceship" type="CharacterBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 40, 0)
+script = ExtResource("1_ctrl")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Spaceship"]
+shape = SubResource("BoxShape3D_ship")
+
+[node name="Model" parent="Spaceship" instance=ExtResource("2_ship")]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 44, 14)
+fov = 75.0
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("3_hud")

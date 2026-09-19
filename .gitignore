@@ -27,3 +27,7 @@ $RECYCLE.BIN/
 
 # Temporary export staging
 Exports/
+
+# Godot 4 engine cache and artifacts
+.godot/
+*.translation
