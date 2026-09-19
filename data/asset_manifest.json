@@ -254,6 +254,43 @@
           ]
         }
       ]
+    },
+    "Vanguard_Strike_Missile": {
+      "category": "Weapons/Missiles",
+      "dimensions_cm": {
+        "width": 53.0,
+        "height": 53.0,
+        "depth": 235.0
+      },
+      "grid_units": [
+        0.3,
+        1.2
+      ],
+      "files": {
+        "fbx": "assets/meshes/vehicles/Vanguard_Strike_Missile.fbx",
+        "step": "assets/cad/vehicles/Vanguard_Strike_Missile.step"
+      },
+      "ue5_package_path": "/Game/Weapons/Missiles/SM_Vanguard_Strike_Missile",
+      "has_collision": true,
+      "nanite_enabled": true,
+      "sockets": [
+        {
+          "name": "SOCKET_Missile_Exhaust",
+          "relative_location": [
+            0.0,
+            -118.0,
+            0.0
+          ]
+        },
+        {
+          "name": "SOCKET_Pylon_Mount",
+          "relative_location": [
+            0.0,
+            0.0,
+            15.0
+          ]
+        }
+      ]
     }
   }
 }
