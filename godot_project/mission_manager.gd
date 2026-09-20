@@ -407,6 +407,50 @@ func _spawn_m02_relays_and_patrols() -> void:
 		d.respawn_enabled = false
 		d.destroyed.connect(_on_mission_target_destroyed.bind(d, "obj_escorts"))
 		active_root.add_child(d)
+	
+	# Spawn 180m Sandstone Canyon Walls & Choke-point Mesa Buttes
+	_spawn_m02_canyon_walls()
+
+func _spawn_m02_canyon_walls() -> void:
+	var cliff_mesh = load("res://assets/meshes/environment/canyon_cliff_straight.glb")
+	var mesa_mesh = load("res://assets/meshes/environment/canyon_mesa_pillar.glb")
+	if not cliff_mesh or not mesa_mesh:
+		return
+		
+	var canyon_root = Node3D.new()
+	canyon_root.name = "CanyonTerrainRoot"
+	active_root.add_child(canyon_root)
+	
+	# Left canyon wall chain (X = -220m, facing right into canyon corridor)
+	for i in range(6):
+		var z_pos = 150.0 - i * 245.0
+		var c_left = cliff_mesh.instantiate()
+		c_left.name = "CanyonCliff_L_" + str(i)
+		c_left.position = Vector3(-220.0, 0.0, z_pos)
+		c_left.rotation_degrees = Vector3(0, 90, 0)
+		canyon_root.add_child(c_left)
+		
+	# Right canyon wall chain (X = +220m, facing left into canyon corridor)
+	for i in range(6):
+		var z_pos = 150.0 - i * 245.0
+		var c_right = cliff_mesh.instantiate()
+		c_right.name = "CanyonCliff_R_" + str(i)
+		c_right.position = Vector3(220.0, 0.0, z_pos)
+		c_right.rotation_degrees = Vector3(0, -90, 0)
+		canyon_root.add_child(c_right)
+		
+	# Towering Mesa Pillars at corridor bends and choke points
+	var mesa_positions = [
+		Vector3(-140.0, 0.0, -350.0),
+		Vector3(150.0, 0.0, -580.0),
+		Vector3(-130.0, 0.0, -820.0),
+		Vector3(140.0, 0.0, -1050.0)
+	]
+	for idx in range(mesa_positions.size()):
+		var mesa = mesa_mesh.instantiate()
+		mesa.name = "CanyonMesa_" + str(idx + 1)
+		mesa.position = mesa_positions[idx]
+		canyon_root.add_child(mesa)
 
 func _spawn_m03_transport_and_allies() -> void:
 	var viper_mesh = load("res://assets/meshes/vehicles/Spaceship_Viper_Supreme_HD.fbx")

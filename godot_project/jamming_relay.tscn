@@ -1,89 +1,7 @@
-[gd_scene load_steps=22 format=3 uid="uid://b7jammingrelay01"]
+[gd_scene load_steps=7 format=3 uid="uid://b7jammingrelay01"]
 
 [ext_resource type="Script" path="res://jamming_relay.gd" id="1_relay"]
-[ext_resource type="PackedScene" path="res://assets/meshes/environment/Modular_SciFi_Wall_01_game_ready.fbx" id="2_wall"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_base"]
-albedo_color = Color(0.12, 0.15, 0.18, 1)
-metallic = 0.7
-roughness = 0.35
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_bunker"]
-material = SubResource("StandardMaterial3D_base")
-top_radius = 11.0
-bottom_radius = 12.5
-height = 4.0
-radial_segments = 8
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mast"]
-albedo_color = Color(0.18, 0.22, 0.26, 1)
-metallic = 0.8
-roughness = 0.3
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_lower_tier"]
-material = SubResource("StandardMaterial3D_mast")
-top_radius = 3.2
-bottom_radius = 5.5
-height = 18.0
-radial_segments = 6
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hazard"]
-albedo_color = Color(0.95, 0.55, 0.1, 1)
-metallic = 0.4
-roughness = 0.4
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_deck"]
-material = SubResource("StandardMaterial3D_hazard")
-top_radius = 6.5
-bottom_radius = 6.5
-height = 0.8
-radial_segments = 8
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_upper_tier"]
-material = SubResource("StandardMaterial3D_mast")
-top_radius = 1.6
-bottom_radius = 3.2
-height = 20.0
-radial_segments = 6
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dish"]
-albedo_color = Color(0.75, 0.78, 0.82, 1)
-metallic = 0.85
-roughness = 0.25
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_dish"]
-material = SubResource("StandardMaterial3D_dish")
-top_radius = 2.6
-bottom_radius = 1.2
-height = 0.8
-radial_segments = 16
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_ecm_core"]
-material = SubResource("StandardMaterial3D_base")
-top_radius = 2.2
-bottom_radius = 2.2
-height = 1.8
-radial_segments = 8
-
-[sub_resource type="BoxMesh" id="BoxMesh_boom"]
-material = SubResource("StandardMaterial3D_mast")
-size = Vector3(9.0, 0.4, 0.4)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_beacon"]
-albedo_color = Color(1, 0.1, 0.15, 1)
-emission_enabled = true
-emission = Color(1, 0.15, 0.2, 1)
-emission_energy_multiplier = 6.0
-
-[sub_resource type="SphereMesh" id="SphereMesh_strobe"]
-material = SubResource("StandardMaterial3D_beacon")
-radius = 0.45
-height = 0.9
-
-[sub_resource type="SphereMesh" id="SphereMesh_radome"]
-material = SubResource("StandardMaterial3D_beacon")
-radius = 1.4
-height = 2.6
+[ext_resource type="PackedScene" path="res://assets/meshes/environment/spire45_jamming_array.glb" id="2_spire"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_beam"]
 transparency = 1
@@ -99,83 +17,13 @@ height = 350.0
 radial_segments = 12
 
 [sub_resource type="CylinderShape3D" id="CylinderShape3D_hitbox"]
-height = 44.0
-radius = 8.0
+height = 45.0
+radius = 7.5
 
 [node name="JammingRelay" type="Node3D" groups=["enemies", "radar_targets"]]
 script = ExtResource("1_relay")
 
-[node name="Foundation" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
-mesh = SubResource("CylinderMesh_bunker")
-
-[node name="WallNorth" parent="Foundation" instance=ExtResource("2_wall")]
-transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 1.8, -8)
-
-[node name="WallSouth" parent="Foundation" instance=ExtResource("2_wall")]
-transform = Transform3D(-2, 0, 0, 0, 2, 0, 0, 0, -2, 0, 1.8, 8)
-
-[node name="WallEast" parent="Foundation" instance=ExtResource("2_wall")]
-transform = Transform3D(0, 0, 2, 0, 2, 0, -2, 0, 0, 8, 1.8, 0)
-
-[node name="WallWest" parent="Foundation" instance=ExtResource("2_wall")]
-transform = Transform3D(0, 0, -2, 0, 2, 0, 2, 0, 0, -8, 1.8, 0)
-
-[node name="LowerMast" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 13, 0)
-mesh = SubResource("CylinderMesh_lower_tier")
-
-[node name="MidDeck" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22, 0)
-mesh = SubResource("CylinderMesh_deck")
-
-[node name="UpperMast" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 32, 0)
-mesh = SubResource("CylinderMesh_upper_tier")
-
-[node name="Dishes" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 24, 0)
-
-[node name="Dish1" type="MeshInstance3D" parent="Dishes"]
-transform = Transform3D(0, -1, 0, 1, 0, 0, 0, 0, 1, 4, 0, 0)
-mesh = SubResource("CylinderMesh_dish")
-
-[node name="Dish2" type="MeshInstance3D" parent="Dishes"]
-transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, -4, 0, 0)
-mesh = SubResource("CylinderMesh_dish")
-
-[node name="ECMHead" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 42, 0)
-
-[node name="Core" type="MeshInstance3D" parent="ECMHead"]
-mesh = SubResource("CylinderMesh_ecm_core")
-
-[node name="BoomX" type="MeshInstance3D" parent="ECMHead"]
-mesh = SubResource("BoxMesh_boom")
-
-[node name="BoomZ" type="MeshInstance3D" parent="ECMHead"]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 0, 0)
-mesh = SubResource("BoxMesh_boom")
-
-[node name="Strobe1" type="MeshInstance3D" parent="ECMHead"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 0, 0)
-mesh = SubResource("SphereMesh_strobe")
-
-[node name="Strobe2" type="MeshInstance3D" parent="ECMHead"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 0, 0)
-mesh = SubResource("SphereMesh_strobe")
-
-[node name="Strobe3" type="MeshInstance3D" parent="ECMHead"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4.5)
-mesh = SubResource("SphereMesh_strobe")
-
-[node name="Strobe4" type="MeshInstance3D" parent="ECMHead"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4.5)
-mesh = SubResource("SphereMesh_strobe")
-
-[node name="Radome" type="MeshInstance3D" parent="ECMHead"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
-mesh = SubResource("SphereMesh_radome")
+[node name="SpireModel" parent="." instance=ExtResource("2_spire")]
 
 [node name="SkyBeam" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 218, 0)
@@ -188,7 +36,7 @@ light_energy = 4.0
 omni_range = 80.0
 
 [node name="HitBox" type="Area3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 22.5, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HitBox"]
 shape = SubResource("CylinderShape3D_hitbox")

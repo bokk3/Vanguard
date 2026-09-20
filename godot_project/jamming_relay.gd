@@ -15,7 +15,7 @@ signal destroyed()
 var is_alive: bool = true
 var anim_time: float = 0.0
 
-@onready var ecm_head: Node3D = find_child("ECMHead", true, false)
+@onready var ecm_head: Node3D = (find_child("ECM_Emitter_Head", true, false) as Node3D) if find_child("ECM_Emitter_Head", true, false) else (find_child("ECMHead", true, false) as Node3D)
 @onready var beacon_light: OmniLight3D = find_child("BeaconLight", true, false)
 @onready var sky_beam: MeshInstance3D = find_child("SkyBeam", true, false)
 @onready var hit_box: Area3D = find_child("HitBox", true, false)
