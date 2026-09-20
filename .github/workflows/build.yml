@@ -53,17 +53,29 @@ jobs:
         with:
           lfs: true
 
-      # Export templates come pre-installed in the godot-ci image at:
-      # /root/.local/share/godot/export_templates/<version>.stable/
-      # Godot's headless mode looks for them at the same path, so nothing to copy.
+      # ── Fix 1: install fontconfig so Godot stops spamming font errors ──
+      - name: Install system dependencies
+        run: apt-get update -qq && apt-get install -y --no-install-recommends fontconfig
+
+      # ── Fix 2: copy export templates from /root (image default) to
+      #    the actual runtime $HOME (/github/home in Actions containers) ──
+      - name: Setup Godot export templates
+        run: |
+          TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_VERSION_STATUS}"
+          mkdir -p "$TEMPLATE_DIR"
+          # Only copy if not already at the target (idempotent)
+          if [ ! "$(ls -A $TEMPLATE_DIR)" ]; then
+            cp -r /root/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_VERSION_STATUS}/. "$TEMPLATE_DIR/"
+          fi
+          echo "Templates at $TEMPLATE_DIR:"
+          ls "$TEMPLATE_DIR" | head -10
 
       - name: Create build output directory
         run: mkdir -p ${{ matrix.build_dir }}
 
       - name: Import project resources
         # --editor triggers the full import pipeline; --quit exits afterwards.
-        # Errors during import (missing assets etc.) are non-fatal for export,
-        # so we allow a non-zero exit here.
+        # Non-zero exit is fine here (editor mode always exits with 0 or 1 in headless).
         run: |
           godot --headless --path $PROJECT_PATH --editor --quit || true
 
