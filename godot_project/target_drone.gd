@@ -11,6 +11,7 @@ signal destroyed()
 @export var center_point: Vector3 = Vector3(0, 0, -350)
 @export var max_health: float = 100.0
 @export var health: float = 100.0
+@export var respawn_enabled: bool = true
 
 var angle: float = 0.0
 var is_alive: bool = true
@@ -80,7 +81,9 @@ func take_damage(amount: float) -> void:
 	_flash_hit_reaction()
 	
 	# Notify Tactical HUD
-	var hud = get_tree().root.find_child("TacticalOverlay", true, false)
+	var hud = null
+	if get_tree() and get_tree().root:
+		hud = get_tree().root.find_child("TacticalOverlay", true, false)
 	if hud:
 		if hud.has_method("trigger_hitmarker"):
 			hud.trigger_hitmarker()
@@ -127,10 +130,12 @@ func _on_destroyed() -> void:
 	if is_in_group("radar_targets"):
 		remove_from_group("radar_targets")
 	
-	print(">>> DRONE DESTROYED! Respawn sequence initiated (4s)...")
-	
-	# Respawn after 4.0 seconds
-	get_tree().create_timer(4.0).timeout.connect(_respawn)
+	if respawn_enabled:
+		print(">>> DRONE DESTROYED! Respawn sequence initiated (4s)...")
+		get_tree().create_timer(4.0).timeout.connect(_respawn)
+	else:
+		print(">>> DRONE ELIMINATED! No respawn (Mission Objective).")
+		get_tree().create_timer(1.5).timeout.connect(func(): if is_instance_valid(self): queue_free())
 
 func _respawn() -> void:
 	health = max_health

@@ -86,6 +86,22 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_objectives_card"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.02, 0.05, 0.09, 0.9)
+border_width_left = 3
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0.8, 1, 0.5)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
 [node name="PauseMenu" type="Control"]
 process_mode = 3
 layout_mode = 3
@@ -114,16 +130,16 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(480, 500)
+custom_minimum_size = Vector2(500, 560)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
 
 [node name="MarginContainer" type="MarginContainer" parent="CenterContainer/PanelContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 28
-theme_override_constants/margin_top = 24
+theme_override_constants/margin_top = 22
 theme_override_constants/margin_right = 28
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_bottom = 22
 
 [node name="VBox" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer"]
 layout_mode = 2
@@ -134,7 +150,7 @@ layout_mode = 2
 theme_override_constants/separation = 4
 
 [node name="SquadronBadge" type="TextureRect" parent="CenterContainer/PanelContainer/MarginContainer/VBox/HeaderBox"]
-custom_minimum_size = Vector2(72, 72)
+custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 size_flags_horizontal = 4
 texture = ExtResource("3_badge")
@@ -157,6 +173,43 @@ horizontal_alignment = 1
 
 [node name="HSeparator" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 layout_mode = 2
+
+[node name="ObjectivesCard" type="PanelContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_objectives_card")
+
+[node name="CardMargin" type="MarginContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBox/ObjectivesCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="CardVBox" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBox/ObjectivesCard/CardMargin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="MissionNameLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBox/ObjectivesCard/CardMargin/CardVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.95)
+theme_override_font_sizes/font_size = 12
+text = "CURRENT SORTIE: [M01] OPERATION CLOUDBURST"
+
+[node name="TheaterLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBox/ObjectivesCard/CardMargin/CardVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 0.8)
+theme_override_font_sizes/font_size = 10
+text = "THEATER: Sub-Cloud Interception Sector 07"
+
+[node name="CardSep" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBox/ObjectivesCard/CardMargin/CardVBox"]
+layout_mode = 2
+
+[node name="ObjectivesList" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBox/ObjectivesCard/CardMargin/CardVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
 
 [node name="Spacer1" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 custom_minimum_size = Vector2(0, 4)

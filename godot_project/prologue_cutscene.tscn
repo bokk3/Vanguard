@@ -1,0 +1,418 @@
+[gd_scene load_steps=22 format=3 uid="uid://dmh580w78p6x2"]
+
+[ext_resource type="Script" path="res://prologue_cutscene.gd" id="1_cutscene"]
+[ext_resource type="PackedScene" uid="uid://c21sm6f7vcpq4" path="res://Spaceship_Sculpted_V_Hull.glb" id="2_ship"]
+[ext_resource type="AudioStream" path="res://audio/narrator/prologue_narrator_official.mp3" id="3_audio"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sunset"]
+sky_top_color = Color(0.08, 0.14, 0.28, 1)
+sky_horizon_color = Color(0.94, 0.52, 0.22, 1)
+ground_bottom_color = Color(0.04, 0.06, 0.09, 1)
+ground_horizon_color = Color(0.35, 0.22, 0.16, 1)
+sun_angle_max = 35.0
+
+[sub_resource type="Sky" id="Sky_sunset"]
+sky_material = SubResource("ProceduralSkyMaterial_sunset")
+
+[sub_resource type="Environment" id="Environment_prologue"]
+background_mode = 2
+sky = SubResource("Sky_sunset")
+ambient_light_source = 2
+ambient_light_color = Color(0.85, 0.75, 0.65, 1)
+ambient_light_energy = 0.85
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 1.15
+glow_bloom = 0.22
+fog_enabled = true
+fog_light_color = Color(0.88, 0.58, 0.35, 1)
+fog_density = 0.0011
+fog_aerial_perspective = 0.5
+fog_sky_affect = 0.45
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+albedo_color = Color(0.11, 0.13, 0.16, 1)
+metallic = 0.25
+roughness = 0.75
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
+material = SubResource("StandardMaterial3D_ground")
+size = Vector2(6000, 6000)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rail"]
+albedo_color = Color(0.08, 0.1, 0.12, 1)
+emission_enabled = true
+emission = Color(1, 0.65, 0.1, 1)
+emission_energy_multiplier = 2.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_rail"]
+material = SubResource("StandardMaterial3D_rail")
+size = Vector3(8, 0.2, 2200)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pylon"]
+albedo_color = Color(0.12, 0.14, 0.17, 1)
+metallic = 0.8
+roughness = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_pylon_body"]
+material = SubResource("StandardMaterial3D_pylon")
+size = Vector3(18, 140, 18)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pylon_strip"]
+albedo_color = Color(0, 0.9, 1, 1)
+emission_enabled = true
+emission = Color(0, 0.9, 1, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_pylon_strip"]
+material = SubResource("StandardMaterial3D_pylon_strip")
+size = Vector3(1.2, 130, 1.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_beacon"]
+albedo_color = Color(1, 0.25, 0.1, 1)
+emission_enabled = true
+emission = Color(1, 0.25, 0.1, 1)
+emission_energy_multiplier = 5.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_beacon"]
+material = SubResource("StandardMaterial3D_beacon")
+radius = 2.5
+height = 5.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gate_ring"]
+albedo_color = Color(0, 0.95, 1, 1)
+emission_enabled = true
+emission = Color(0, 0.95, 1, 1)
+emission_energy_multiplier = 6.0
+
+[sub_resource type="TorusMesh" id="TorusMesh_gate"]
+material = SubResource("StandardMaterial3D_gate_ring")
+inner_radius = 21.0
+outer_radius = 23.5
+rings = 48
+ring_segments = 24
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_plume"]
+albedo_color = Color(0.1, 0.88, 1, 1)
+emission_enabled = true
+emission = Color(0, 0.92, 1, 1)
+emission_energy_multiplier = 6.5
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_plume"]
+material = SubResource("StandardMaterial3D_plume")
+top_radius = 0.08
+bottom_radius = 0.28
+height = 2.4
+radial_segments = 16
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_trail"]
+albedo_color = Color(0.6, 0.85, 1, 0.6)
+emission_enabled = true
+emission = Color(0.2, 0.8, 1, 1)
+emission_energy_multiplier = 2.0
+
+[node name="PrologueCutscene" type="Node3D"]
+script = ExtResource("1_cutscene")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_prologue")
+
+[node name="SunLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.990268, -0.0416955, 0.132857, 0, 0.95424, 0.299041, -0.139173, -0.296131, 0.944953, 0, 60, 0)
+light_color = Color(1, 0.88, 0.72, 1)
+light_energy = 2.4
+shadow_enabled = true
+
+[node name="FillLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.707107, 0.353553, -0.612372, 0, 0.866025, 0.5, 0.707107, 0.353553, -0.612372, 0, 40, 0)
+light_color = Color(0.4, 0.6, 0.85, 1)
+light_energy = 0.65
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_ground")
+
+[node name="CanyonFloorRail" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 400)
+mesh = SubResource("BoxMesh_rail")
+
+[node name="Obstacles" type="Node3D" parent="."]
+
+[node name="Pylon01" type="Node3D" parent="Obstacles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -55, 0, -120)
+
+[node name="Pillar" type="MeshInstance3D" parent="Obstacles/Pylon01"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 70, 0)
+mesh = SubResource("BoxMesh_pylon_body")
+
+[node name="Strip" type="MeshInstance3D" parent="Obstacles/Pylon01"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.1, 70, 0)
+mesh = SubResource("BoxMesh_pylon_strip")
+
+[node name="Beacon" type="MeshInstance3D" parent="Obstacles/Pylon01"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 142, 0)
+mesh = SubResource("SphereMesh_beacon")
+
+[node name="Pylon02" type="Node3D" parent="Obstacles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 55, 0, 80)
+
+[node name="Pillar" type="MeshInstance3D" parent="Obstacles/Pylon02"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 70, 0)
+mesh = SubResource("BoxMesh_pylon_body")
+
+[node name="Strip" type="MeshInstance3D" parent="Obstacles/Pylon02"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.1, 70, 0)
+mesh = SubResource("BoxMesh_pylon_strip")
+
+[node name="Beacon" type="MeshInstance3D" parent="Obstacles/Pylon02"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 142, 0)
+mesh = SubResource("SphereMesh_beacon")
+
+[node name="Pylon03" type="Node3D" parent="Obstacles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -60, 0, 220)
+
+[node name="Pillar" type="MeshInstance3D" parent="Obstacles/Pylon03"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 70, 0)
+mesh = SubResource("BoxMesh_pylon_body")
+
+[node name="Strip" type="MeshInstance3D" parent="Obstacles/Pylon03"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.1, 70, 0)
+mesh = SubResource("BoxMesh_pylon_strip")
+
+[node name="Beacon" type="MeshInstance3D" parent="Obstacles/Pylon03"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 142, 0)
+mesh = SubResource("SphereMesh_beacon")
+
+[node name="Pylon04" type="Node3D" parent="Obstacles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 0, 360)
+
+[node name="Pillar" type="MeshInstance3D" parent="Obstacles/Pylon04"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 70, 0)
+mesh = SubResource("BoxMesh_pylon_body")
+
+[node name="Strip" type="MeshInstance3D" parent="Obstacles/Pylon04"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.1, 70, 0)
+mesh = SubResource("BoxMesh_pylon_strip")
+
+[node name="Beacon" type="MeshInstance3D" parent="Obstacles/Pylon04"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 142, 0)
+mesh = SubResource("SphereMesh_beacon")
+
+[node name="Pylon05" type="Node3D" parent="Obstacles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -52, 0, 520)
+
+[node name="Pillar" type="MeshInstance3D" parent="Obstacles/Pylon05"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 75, 0)
+mesh = SubResource("BoxMesh_pylon_body")
+
+[node name="Strip" type="MeshInstance3D" parent="Obstacles/Pylon05"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.1, 75, 0)
+mesh = SubResource("BoxMesh_pylon_strip")
+
+[node name="Beacon" type="MeshInstance3D" parent="Obstacles/Pylon05"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 147, 0)
+mesh = SubResource("SphereMesh_beacon")
+
+[node name="Pylon06" type="Node3D" parent="Obstacles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 52, 0, 660)
+
+[node name="Pillar" type="MeshInstance3D" parent="Obstacles/Pylon06"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 75, 0)
+mesh = SubResource("BoxMesh_pylon_body")
+
+[node name="Strip" type="MeshInstance3D" parent="Obstacles/Pylon06"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.1, 75, 0)
+mesh = SubResource("BoxMesh_pylon_strip")
+
+[node name="Beacon" type="MeshInstance3D" parent="Obstacles/Pylon06"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 147, 0)
+mesh = SubResource("SphereMesh_beacon")
+
+[node name="ArchwayGate" type="Node3D" parent="Obstacles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 750)
+
+[node name="ColumnLeft" type="MeshInstance3D" parent="Obstacles/ArchwayGate"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -28, 35, 0)
+mesh = SubResource("BoxMesh_pylon_body")
+
+[node name="ColumnRight" type="MeshInstance3D" parent="Obstacles/ArchwayGate"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 35, 0)
+mesh = SubResource("BoxMesh_pylon_body")
+
+[node name="CrossBeam" type="MeshInstance3D" parent="Obstacles/ArchwayGate"]
+transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, 0, 65, 0)
+mesh = SubResource("BoxMesh_pylon_body")
+
+[node name="GateRing" type="MeshInstance3D" parent="Obstacles/ArchwayGate"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 33, 0)
+mesh = SubResource("TorusMesh_gate")
+
+[node name="Pylon07" type="Node3D" parent="Obstacles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -65, 0, 920)
+
+[node name="Pillar" type="MeshInstance3D" parent="Obstacles/Pylon07"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 75, 0)
+mesh = SubResource("BoxMesh_pylon_body")
+
+[node name="Beacon" type="MeshInstance3D" parent="Obstacles/Pylon07"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 147, 0)
+mesh = SubResource("SphereMesh_beacon")
+
+[node name="Pylon08" type="Node3D" parent="Obstacles"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65, 0, 1100)
+
+[node name="Pillar" type="MeshInstance3D" parent="Obstacles/Pylon08"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 75, 0)
+mesh = SubResource("BoxMesh_pylon_body")
+
+[node name="Beacon" type="MeshInstance3D" parent="Obstacles/Pylon08"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 147, 0)
+mesh = SubResource("SphereMesh_beacon")
+
+[node name="ShipRig" type="Node3D" parent="."]
+
+[node name="SpaceshipModel" parent="ShipRig" instance=ExtResource("2_ship")]
+
+[node name="EnginePlumeLeft" type="MeshInstance3D" parent="ShipRig"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, -1.45, 0.15, 3.8)
+mesh = SubResource("CylinderMesh_plume")
+
+[node name="EnginePlumeRight" type="MeshInstance3D" parent="ShipRig"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 1.45, 0.15, 3.8)
+mesh = SubResource("CylinderMesh_plume")
+
+[node name="EngineLightLeft" type="OmniLight3D" parent="ShipRig"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.45, 0.15, 4.2)
+light_color = Color(0, 0.9, 1, 1)
+light_energy = 3.2
+omni_range = 8.0
+
+[node name="EngineLightRight" type="OmniLight3D" parent="ShipRig"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.45, 0.15, 4.2)
+light_color = Color(0, 0.9, 1, 1)
+light_energy = 3.2
+omni_range = 8.0
+
+[node name="AfterburnerFlare" type="OmniLight3D" parent="ShipRig"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 4.5)
+visible = false
+light_color = Color(0.2, 0.95, 1, 1)
+light_energy = 8.0
+omni_range = 25.0
+
+[node name="TrailLeft" type="CPUParticles3D" parent="ShipRig"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.8, 0, 2)
+amount = 16
+lifetime = 0.4
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 1.0
+initial_velocity_max = 3.0
+color = Color(0, 0.9, 1, 0.5)
+
+[node name="TrailRight" type="CPUParticles3D" parent="ShipRig"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8, 0, 2)
+amount = 16
+lifetime = 0.4
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 1.0
+initial_velocity_max = 3.0
+color = Color(0, 0.9, 1, 0.5)
+
+[node name="CameraRig" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 50, -500)
+fov = 60.0
+far = 4000.0
+
+[node name="AudioNarrator" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3_audio")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="LetterboxTop" type="ColorRect" parent="UI"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 86.0
+grow_horizontal = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Margin" type="MarginContainer" parent="UI/LetterboxTop"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 36
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 36
+
+[node name="HBox" type="HBoxContainer" parent="UI/LetterboxTop/Margin"]
+layout_mode = 2
+
+[node name="HeaderLeft" type="Label" parent="UI/LetterboxTop/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.45, 0.7, 0.85, 0.8)
+theme_override_font_sizes/font_size = 11
+text = "// STRATCOM ARCHIVE LOG  •  VOX: CHRONICLER BRIAN  •  RESTRICTED RECORD 404-V"
+
+[node name="SkipPrompt" type="Label" parent="UI/LetterboxTop/Margin/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 0.85)
+theme_override_font_sizes/font_size = 12
+text = "[ ESC / SPACE : SKIP SEQUENCE ]"
+horizontal_alignment = 2
+
+[node name="LetterboxBottom" type="ColorRect" parent="UI"]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -120.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(0, 0, 0, 1)
+
+[node name="Margin" type="MarginContainer" parent="UI/LetterboxBottom"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 60
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 60
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="UI/LetterboxBottom/Margin"]
+layout_mode = 2
+alignment = 1
+
+[node name="ActBadge" type="Label" parent="UI/LetterboxBottom/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 12
+text = "ACT I // THE ASCENSION"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="UI/LetterboxBottom/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.98, 1, 1)
+theme_override_font_sizes/font_size = 17
+text = "For half a century, humanity believed the stars had been conquered by code."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="FadeOverlay" type="ColorRect" parent="UI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)

@@ -36,6 +36,28 @@ var hardpoint_nodes: Array[Node3D] = []
 var hardpoint_missiles: Array[Node3D] = []
 const LAUNCH_SEQUENCE: Array[int] = [0, 3, 1, 2] # Left Outer, Right Outer, Left Inner, Right Inner
 
+# ----------------------------------------------------
+# Machine Gun (BRRR) Rotary Autocannon System
+# ----------------------------------------------------
+@export_group("Machine Gun (BRRR)")
+@export var gun_fire_rate: float = 18.0     ## Rounds per second (18 Hz autocannon burst)
+@export var gun_damage: float = 6.0         ## Damage per kinetic round
+@export var gun_bullet_speed: float = 650.0 ## Muzzle projectile velocity
+@export var gun_spread: float = 0.007       ## Muzzle dispersion angle
+var gun_timer: float = 0.0
+var gun_barrel_index: int = 0
+var is_firing_gun: bool = false
+var gun_audio_player: AudioStreamPlayer = null
+var gun_winddown_player: AudioStreamPlayer = null
+var gun_flash_left: OmniLight3D = null
+var gun_flash_right: OmniLight3D = null
+var gun_flash_timer: float = 0.0
+
+const GUN_MUZZLE_OFFSETS: Array[Vector3] = [
+	Vector3(-0.85, -0.15, -2.6), # Left barrel
+	Vector3(0.85, -0.15, -2.6)   # Right barrel
+]
+
 @onready var camera: Camera3D = get_node_or_null("../Camera3D")
 @onready var telemetry: Node = $CombatTelemetry
 
@@ -51,6 +73,7 @@ func _ready() -> void:
 	print("Auto-detected Keyboard Layout: %s (Press F1 in-game to toggle)" % ("AZERTY" if is_azerty else "QWERTY"))
 	
 	_setup_weapon_hardpoints()
+	_setup_machine_gun()
 	if telemetry:
 		telemetry.missile_fired.connect(_on_missile_fired_sync)
 		telemetry.missile_replenished.connect(_on_missile_replenished_sync)
@@ -213,6 +236,11 @@ func _physics_process(delta: float) -> void:
 			if hud and hud.has_method("notify_combat_event"):
 				hud.notify_combat_event("// NAV BEACON RESUPPLY // ALL ORDNANCE RESTOCKED //", Color(1.0, 0.84, 0.0))
 
+	# ----------------------------------------------------
+	# 7. Rotary Machine Gun (BRRR) Processing
+	# ----------------------------------------------------
+	_process_machine_gun(delta)
+
 # -----------------------------------------------------------------------------
 # Weapon Hardpoints & Missile Launch System
 # -----------------------------------------------------------------------------
@@ -316,6 +344,10 @@ func _fire_missile() -> void:
 		var hud = get_node_or_null("../HUD/TacticalOverlay")
 		if hud and hud.has_method("notify_combat_event"):
 			hud.notify_combat_event("// MISSILE AWAY // TGT ACQUIRED", Color(0.0, 0.95, 1.0))
+		
+		var mm = get_node_or_null("/root/MissionManager")
+		if mm and mm.has_method("record_shot_fired"):
+			mm.record_shot_fired(true)
 	
 	# Decrement in telemetry
 	telemetry.fire_missile()
@@ -350,4 +382,127 @@ func restore_save_data(data: Dictionary) -> void:
 	
 	if telemetry:
 		update_missile_racks(telemetry.missiles_remaining)
+
+# -----------------------------------------------------------------------------
+# Machine Gun (BRRR) Rotary Autocannon Implementation
+# -----------------------------------------------------------------------------
+func _setup_machine_gun() -> void:
+	# 1. Autocannon "BRRR" Sustained Burst Audio Player
+	gun_audio_player = AudioStreamPlayer.new()
+	gun_audio_player.name = "AutocannonBrrPlayer"
+	var brr_stream = load("res://audio/sfx/sfx_autocannon_brr_loop.wav")
+	if brr_stream:
+		gun_audio_player.stream = brr_stream
+	gun_audio_player.volume_db = -2.5
+	gun_audio_player.finished.connect(func():
+		if is_firing_gun and gun_audio_player:
+			gun_audio_player.play()
+	)
+	add_child(gun_audio_player)
+
+	# 2. Wind-down rotor deceleration clack
+	gun_winddown_player = AudioStreamPlayer.new()
+	gun_winddown_player.name = "AutocannonWinddownPlayer"
+	var winddown_stream = load("res://audio/sfx/sfx_autocannon_winddown.wav")
+	if winddown_stream:
+		gun_winddown_player.stream = winddown_stream
+	gun_winddown_player.volume_db = -4.0
+	add_child(gun_winddown_player)
+
+	# 3. Dynamic Muzzle Flashes
+	gun_flash_left = OmniLight3D.new()
+	gun_flash_left.name = "MuzzleFlashLeft"
+	gun_flash_left.position = GUN_MUZZLE_OFFSETS[0] + Vector3(0, 0, -0.4)
+	gun_flash_left.light_color = Color(1.0, 0.78, 0.25)
+	gun_flash_left.light_energy = 0.0
+	gun_flash_left.omni_range = 6.0
+	add_child(gun_flash_left)
+
+	gun_flash_right = OmniLight3D.new()
+	gun_flash_right.name = "MuzzleFlashRight"
+	gun_flash_right.position = GUN_MUZZLE_OFFSETS[1] + Vector3(0, 0, -0.4)
+	gun_flash_right.light_color = Color(1.0, 0.78, 0.25)
+	gun_flash_right.light_energy = 0.0
+	gun_flash_right.omni_range = 6.0
+	add_child(gun_flash_right)
+
+func _process_machine_gun(delta: float) -> void:
+	gun_timer -= delta
+	gun_flash_timer -= delta
+
+	if gun_flash_timer <= 0.0:
+		if gun_flash_left:
+			gun_flash_left.light_energy = 0.0
+		if gun_flash_right:
+			gun_flash_right.light_energy = 0.0
+
+	var wants_fire = Input.is_action_pressed("fire_gun")
+	if wants_fire:
+		if not is_firing_gun:
+			is_firing_gun = true
+			if gun_audio_player and not gun_audio_player.playing:
+				gun_audio_player.play()
+
+		# Fire kinetic rounds according to fire rate
+		var max_burst_per_frame = 4
+		while gun_timer <= 0.0 and max_burst_per_frame > 0:
+			_fire_machine_gun_round()
+			gun_timer += (1.0 / gun_fire_rate)
+			max_burst_per_frame -= 1
+
+		# Subtle camera recoil vibration
+		if camera:
+			camera.position += Vector3(
+				randf_range(-0.025, 0.025),
+				randf_range(-0.025, 0.025),
+				randf_range(-0.025, 0.025)
+			)
+	else:
+		if is_firing_gun:
+			is_firing_gun = false
+			if gun_audio_player and gun_audio_player.playing:
+				gun_audio_player.stop()
+			if gun_winddown_player:
+				gun_winddown_player.play()
+
+func _fire_machine_gun_round() -> void:
+	gun_barrel_index = (gun_barrel_index + 1) % 2
+	var muzzle_offset = GUN_MUZZLE_OFFSETS[gun_barrel_index]
+	var xform = global_transform if is_inside_tree() else transform
+	var spawn_pos = xform.origin + (xform.basis * muzzle_offset)
+
+	# Compute ballistic trajectory with dispersion
+	var fwd = -xform.basis.z.normalized()
+	var right = xform.basis.x.normalized()
+	var up = xform.basis.y.normalized()
+
+	var spread_x = randf_range(-gun_spread, gun_spread)
+	var spread_y = randf_range(-gun_spread, gun_spread)
+	var bullet_dir = (fwd + right * spread_x + up * spread_y).normalized()
+
+	var bullet_scene = load("res://bullet.tscn")
+	if bullet_scene:
+		var bullet = bullet_scene.instantiate()
+		var tree = get_tree()
+		var spawn_parent = null
+		if tree:
+			spawn_parent = tree.current_scene if tree.current_scene else tree.root
+		if not spawn_parent:
+			spawn_parent = get_parent()
+		if not spawn_parent:
+			spawn_parent = self
+		spawn_parent.add_child(bullet)
+		bullet.global_position = spawn_pos
+		bullet.setup(self, bullet_dir, current_speed)
+
+	# Muzzle Flash
+	gun_flash_timer = 0.035
+	if gun_barrel_index == 0 and gun_flash_left:
+		gun_flash_left.light_energy = 4.5
+	elif gun_barrel_index == 1 and gun_flash_right:
+		gun_flash_right.light_energy = 4.5
+
+	# Telemetry / ammo tracking
+	if telemetry:
+		telemetry.fire_cannon_round()
 

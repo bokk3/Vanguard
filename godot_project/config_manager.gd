@@ -30,6 +30,7 @@ const ACTIONS = [
 	"pitch_up",
 	"pitch_down",
 	"boost",
+	"fire_gun",
 	"fire_missile",
 	"toggle_radar"
 ]
@@ -44,6 +45,7 @@ const ACTION_LABELS = {
 	"pitch_up": "Pitch Up (Elevator)",
 	"pitch_down": "Pitch Down (Elevator)",
 	"boost": "Afterburner Nitro",
+	"fire_gun": "Rotary Machine Gun (BRRR)",
 	"fire_missile": "Launch Strike Missile",
 	"toggle_radar": "Toggle Radar Display"
 }
@@ -69,6 +71,7 @@ func get_default_keybindings(azerty: bool) -> Dictionary:
 			"pitch_up": KEY_DOWN,
 			"pitch_down": KEY_UP,
 			"boost": KEY_SHIFT,
+			"fire_gun": KEY_F,
 			"fire_missile": KEY_SPACE,
 			"toggle_radar": KEY_R
 		}
@@ -83,6 +86,7 @@ func get_default_keybindings(azerty: bool) -> Dictionary:
 			"pitch_up": KEY_DOWN,
 			"pitch_down": KEY_UP,
 			"boost": KEY_SHIFT,
+			"fire_gun": KEY_F,
 			"fire_missile": KEY_SPACE,
 			"toggle_radar": KEY_R
 		}
@@ -121,9 +125,8 @@ func load_settings() -> void:
 	
 	# Keybindings
 	var defaults = get_default_keybindings(is_azerty)
-	keybindings.clear()
 	for action in ACTIONS:
-		var saved_code = _config.get_value("keybindings", action, defaults[action])
+		var saved_code = _config.get_value("keybindings", action, defaults.get(action, KEY_NONE))
 		keybindings[action] = int(saved_code)
 	
 	# Display & HUD
@@ -182,6 +185,16 @@ func apply_input_mappings() -> void:
 				ev_alt.physical_keycode = alt_code
 				ev_alt.keycode = alt_code
 				InputMap.action_add_event(action, ev_alt)
+		
+		# Bind Combat Mouse Controls: Left Click = Machine Gun (BRRR), Right Click = Missiles
+		if action == "fire_gun":
+			var ev_m = InputEventMouseButton.new()
+			ev_m.button_index = MOUSE_BUTTON_LEFT
+			InputMap.action_add_event(action, ev_m)
+		elif action == "fire_missile":
+			var ev_m = InputEventMouseButton.new()
+			ev_m.button_index = MOUSE_BUTTON_RIGHT
+			InputMap.action_add_event(action, ev_m)
 
 func rebind_action(action: String, new_keycode: int) -> void:
 	if not ACTIONS.has(action):

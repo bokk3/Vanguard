@@ -22,6 +22,16 @@ var combat_event_text: String = ""
 var combat_event_color: Color = COLOR_CYAN
 var combat_event_timer: float = 0.0
 
+# Radio Comms & Mission Objectives
+var current_radio_speaker: String = ""
+var current_radio_callsign: String = ""
+var current_radio_text: String = ""
+var current_radio_color: Color = Color.WHITE
+var current_radio_timer: float = 0.0
+var radio_banner_active: bool = false
+var mission_title: String = ""
+var mission_objectives: Array[Dictionary] = []
+
 func _ready() -> void:
 	var cfg = get_node_or_null("/root/ConfigManager")
 	if cfg:
@@ -33,6 +43,19 @@ func _ready() -> void:
 		camera = root.get_node_or_null("Camera3D") as Camera3D
 	if ship:
 		telemetry = ship.get_node_or_null("CombatTelemetry")
+	
+	# Connect to MissionManager
+	var mm = get_node_or_null("/root/MissionManager")
+	if mm:
+		mm.radio_transmission_started.connect(_on_radio_started)
+		mm.radio_transmission_ended.connect(_on_radio_ended)
+		mm.objective_updated.connect(_on_objective_updated)
+		mm.mission_started.connect(_on_mission_started)
+		
+		var cur_m = mm.get_mission(mm.current_mission_id)
+		if not cur_m.is_empty():
+			mission_title = cur_m.get("codename", "")
+			mission_objectives = mm.active_objectives.duplicate()
 
 func trigger_hitmarker() -> void:
 	hitmarker_timer = 0.35
@@ -55,6 +78,51 @@ func _process(delta: float) -> void:
 		hitmarker_timer = max(0.0, hitmarker_timer - delta)
 	if combat_event_timer > 0.0:
 		combat_event_timer = max(0.0, combat_event_timer - delta)
+	if current_radio_timer > 0.0:
+		current_radio_timer = max(0.0, current_radio_timer - delta)
+		if current_radio_timer <= 0.0:
+			radio_banner_active = false
+	queue_redraw()
+
+func _on_radio_started(speaker: String, callsign: String, text: String, color: Color, duration: float) -> void:
+	current_radio_speaker = speaker
+	current_radio_callsign = callsign
+	current_radio_text = text
+	current_radio_color = color
+	current_radio_timer = duration
+	radio_banner_active = true
+	queue_redraw()
+
+func _on_radio_ended() -> void:
+	radio_banner_active = false
+	queue_redraw()
+
+func _on_mission_started(mission_id: String, mission_data: Dictionary) -> void:
+	mission_title = mission_data.get("codename", mission_id)
+	mission_objectives.clear()
+	var mm = get_node_or_null("/root/MissionManager")
+	if mm:
+		mission_objectives = mm.active_objectives.duplicate()
+	queue_redraw()
+
+func _on_objective_updated(obj_id: String, status: String, text: String, cur_val: Variant, target_val: Variant) -> void:
+	var found = false
+	for obj in mission_objectives:
+		if obj.get("id") == obj_id:
+			obj["status"] = status
+			obj["text"] = text
+			obj["current_val"] = cur_val
+			obj["target_val"] = target_val
+			found = true
+			break
+	if not found:
+		mission_objectives.append({
+			"id": obj_id,
+			"status": status,
+			"text": text,
+			"current_val": cur_val,
+			"target_val": target_val
+		})
 	queue_redraw()
 
 func _draw() -> void:
@@ -89,6 +157,13 @@ func _draw() -> void:
 
 	# 8. Combat Status Event Toast
 	_draw_combat_event_toast(center)
+
+	# 9. Tactical Mission Objectives (Left HUD)
+	_draw_mission_objectives(viewport_size)
+
+	# 10. Radio Comms Transmission Banner (Top Center)
+	if radio_banner_active:
+		_draw_radio_comms_banner(viewport_size)
 
 # -----------------------------------------------------------------
 # 1. Top Compass Horizon Ribbon
@@ -403,10 +478,12 @@ func _draw_nitro_and_ordnance(vp: Vector2) -> void:
 		else:
 			draw_string(ThemeDB.fallback_font, Vector2(bx + 2, bay_y + 16), "EMPTY", HORIZONTAL_ALIGNMENT_CENTER, bay_w - 4, 8, COLOR_CYAN_DIM * 0.5)
 
-	# Weapon Trigger Guide
-	var reload_hint = " [AUTO-RELOAD ACTIVE]" if telemetry.missiles_remaining < telemetry.max_missiles else ""
-	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 135), "CANNON: 20mm GAU-22 [READY]" + reload_hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, COLOR_CYAN)
-	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 155), "[SPACE: Fire | NAV BEACON: Full Resupply]", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, COLOR_CYAN_DIM)
+	# Weapon Trigger Guide & Machine Gun (BRRR) Status
+	var is_firing = (ship and ship.get("is_firing_gun") == true)
+	var gun_col = COLOR_GOLD if is_firing else COLOR_CYAN
+	var gun_txt = "ROTARY CANNON // BRRR [FIRING]" if is_firing else "ROTARY CANNON: 20mm [READY]"
+	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 134), gun_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, gun_col)
+	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 154), "[LMB / F: Gun (BRRR) | RMB / SPACE: Missile]", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, COLOR_CYAN_DIM)
 
 # -----------------------------------------------------------------
 # 7. Stall Warning Banner
@@ -436,3 +513,71 @@ func _draw_combat_event_toast(center: Vector2) -> void:
 		draw_rect(pill_rect, Color(0.02, 0.04, 0.08, 0.85 * toast_alpha), true)
 		draw_rect(pill_rect, Color(combat_event_color.r, combat_event_color.g, combat_event_color.b, 0.6 * toast_alpha), false, 1.2)
 		draw_string(ThemeDB.fallback_font, Vector2(center.x - (txt_w * 0.5), center.y + 138.0), combat_event_text, HORIZONTAL_ALIGNMENT_CENTER, txt_w, 12, toast_col)
+
+# -----------------------------------------------------------------
+# 9. Tactical Mission Objectives Panel
+# -----------------------------------------------------------------
+func _draw_mission_objectives(vp: Vector2) -> void:
+	if mission_objectives.is_empty():
+		return
+	
+	var ox = 24.0
+	var oy = vp.y - 195.0 - (mission_objectives.size() * 22.0)
+	var ow = 320.0
+	var oh = 28.0 + (mission_objectives.size() * 22.0)
+	
+	draw_rect(Rect2(Vector2(ox, oy), Vector2(ow, oh)), COLOR_PANEL_BG, true)
+	draw_rect(Rect2(Vector2(ox, oy), Vector2(ow, oh)), COLOR_CYAN_DIM, false, 1.2)
+	
+	# Header
+	var title_str = "TACTICAL OBJECTIVES // " + (mission_title if mission_title != "" else "SORTIE")
+	draw_string(ThemeDB.fallback_font, Vector2(ox + 10, oy + 17), title_str, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, COLOR_GOLD)
+	
+	# Objective items
+	for i in range(mission_objectives.size()):
+		var obj = mission_objectives[i]
+		var item_y = oy + 36.0 + (i * 22.0)
+		var status = obj.get("status", "IN_PROGRESS")
+		var icon = "[ ]"
+		var col = COLOR_CYAN
+		
+		if status == "COMPLETED":
+			icon = "[X]"
+			col = COLOR_GREEN
+		elif status == "FAILED":
+			icon = "[!]"
+			col = COLOR_RED
+		
+		var cur_v = obj.get("current_val", 0)
+		var tgt_v = obj.get("target_val", 1)
+		var prog_str = ""
+		if tgt_v > 1:
+			prog_str = " (%d/%d)" % [cur_v, tgt_v]
+		
+		var txt = "%s %s%s" % [icon, obj.get("text", ""), prog_str]
+		draw_string(ThemeDB.fallback_font, Vector2(ox + 10, item_y), txt, HORIZONTAL_ALIGNMENT_LEFT, ow - 20, 10, col)
+
+# -----------------------------------------------------------------
+# 10. Radio Comms Transmission Banner
+# -----------------------------------------------------------------
+func _draw_radio_comms_banner(vp: Vector2) -> void:
+	if current_radio_text == "":
+		return
+	
+	var bw = 600.0
+	var bh = 56.0
+	var bx = (vp.x - bw) * 0.5
+	var by = 58.0 # Just below the top compass ribbon
+	
+	# Background plate
+	draw_rect(Rect2(Vector2(bx, by), Vector2(bw, bh)), Color(0.02, 0.05, 0.09, 0.94), true)
+	draw_rect(Rect2(Vector2(bx, by), Vector2(bw, bh)), current_radio_color, false, 1.5)
+	
+	# Header bar
+	draw_rect(Rect2(Vector2(bx, by), Vector2(bw, 18)), Color(current_radio_color.r * 0.25, current_radio_color.g * 0.25, current_radio_color.b * 0.25, 0.9), true)
+	var header = "⚡ COMMS TRANSMISSION // %s [%s]" % [current_radio_speaker, current_radio_callsign]
+	draw_string(ThemeDB.fallback_font, Vector2(bx + 12, by + 13), header, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, current_radio_color)
+	
+	# Message body
+	draw_string(ThemeDB.fallback_font, Vector2(bx + 14, by + 36), current_radio_text, HORIZONTAL_ALIGNMENT_LEFT, bw - 28, 11, Color(0.92, 0.96, 1.0))
+

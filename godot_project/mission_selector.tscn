@@ -1,0 +1,309 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://mission_selector.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://ui/faction_sol_crest.png" id="2_crest_sol"]
+[ext_resource type="Texture2D" path="res://ui/faction_combine_crest.png" id="3_crest_combine"]
+[ext_resource type="Texture2D" path="res://ui/menu_icon_deploy.png" id="4_icon_deploy"]
+[ext_resource type="Texture2D" path="res://ui/menu_icon_quit.png" id="5_icon_quit"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.02, 0.05, 0.09, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.9, 1, 0.85)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0.8, 1, 0.15)
+shadow_size = 18
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+bg_color = Color(0.04, 0.1, 0.16, 0.9)
+border_width_left = 2
+border_color = Color(0, 0.8, 1, 0.6)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+bg_color = Color(0.08, 0.22, 0.35, 0.95)
+border_width_left = 4
+border_color = Color(1, 0.84, 0, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_scramble"]
+content_margin_left = 24.0
+content_margin_top = 12.0
+content_margin_right = 24.0
+content_margin_bottom = 12.0
+bg_color = Color(0, 0.38, 0.48, 0.95)
+border_width_left = 4
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 1, 0.85, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="MissionSelector" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.01, 0.03, 0.06, 0.88)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainPanel" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(980, 640)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="Margin" type="MarginContainer" parent="CenterContainer/MainPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="MainVBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HeaderBox" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="CrestSol" type="TextureRect" parent="CenterContainer/MainPanel/Margin/MainVBox/HeaderBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+texture = ExtResource("2_crest_sol")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HeaderTexts" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/MainVBox/HeaderBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="HeaderTitle" type="Label" parent="CenterContainer/MainPanel/Margin/MainVBox/HeaderBox/HeaderTexts"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "TACTICAL SORTIE BRIEFING // FLEET OPERATIONS"
+
+[node name="ClassificationLabel" type="Label" parent="CenterContainer/MainPanel/Margin/MainVBox/HeaderBox/HeaderTexts"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "// CLASSIFIED: TOP SECRET // DIRECTORATE AIR DEFENSE COMMAND //"
+
+[node name="CrestCombine" type="TextureRect" parent="CenterContainer/MainPanel/Margin/MainVBox/HeaderBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 50)
+layout_mode = 2
+texture = ExtResource("3_crest_combine")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HSeparator1" type="HSeparator" parent="CenterContainer/MainPanel/Margin/MainVBox"]
+layout_mode = 2
+
+[node name="ContentHBox" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/MainVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+
+[node name="LeftPane" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox"]
+custom_minimum_size = Vector2(330, 0)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ListHeader" type="Label" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/LeftPane"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.9)
+theme_override_font_sizes/font_size = 12
+text = "OPERATIONAL THEATERS // SELECT SORTIE:"
+
+[node name="ScrollList" type="ScrollContainer" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/LeftPane"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="MissionListContainer" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/LeftPane/ScrollList"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="VSeparator1" type="VSeparator" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox"]
+layout_mode = 2
+
+[node name="RightPane" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="MissionTitleLabel" type="Label" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "[M01] OPERATION CLOUDBURST"
+
+[node name="TheaterLabel" type="Label" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.95)
+theme_override_font_sizes/font_size = 12
+text = "THEATER: Sub-Cloud Interception Sector 07"
+
+[node name="WeatherLabel" type="Label" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.85, 0.95, 0.8)
+theme_override_font_sizes/font_size = 11
+text = "CONDITIONS: 0740 HRS // Heavy Overcast, Cloud Ceiling 2,800m"
+
+[node name="StatusBadgeLabel" type="Label" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 12
+text = "STATUS: [ READY FOR HOT SCRAMBLE ]"
+
+[node name="HSeparator2" type="HSeparator" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane"]
+layout_mode = 2
+
+[node name="DossierScroll" type="ScrollContainer" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="DossierContent" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane/DossierScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="NarrativeHeader" type="Label" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane/DossierScroll/DossierContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "SITUATION & INTELLIGENCE BRIEFING:"
+
+[node name="NarrativeLabel" type="Label" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane/DossierScroll/DossierContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.94, 1, 0.9)
+theme_override_font_sizes/font_size = 12
+text = "At dawn, sensor arrays detect unauthorized telemetry signatures piercing the dense storm front..."
+autowrap_mode = 2
+
+[node name="ObjectivesHeader" type="Label" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane/DossierScroll/DossierContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "TACTICAL OBJECTIVES:"
+
+[node name="ObjectivesListContainer" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane/DossierScroll/DossierContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SpecsHeader" type="Label" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane/DossierScroll/DossierContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "FLIGHT ENVELOPE & AVIONICS SPECIFICATIONS:"
+
+[node name="FlightSpecsLabel" type="Label" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane/DossierScroll/DossierContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.9, 1, 0.85)
+theme_override_font_sizes/font_size = 11
+text = "• Stall Speed: 25.0 m/s\n• Armament: 4x VPSM-01 Missiles, 20mm Cannon"
+
+[node name="ThreatHeader" type="Label" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane/DossierScroll/DossierContent"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "IDENTIFIED THREAT FORCES:"
+
+[node name="ThreatLabel" type="Label" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane/DossierScroll/DossierContent"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.45, 0.45, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "• 4x Helion Autonomous Recon Drones"
+
+[node name="HSeparator3" type="HSeparator" parent="CenterContainer/MainPanel/Margin/MainVBox"]
+layout_mode = 2
+
+[node name="FooterBox" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="CloseBtn" type="Button" parent="CenterContainer/MainPanel/Margin/MainVBox/FooterBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+text = "  [ RETURN TO HANGAR ]"
+icon = ExtResource("5_icon_quit")
+expand_icon = true
+
+[node name="Spacer" type="Control" parent="CenterContainer/MainPanel/Margin/MainVBox/FooterBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ScrambleBtn" type="Button" parent="CenterContainer/MainPanel/Margin/MainVBox/FooterBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_scramble")
+text = "  ⚡ SCRAMBLE SORTIE [M01]  "
+icon = ExtResource("4_icon_deploy")
+expand_icon = true

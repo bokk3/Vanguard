@@ -7,6 +7,8 @@ signal nitro_changed(current: float, max_val: float, overheated: bool)
 signal lock_state_changed(target: Node3D, progress: float, is_locked: bool)
 signal missile_fired(remaining: int)
 signal missile_replenished(remaining: int)
+signal cannon_fired(remaining: int)
+signal cannon_replenished(remaining: int)
 
 # 1. Health & Shields
 @export_group("Vital Systems")
@@ -128,6 +130,17 @@ func fire_missile() -> bool:
 		return true
 	return false
 
+func fire_cannon_round() -> bool:
+	if cannon_rounds > 0:
+		cannon_rounds -= 1
+		cannon_fired.emit(cannon_rounds)
+		return true
+	return false
+
+func refill_cannon(amount: int = 600) -> void:
+	cannon_rounds = amount
+	cannon_replenished.emit(cannon_rounds)
+
 func _process_missile_reload(delta: float) -> void:
 	if missiles_remaining < max_missiles:
 		missile_reload_timer += delta
@@ -144,13 +157,11 @@ func refill_all_missiles() -> void:
 		missiles_remaining = max_missiles
 		missile_reload_timer = 0.0
 		missile_replenished.emit(missiles_remaining)
-		print(">>> ALL MISSILES REPLENISHED! Full stock: 4/4")
+	refill_cannon(600)
+	print(">>> ALL ORDNANCE REPLENISHED! Full stock: 4/4 missiles, 600 rounds")
 
 func fire_cannon() -> bool:
-	if cannon_rounds > 0:
-		cannon_rounds -= 1
-		return true
-	return false
+	return fire_cannon_round()
 
 # --------------------------------------------------------
 # Radar & Target Lock-On System

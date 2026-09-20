@@ -10,6 +10,7 @@
 [ext_resource type="Texture2D" path="res://ui/menu_icon_quit.png" id="8_icon_quit"]
 [ext_resource type="Texture2D" path="res://ui/fighter_blueprint_topdown.png" id="9_blueprint"]
 [ext_resource type="Texture2D" path="res://ui/project_vanguard_title_cropped.png" id="10_title"]
+[ext_resource type="PackedScene" path="res://mission_selector.tscn" id="11_selector"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_eerie"]
 sky_top_color = Color(0.95, 0.96, 0.98, 1)
@@ -339,6 +340,19 @@ icon = ExtResource("5_icon_deploy")
 alignment = 0
 expand_icon = true
 
+[node name="PrologueBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.4, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "  [ 02 ]  WATCH PROLOGUE"
+icon = ExtResource("5_icon_deploy")
+alignment = 0
+expand_icon = true
+
 [node name="ConfigBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 42)
@@ -347,7 +361,7 @@ theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 14
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  [ 02 ]  AVIONICS CONFIG"
+text = "  [ 03 ]  AVIONICS CONFIG"
 icon = ExtResource("6_icon_config")
 alignment = 0
 expand_icon = true
@@ -360,7 +374,7 @@ theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 14
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  [ 03 ]  FIGHTER SPECS"
+text = "  [ 04 ]  FIGHTER SPECS"
 icon = ExtResource("7_icon_specs")
 alignment = 0
 expand_icon = true
@@ -373,7 +387,7 @@ theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 14
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  [ 04 ]  ABORT / QUIT"
+text = "  [ 05 ]  ABORT / QUIT"
 icon = ExtResource("8_icon_quit")
 alignment = 0
 expand_icon = true
@@ -494,5 +508,9 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "[ CLOSE SPECS ]"
 
 [node name="SettingsMenu" parent="UI" instance=ExtResource("3_settings")]
+unique_name_in_owner = true
+visible = false
+
+[node name="MissionSelector" parent="UI" instance=ExtResource("11_selector")]
 unique_name_in_owner = true
 visible = false

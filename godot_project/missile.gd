@@ -86,6 +86,9 @@ func detonate(hit_object: Node) -> void:
 		if candidate.has_method("take_damage"):
 			candidate.take_damage(damage)
 			print(">>> MISSILE IMPACT: Dealt ", damage, " HP to ", candidate.name)
+			var mm = get_node_or_null("/root/MissionManager")
+			if mm and mm.has_method("record_hit"):
+				mm.record_hit(true)
 	
 	# Spawn explosion FX into root
 	if explosion_scene:

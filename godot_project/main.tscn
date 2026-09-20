@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://combat_telemetry.gd" id="4_telem"]
 [ext_resource type="Script" path="res://target_drone.gd" id="5_drone"]
 [ext_resource type="PackedScene" path="res://pause_menu.tscn" id="6_pause"]
+[ext_resource type="Script" path="res://main.gd" id="7_main"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.12, 0.25, 0.45, 1)
@@ -56,6 +57,7 @@ radius = 5.0
 height = 10.0
 
 [node name="Main" type="Node3D"]
+script = ExtResource("7_main")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_1")

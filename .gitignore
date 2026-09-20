@@ -31,3 +31,14 @@ Exports/
 # Godot 4 engine cache and artifacts
 .godot/
 *.translation
+
+# GitHub Actions build output
+builds/
+
+# Godot exported binaries
+*.exe
+*.x86_64
+*.arm64
+*.apk
+*.aab
+*.ipa

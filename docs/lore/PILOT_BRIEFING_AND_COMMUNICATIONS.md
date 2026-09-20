@@ -43,3 +43,32 @@ The onboard flight computer utilizes an authoritative, calm synthetic voice (oft
 
 * **Mission Complete:**
   > *"All hostile signatures off the scope. Outstanding shooting, Vanguard 1. Form up and RTB for re-arm."*
+
+---
+
+## 4. Local Vocal Generation Pipeline (Zero Cloud Cost)
+
+All mission dialogue, AWACS comms, and cockpit AI voice lines are generated via local automation using [`tools/generate_vocals.py`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/tools/generate_vocals.py).
+
+### Voice Cast Manifest
+| Character | Role | Voice Profile | Technical Parameters |
+| :--- | :--- | :--- | :--- |
+| **The Chronicler** | Intro Cutscene & Campaign Narrator | `en-US-BrianNeural` | Pitch `-3Hz`, Rate `-4%` (Deep, gravelly blockbuster cinematic trailer tone) |
+| **Apex Command** | AWACS Tactical Controller (Male) | `en-US-ChristopherNeural` | Pitch `-2Hz`, Rate `+2%` (Deep, commanding military radar officer) |
+| **Aegis-7** | Cockpit Flight Computer (Female) | `en-GB-SoniaNeural` | Pitch `+0Hz`, Rate `+2%` (Crisp, calm, unflinching synthetic AI) |
+| **Lt. Vance Miller (Viper 2)** | Allied Fighter Wingman (Male) | `en-US-GuyNeural` | Pitch `+0Hz`, Rate `+4%` (Agile, tactical fighter pilot timbre) |
+
+### Executing Vocal Generation
+```powershell
+# Generates all mission voice files directly into godot_project/audio/comms/
+python tools/generate_vocals.py
+```
+
+Generated `.mp3` transmission files are automatically recognized and imported by Godot 4:
+* `godot_project/audio/comms/m01_apex_scramble.mp3`
+* `godot_project/audio/comms/m01_aegis_launch.mp3`
+* `godot_project/audio/comms/m01_aegis_contact.mp3`
+* `godot_project/audio/comms/m01_apex_weapons_free.mp3`
+* `godot_project/audio/comms/m01_aegis_lock_confirmed.mp3`
+* `godot_project/audio/comms/m01_apex_mission_complete.mp3`
+

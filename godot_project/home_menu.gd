@@ -10,6 +10,7 @@ extends Node3D
 
 @onready var continue_btn: Button = %ContinueBtn
 @onready var deploy_btn: Button = %DeployBtn
+@onready var prologue_btn: Button = %PrologueBtn
 @onready var config_btn: Button = %ConfigBtn
 @onready var specs_btn: Button = %SpecsBtn
 @onready var quit_btn: Button = %QuitBtn
@@ -17,6 +18,7 @@ extends Node3D
 @onready var specs_panel: PanelContainer = %SpecsPanel
 @onready var close_specs_btn: Button = %CloseSpecsBtn
 @onready var settings_modal: Control = %SettingsMenu
+@onready var mission_selector: Control = %MissionSelector
 
 @onready var repair_progress_bar: ProgressBar = %RepairProgressBar
 @onready var repair_status_label: Label = %RepairStatusLabel
@@ -39,6 +41,8 @@ func _ready() -> void:
 	# Connect buttons
 	continue_btn.pressed.connect(_on_continue_pressed)
 	deploy_btn.pressed.connect(_on_deploy_pressed)
+	if prologue_btn:
+		prologue_btn.pressed.connect(_on_prologue_pressed)
 	config_btn.pressed.connect(_on_config_pressed)
 	specs_btn.pressed.connect(_on_specs_pressed)
 	quit_btn.pressed.connect(_on_quit_pressed)
@@ -47,6 +51,8 @@ func _ready() -> void:
 	settings_modal.closed.connect(_on_settings_closed)
 	specs_panel.hide()
 	settings_modal.hide()
+	if mission_selector:
+		mission_selector.hide()
 	
 	if title_box_right:
 		initial_title_y = title_box_right.position.y
@@ -103,12 +109,22 @@ func _check_save_game_state() -> void:
 		continue_btn.visible = true
 		continue_btn.text = "  [ 01 ]  CONTINUE SORTIE"
 		deploy_btn.text = "  [ 02 ]  NEW SORTIE"
+		if prologue_btn:
+			prologue_btn.text = "  [ 03 ]  WATCH PROLOGUE"
+		config_btn.text = "  [ 04 ]  AVIONICS CONFIG"
+		specs_btn.text = "  [ 05 ]  FIGHTER SPECS"
+		quit_btn.text = "  [ 06 ]  ABORT / QUIT"
 		
 		if telemetry_summary:
 			telemetry_summary.text = "ACTIVE SORTIE: %s\nHULL INTEGRITY: %d%%\nMISSILES ARMED: %d/4" % [date_str, int(hull_val), int(missiles_val)]
 	else:
 		continue_btn.visible = false
 		deploy_btn.text = "  [ 01 ]  DEPLOY SORTIE"
+		if prologue_btn:
+			prologue_btn.text = "  [ 02 ]  WATCH PROLOGUE"
+		config_btn.text = "  [ 03 ]  AVIONICS CONFIG"
+		specs_btn.text = "  [ 04 ]  FIGHTER SPECS"
+		quit_btn.text = "  [ 05 ]  ABORT / QUIT"
 
 func _process(delta: float) -> void:
 	anim_time += delta
@@ -147,10 +163,16 @@ func _on_continue_pressed() -> void:
 	get_tree().change_scene_to_file("res://main.tscn")
 
 func _on_deploy_pressed() -> void:
-	var sm = get_node_or_null("/root/SaveManager")
-	if sm:
-		sm.should_load_on_start = false
-	get_tree().change_scene_to_file("res://main.tscn")
+	if mission_selector:
+		mission_selector.open_selector()
+	else:
+		var sm = get_node_or_null("/root/SaveManager")
+		if sm:
+			sm.should_load_on_start = false
+		get_tree().change_scene_to_file("res://main.tscn")
+
+func _on_prologue_pressed() -> void:
+	get_tree().change_scene_to_file("res://prologue_cutscene.tscn")
 
 func _on_config_pressed() -> void:
 	settings_modal.open_menu()

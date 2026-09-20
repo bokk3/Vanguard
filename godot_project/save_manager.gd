@@ -59,9 +59,14 @@ func save_game(slot_name: String = DEFAULT_SLOT) -> bool:
 	var telemetry = ship.get_node_or_null("CombatTelemetry") if ship else null
 	var drone = root.get_node_or_null("EnemyDroneAlpha")
 	
+	var mm = get_node_or_null("/root/MissionManager")
+	var campaign_info = mm.get_save_data() if mm and mm.has_method("get_save_data") else {}
+	var cur_mission_id = mm.current_mission_id if mm else "M01"
+	var cur_mission_data = mm.get_mission(cur_mission_id) if mm else {}
+	
 	var save_data = {
 		"format_version": 1,
-		"game_version": ProjectSettings.get_setting("application/config/version", "0.5.0"),
+		"game_version": ProjectSettings.get_setting("application/config/version", "0.7.0"),
 		"timestamp": Time.get_datetime_string_from_system(true),
 		"display_date": Time.get_datetime_string_from_system(false, true).replace("T", " "),
 		"profile": {
@@ -70,10 +75,12 @@ func save_game(slot_name: String = DEFAULT_SLOT) -> bool:
 			"rank": "FLIGHT LIEUTENANT"
 		},
 		"sortie": {
-			"mission_id": "SORTIE_01_RECON_INTERCEPT",
-			"mission_title": "Operation Archangel: Low-Orbit Intercept",
+			"mission_id": cur_mission_id,
+			"mission_title": cur_mission_data.get("codename", "Operation CLOUDBURST"),
+			"theater": cur_mission_data.get("theater", "Sub-Cloud Interception Sector 07"),
 			"scene_file": root.scene_file_path if root.scene_file_path != "" else "res://main.tscn"
 		},
+		"campaign": campaign_info,
 		"ship": ship.get_save_data() if ship and ship.has_method("get_save_data") else {},
 		"telemetry": telemetry.get_save_data() if telemetry and telemetry.has_method("get_save_data") else {},
 		"world": {
@@ -128,6 +135,11 @@ func apply_save_to_current_scene(slot_name: String = DEFAULT_SLOT) -> bool:
 				drone.queue_free()
 			elif is_instance_valid(drone) and world_info.has("drone_state") and drone.has_method("restore_save_data"):
 				drone.restore_save_data(world_info["drone_state"])
+	
+	if data.has("campaign"):
+		var mm = get_node_or_null("/root/MissionManager")
+		if mm and mm.has_method("restore_save_data"):
+			mm.restore_save_data(data["campaign"])
 	
 	print(">>> Project Vanguard: Sortie state restored successfully from: ", get_save_path(slot_name))
 	game_loaded.emit(slot_name)

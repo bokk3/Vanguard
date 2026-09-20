@@ -15,6 +15,10 @@ extends Control
 @onready var save_toast: PanelContainer = %SaveToast
 @onready var save_toast_label: Label = %SaveToastLabel
 
+@onready var mission_name_label: Label = find_child("MissionNameLabel", true, false)
+@onready var theater_label: Label = find_child("TheaterLabel", true, false)
+@onready var objectives_list: VBoxContainer = find_child("ObjectivesList", true, false)
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	hide()
@@ -46,9 +50,65 @@ func pause_flight() -> void:
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_refresh_save_buttons()
+	_refresh_objectives()
 	if save_toast:
 		save_toast.hide()
 	show()
+
+func _refresh_objectives() -> void:
+	var mm = get_node_or_null("/root/MissionManager")
+	if not mm:
+		return
+	
+	if not mission_name_label:
+		mission_name_label = find_child("MissionNameLabel", true, false)
+	if not theater_label:
+		theater_label = find_child("TheaterLabel", true, false)
+	if not objectives_list:
+		objectives_list = find_child("ObjectivesList", true, false)
+	
+	var m = mm.get_mission(mm.current_mission_id)
+	if mission_name_label:
+		mission_name_label.text = "CURRENT SORTIE: [%s] %s" % [mm.current_mission_id, m.get("codename", "UNKNOWN")]
+	if theater_label:
+		theater_label.text = "THEATER: %s" % m.get("theater", "Sector 07")
+	
+	if objectives_list:
+		for child in objectives_list.get_children():
+			objectives_list.remove_child(child)
+			child.queue_free()
+		
+		for obj in mm.active_objectives:
+			var row = HBoxContainer.new()
+			row.add_theme_constant_override("separation", 8)
+			
+			var icon_lbl = Label.new()
+			var status = obj.get("status", "IN_PROGRESS")
+			var icon = "[ ]"
+			var col = Color(0.0, 0.85, 1.0)
+			if status == "COMPLETED":
+				icon = "[X]"
+				col = Color(0.1, 1.0, 0.4)
+			elif status == "FAILED":
+				icon = "[!]"
+				col = Color(1.0, 0.25, 0.25)
+			
+			icon_lbl.text = icon
+			icon_lbl.add_theme_font_size_override("font_size", 11)
+			icon_lbl.add_theme_color_override("font_color", col)
+			row.add_child(icon_lbl)
+			
+			var desc_lbl = Label.new()
+			var cur_v = obj.get("current_val", 0)
+			var tgt_v = obj.get("target_val", 1)
+			var prog_str = " (%d/%d)" % [cur_v, tgt_v] if tgt_v > 1 else ""
+			desc_lbl.text = "%s%s" % [obj.get("text", ""), prog_str]
+			desc_lbl.add_theme_font_size_override("font_size", 11)
+			desc_lbl.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0, 0.95) if status != "FAILED" else Color(1.0, 0.4, 0.4))
+			desc_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			row.add_child(desc_lbl)
+			
+			objectives_list.add_child(row)
 
 func _refresh_save_buttons() -> void:
 	var sm = get_node_or_null("/root/SaveManager")
