@@ -2,6 +2,11 @@
 
 [ext_resource type="Script" path="res://pause_menu.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://settings_menu.tscn" id="2_settings"]
+[ext_resource type="Texture2D" path="res://ui/vanguard_squadron_patch_cropped.png" id="3_badge"]
+[ext_resource type="Texture2D" path="res://ui/menu_icon_deploy.png" id="4_icon_deploy"]
+[ext_resource type="Texture2D" path="res://ui/menu_icon_specs.png" id="5_icon_specs"]
+[ext_resource type="Texture2D" path="res://ui/menu_icon_config.png" id="6_icon_config"]
+[ext_resource type="Texture2D" path="res://ui/menu_icon_quit.png" id="7_icon_quit"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
 bg_color = Color(0.02, 0.06, 0.11, 0.95)
@@ -110,7 +115,15 @@ theme_override_constants/separation = 12
 
 [node name="HeaderBox" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 2
+theme_override_constants/separation = 4
+
+[node name="SquadronBadge" type="TextureRect" parent="CenterContainer/PanelContainer/MarginContainer/VBox/HeaderBox"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+size_flags_horizontal = 4
+texture = ExtResource("3_badge")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Title" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBox/HeaderBox"]
 layout_mode = 2
@@ -123,7 +136,7 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.84, 0, 0.85)
 theme_override_font_sizes/font_size = 11
-text = "AVIONICS STANDBY // SIMULATION SUSPENDED"
+text = "404th VANGUARD WING // AVIONICS STANDBY"
 horizontal_alignment = 1
 
 [node name="HSeparator" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
@@ -135,53 +148,68 @@ layout_mode = 2
 
 [node name="ResumeBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 14
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_resume")
-text = "[ 01 ]  RESUME FLIGHT"
+text = "  [ 01 ]  RESUME FLIGHT"
+icon = ExtResource("4_icon_deploy")
 alignment = 0
+expand_icon = true
 
 [node name="RestartBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 13
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "[ 02 ]  RESTART SORTIE"
+text = "  [ 02 ]  RESTART SORTIE"
+icon = ExtResource("5_icon_specs")
 alignment = 0
+expand_icon = true
 
 [node name="ConfigBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 13
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "[ 03 ]  AVIONICS CONFIG"
+text = "  [ 03 ]  AVIONICS CONFIG"
+icon = ExtResource("6_icon_config")
 alignment = 0
+expand_icon = true
 
 [node name="HangarBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 13
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "[ 04 ]  RETURN TO HANGAR"
+text = "  [ 04 ]  RETURN TO HANGAR"
+icon = ExtResource("3_badge")
 alignment = 0
+expand_icon = true
 
 [node name="QuitBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 13
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "[ 05 ]  ABORT TO DESKTOP"
+text = "  [ 05 ]  ABORT TO DESKTOP"
+icon = ExtResource("7_icon_quit")
 alignment = 0
+expand_icon = true
 
 [node name="Spacer2" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 layout_mode = 2
