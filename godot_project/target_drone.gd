@@ -76,6 +76,18 @@ func _ready() -> void:
 	hit_box.add_child(col)
 	add_child(hit_box)
 	
+	# 3. Add AnimatableBody3D for physical airframe collision with player
+	var phys_body = AnimatableBody3D.new()
+	phys_body.name = "PhysicalBody"
+	phys_body.collision_layer = 4 # Layer 3: Enemies
+	phys_body.collision_mask = 0
+	var col_phys = CollisionShape3D.new()
+	var shape_phys = BoxShape3D.new()
+	shape_phys.size = Vector3(7.0, 3.5, 9.5)
+	col_phys.shape = shape_phys
+	phys_body.add_child(col_phys)
+	add_child(phys_body)
+	
 	gun_cooldown = randf_range(1.5, 3.5)
 
 func _cache_drone_materials(node: Node) -> void:

@@ -508,6 +508,7 @@ func _spawn_m02_canyon_walls() -> void:
 		c_left.name = "CanyonCliff_L_" + str(i)
 		c_left.position = Vector3(-220.0, 0.0, z_pos)
 		c_left.rotation_degrees = Vector3(0, 90, 0)
+		_add_static_box_collision(c_left, Vector3(80, 180, 250), Vector3(0, 90, 0))
 		canyon_root.add_child(c_left)
 		
 	# Right canyon wall chain (X = +220m, facing left into canyon corridor)
@@ -517,6 +518,7 @@ func _spawn_m02_canyon_walls() -> void:
 		c_right.name = "CanyonCliff_R_" + str(i)
 		c_right.position = Vector3(220.0, 0.0, z_pos)
 		c_right.rotation_degrees = Vector3(0, -90, 0)
+		_add_static_box_collision(c_right, Vector3(80, 180, 250), Vector3(0, 90, 0))
 		canyon_root.add_child(c_right)
 		
 	# Towering Mesa Pillars at corridor bends and choke points
@@ -530,6 +532,7 @@ func _spawn_m02_canyon_walls() -> void:
 		var mesa = mesa_mesh.instantiate()
 		mesa.name = "CanyonMesa_" + str(idx + 1)
 		mesa.position = mesa_positions[idx]
+		_add_static_box_collision(mesa, Vector3(65, 160, 65), Vector3(0, 80, 0))
 		canyon_root.add_child(mesa)
 
 func _spawn_m03_transport_and_allies() -> void:
@@ -696,6 +699,7 @@ func _spawn_m05_mines_and_skirmishers() -> void:
 			inst.name = "Asteroid_" + str(i + 1)
 			inst.position = ast_locs[i]
 			inst.rotation = Vector3(i * 0.4, i * 0.7, i * 0.2)
+			_add_static_box_collision(inst, Vector3(55, 55, 55) if i % 3 == 0 else Vector3(28, 28, 28))
 			belt_root.add_child(inst)
 			
 	# 2. Spawn 4 Tether-Mines
@@ -753,6 +757,7 @@ func _spawn_m06_cavern_trench() -> void:
 			var r = ring_mesh.instantiate()
 			r.name = "CavernRing_" + str(i + 1)
 			r.position = Vector3(0, 50, -i * 110.0)
+			_add_static_box_collision(r, Vector3(50, 45, 100))
 			cavern_root.add_child(r)
 			
 	# 2. Spawn 3 Geothermal Extraction Generators
@@ -817,6 +822,7 @@ func _spawn_m07_carrier_and_torpedoes() -> void:
 	carrier.name = "SOC_Dauntless"
 	carrier.position = Vector3(0, 60, 200)
 	carrier.add_to_group("friendlies")
+	_add_static_box_collision(carrier, Vector3(90, 40, 280), Vector3.ZERO, 16) # Layer 5: Allies
 	active_root.add_child(carrier)
 	if carrier_mesh:
 		var vis = carrier_mesh.instantiate()
@@ -869,6 +875,7 @@ func _spawn_m08_dreadnought_boss() -> void:
 	dread.name = "Dreadnought_Nemesis9"
 	dread.position = Vector3(0, 80, -420)
 	dread.add_to_group("enemies")
+	_add_static_box_collision(dread, Vector3(100, 45, 260), Vector3.ZERO, 4) # Layer 3: Enemies
 	active_root.add_child(dread)
 	if dread_mesh:
 		var vis = dread_mesh.instantiate()
@@ -1219,3 +1226,17 @@ func restore_save_data(data: Dictionary) -> void:
 		current_mission_id = str(data["current_mission_id"])
 	campaign_updated.emit()
 	print("[MissionManager] Restored campaign progression: ", unlocked_missions.size(), " missions unlocked.")
+
+func _add_static_box_collision(parent_node: Node3D, box_size: Vector3, box_offset: Vector3 = Vector3.ZERO, layer: int = 1) -> StaticBody3D:
+	var body = StaticBody3D.new()
+	body.name = "StaticCollision"
+	body.collision_layer = layer
+	body.collision_mask = 0
+	var col = CollisionShape3D.new()
+	var shape = BoxShape3D.new()
+	shape.size = box_size
+	col.shape = shape
+	col.position = box_offset
+	body.add_child(col)
+	parent_node.add_child(body)
+	return body

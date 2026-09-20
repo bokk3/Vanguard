@@ -73,8 +73,20 @@ material = SubResource("Mat_SummitStrobe")
 radius = 1.4
 height = 2.8
 
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_mast"]
+height = 120.0
+radius = 3.2
+
 [node name="AltitudeMarkerPylon" type="Node3D"]
 script = ExtResource("1_pylon")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 60, 0)
+shape = SubResource("CylinderShape3D_mast")
 
 [node name="BunkerBase" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)

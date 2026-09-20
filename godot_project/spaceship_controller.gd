@@ -32,6 +32,15 @@ var current_speed: float = 60.0
 var mouse_input: Vector2 = Vector2.ZERO
 var downward_velocity: float = 0.0
 
+@export_group("Collision & Damage")
+@export var terrain_floor_y: float = 0.0 ## Lowest ground elevation (fail-safe clamped)
+
+var collision_cooldown: float = 0.0
+var is_airframe_destroyed: bool = false
+var camera_shake_trauma: float = 0.0
+var scrape_audio_player: AudioStreamPlayer = null
+var crash_audio_player: AudioStreamPlayer = null
+
 var hardpoint_nodes: Array[Node3D] = []
 var hardpoint_missiles: Array[Node3D] = []
 const LAUNCH_SEQUENCE: Array[int] = [0, 3, 1, 2] # Left Outer, Right Outer, Left Inner, Right Inner
@@ -62,6 +71,8 @@ const GUN_MUZZLE_OFFSETS: Array[Vector3] = [
 @onready var telemetry: Node = $CombatTelemetry
 
 func _ready() -> void:
+	if not telemetry and has_node("CombatTelemetry"):
+		telemetry = $CombatTelemetry
 	add_to_group("player")
 	current_speed = cruise_speed
 	downward_velocity = 0.0
@@ -77,19 +88,42 @@ func _ready() -> void:
 	
 	_setup_weapon_hardpoints()
 	_setup_machine_gun()
+	_setup_collision_audio()
+	
 	if telemetry:
 		if not telemetry.missile_fired.is_connected(_on_missile_fired_sync):
 			telemetry.missile_fired.connect(_on_missile_fired_sync)
 		if not telemetry.missile_replenished.is_connected(_on_missile_replenished_sync):
 			telemetry.missile_replenished.connect(_on_missile_replenished_sync)
+		if not telemetry.ship_destroyed.is_connected(_on_telemetry_destroyed):
+			telemetry.ship_destroyed.connect(_on_telemetry_destroyed)
 	
 	var sm = get_node_or_null("/root/SaveManager")
 	if sm and sm.should_load_on_start:
 		sm.call_deferred("apply_save_to_current_scene")
 		sm.should_load_on_start = false
 
+var mission_manager_override: Node = null
+var config_manager_override: Node = null
+
+func _get_config_manager() -> Node:
+	if config_manager_override:
+		return config_manager_override
+	var tree = get_tree() if is_inside_tree() else Engine.get_main_loop() as SceneTree
+	if tree and tree.root:
+		return tree.root.get_node_or_null("ConfigManager")
+	return null
+
+func _get_mission_manager() -> Node:
+	if mission_manager_override:
+		return mission_manager_override
+	var tree = get_tree() if is_inside_tree() else Engine.get_main_loop() as SceneTree
+	if tree and tree.root:
+		return tree.root.get_node_or_null("MissionManager")
+	return null
+
 func _on_settings_changed() -> void:
-	var cfg = get_node_or_null("/root/ConfigManager")
+	var cfg = _get_config_manager()
 	if cfg:
 		_apply_config(cfg)
 
@@ -134,6 +168,9 @@ func detect_keyboard_layout() -> void:
 	is_azerty = false
 
 func _unhandled_input(event: InputEvent) -> void:
+	if is_airframe_destroyed:
+		return
+		
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		mouse_input = event.relative
 	
@@ -170,6 +207,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		_fire_missile()
 
 func _physics_process(delta: float) -> void:
+	if is_airframe_destroyed:
+		return
+		
+	if collision_cooldown > 0.0:
+		collision_cooldown = max(0.0, collision_cooldown - delta)
+		
+	if camera_shake_trauma > 0.0:
+		camera_shake_trauma = max(0.0, camera_shake_trauma - delta * 2.2)
+
 	# ----------------------------------------------------
 	# 1. Action-Based Throttle & Speed Management
 	# ----------------------------------------------------
@@ -236,11 +282,24 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 
 	# ----------------------------------------------------
-	# 5. Smooth 3rd Person Chase Camera
+	# 4b. Ground & Obstacle Collision Physics
+	# ----------------------------------------------------
+	_process_flight_collisions(delta)
+
+	# ----------------------------------------------------
+	# 5. Smooth 3rd Person Chase Camera (with Collision Trauma Shake)
 	# ----------------------------------------------------
 	if camera and is_inside_tree() and camera.is_inside_tree():
 		var target_cam_pos = global_position + (global_transform.basis.z * camera_distance) + (global_transform.basis.y * camera_height)
-		camera.global_position = camera.global_position.lerp(target_cam_pos, camera_lerp_speed * delta)
+		var shake_offset = Vector3.ZERO
+		if camera_shake_trauma > 0.0:
+			var t2 = camera_shake_trauma * camera_shake_trauma
+			shake_offset = Vector3(
+				randf_range(-t2 * 2.2, t2 * 2.2),
+				randf_range(-t2 * 2.2, t2 * 2.2),
+				randf_range(-t2 * 2.2, t2 * 2.2)
+			)
+		camera.global_position = camera.global_position.lerp(target_cam_pos + shake_offset, camera_lerp_speed * delta)
 		var look_target = global_position + (forward_dir * 8.0)
 		camera.look_at(look_target, global_transform.basis.y)
 
@@ -534,10 +593,247 @@ func _fire_machine_gun_round() -> void:
 		telemetry.fire_cannon_round()
 
 func take_damage(amount: float) -> void:
-	var cfg = get_node_or_null("/root/ConfigManager")
+	var cfg = _get_config_manager()
 	var mult = cfg.get_difficulty_damage_multiplier() if (cfg and cfg.has_method("get_difficulty_damage_multiplier")) else 1.0
 	if telemetry:
 		telemetry.apply_damage(amount * mult)
 	if cfg and cfg.has_method("play_rumble"):
 		cfg.play_rumble(0.85, 0.9, 0.35)
+
+# -----------------------------------------------------------------------------
+# 8. Ground & Obstacle Collision System (Crash vs. Glancing Scrape)
+# -----------------------------------------------------------------------------
+func _setup_collision_audio() -> void:
+	scrape_audio_player = AudioStreamPlayer.new()
+	scrape_audio_player.name = "CollisionScrapeAudio"
+	var scrape_stream = load("res://audio/sfx/sfx_asteroid_scrape_impact.wav")
+	if scrape_stream:
+		scrape_audio_player.stream = scrape_stream
+	scrape_audio_player.bus = "Master"
+	add_child(scrape_audio_player)
+	
+	crash_audio_player = AudioStreamPlayer.new()
+	crash_audio_player.name = "CollisionCrashAudio"
+	var crash_stream = load("res://audio/sfx/sfx_capital_ship_core_explosion.wav")
+	if crash_stream:
+		crash_audio_player.stream = crash_stream
+	crash_audio_player.bus = "Master"
+	add_child(crash_audio_player)
+
+func _on_telemetry_destroyed() -> void:
+	if is_airframe_destroyed:
+		return
+	var ship_pos = global_position if is_inside_tree() else position
+	_trigger_catastrophic_crash(ship_pos, Vector3.UP, "HULL_CRITICAL", "Airframe structural integrity compromised. Hull breached.")
+
+func _process_flight_collisions(_delta: float) -> void:
+	if is_airframe_destroyed:
+		return
+		
+	var ship_pos = global_position if is_inside_tree() else position
+	# A. Fail-Safe Ground Altitude Floor Check (prevents high-speed boost tunnelling)
+	if ship_pos.y <= terrain_floor_y + 1.2:
+		ship_pos.y = terrain_floor_y + 1.2
+		if is_inside_tree():
+			global_position = ship_pos
+		else:
+			position = ship_pos
+		var closing_speed = max(0.0, downward_velocity - velocity.y)
+		var nose_pitch_down = (global_transform.basis.z.y > 0.28) if is_inside_tree() else (transform.basis.z.y > 0.28)
+		if closing_speed > 22.0 or (current_speed > 40.0 and nose_pitch_down):
+			_trigger_catastrophic_crash(ship_pos, Vector3.UP, "TERRAIN_COLLISION", "Vanguard 1 impacted ground terrain at high speed. Airframe lost.")
+			return
+		else:
+			# Low angle ground scrape / skim
+			_trigger_glancing_scrape(Vector3.UP, ship_pos, max(closing_speed, current_speed * 0.4))
+			downward_velocity = 0.0
+			velocity.y = max(6.0, abs(velocity.y) * 0.5)
+			return
+
+	# B. Physical Slide Collisions (Walls, Mesas, Pylons, Ships, Drones, Asteroids)
+	var collision_count = get_slide_collision_count()
+	if collision_count > 0:
+		for i in range(collision_count):
+			var col = get_slide_collision(i)
+			if not col:
+				continue
+				
+			var normal = col.get_normal()
+			var collider = col.get_collider()
+			var col_pos = col.get_position()
+			
+			# Closing speed into surface normal
+			var normal_closing_speed = -velocity.dot(normal)
+			var total_speed = velocity.length()
+			var impact_angle_cos = normal_closing_speed / max(1.0, total_speed)
+			
+			# Catastrophic Crash Condition:
+			# High closing velocity into surface (>= 26 m/s) OR steep angle impact (cos > 0.45 at > 16 m/s)
+			if normal_closing_speed >= 26.0 or (normal_closing_speed >= 16.0 and impact_angle_cos > 0.45):
+				var reason = "Vanguard 1 collided with obstacle structure. Airframe lost."
+				if collider and collider.get_parent() and collider.get_parent().name.begins_with("Canyon"):
+					reason = "Vanguard 1 impacted canyon rockface at high speed. Airframe lost."
+				elif collider and collider.get_parent() and collider.get_parent().name.begins_with("Asteroid"):
+					reason = "Vanguard 1 impacted asteroid boulder at high speed. Airframe lost."
+				elif collider and collider.get_parent() and collider.get_parent().name.begins_with("AltitudePylon"):
+					reason = "Vanguard 1 clipped an altitude telemetry mast. Airframe lost."
+				elif collider and collider.get_parent() and collider.get_parent().name.begins_with("Transport"):
+					reason = "Mid-air collision with heavy transport Olympus-4. Airframe lost."
+				_trigger_catastrophic_crash(col_pos, normal, "OBSTACLE_COLLISION", reason)
+				return
+			else:
+				# Glancing Scrape / Ricochet Deflection
+				if collision_cooldown <= 0.0:
+					_trigger_glancing_scrape(normal, col_pos, max(normal_closing_speed, total_speed * 0.35))
+					break
+
+func _trigger_glancing_scrape(normal: Vector3, impact_pos: Vector3, impact_intensity: float) -> void:
+	collision_cooldown = 0.28 # Prevent multi-hit tick spam
+	
+	# 1. Deflect velocity away from collision plane (restitution bounce)
+	velocity = velocity.bounce(normal) * 0.60
+	# Bleed forward speed by friction
+	current_speed = max(min_speed, current_speed * 0.65)
+	
+	# 2. Apply scaled shield & hull collision damage
+	var damage = clamp(16.0 + impact_intensity * 0.85, 12.0, 48.0)
+	var cfg = _get_config_manager()
+	var diff_mult = cfg.get_difficulty_damage_multiplier() if (cfg and cfg.has_method("get_difficulty_damage_multiplier")) else 1.0
+	if telemetry:
+		telemetry.apply_damage(damage * diff_mult)
+	
+	# 3. Audio & Haptics
+	if scrape_audio_player and not scrape_audio_player.playing:
+		scrape_audio_player.pitch_scale = randf_range(0.92, 1.12)
+		scrape_audio_player.play()
+		
+	if cfg and cfg.has_method("play_rumble"):
+		cfg.play_rumble(0.65, 0.85, 0.28)
+		
+	# 4. Camera Trauma Shudder
+	camera_shake_trauma = min(1.0, camera_shake_trauma + 0.5)
+	
+	# 5. Visual Spark FX at impact point
+	_spawn_scrape_sparks(impact_pos, normal)
+	
+	print("[Spaceship] Glancing collision! Damage: -", round(damage * diff_mult), " HP | Speed bled to: ", round(current_speed), " m/s")
+	
+	# If damage brought hull to 0, trigger catastrophic failure
+	if telemetry and telemetry.current_hull <= 0.0:
+		_trigger_catastrophic_crash(impact_pos, normal, "HULL_FAILURE", "Airframe structural failure from collision impact.")
+
+func _trigger_catastrophic_crash(impact_pos: Vector3, normal: Vector3, reason_code: String, reason_text: String) -> void:
+	if is_airframe_destroyed:
+		return
+	is_airframe_destroyed = true
+	current_speed = 0.0
+	downward_velocity = 0.0
+	velocity = Vector3.ZERO
+	
+	# 1. Play Explosion Audio
+	if crash_audio_player:
+		crash_audio_player.pitch_scale = randf_range(0.95, 1.05)
+		crash_audio_player.play()
+		
+	# 2. Haptic Rumble Shockwave
+	var cfg = _get_config_manager()
+	if cfg and cfg.has_method("play_rumble"):
+		cfg.play_rumble(1.0, 1.0, 0.85)
+		
+	# 3. Spawn Explosion Fireball & Debris
+	_spawn_crash_explosion(impact_pos, normal)
+	
+	# 4. Hide Ship Model
+	var ship_model = get_node_or_null("Model")
+	if ship_model:
+		ship_model.visible = false
+		
+	# 5. Camera Trauma Shudder
+	camera_shake_trauma = 1.0
+	
+	print("[Spaceship] CATASTROPHIC AIRFRAME CRASH: ", reason_code, " - ", reason_text)
+	
+	# 6. Notify MissionManager of Sortie Failure
+	var mm = _get_mission_manager()
+	if mm and mm.has_method("fail_mission"):
+		mm.fail_mission(reason_code, reason_text)
+
+func _spawn_scrape_sparks(pos: Vector3, normal: Vector3) -> void:
+	if not is_inside_tree():
+		return
+	var p = CPUParticles3D.new()
+	p.top_level = true
+	p.global_position = pos
+	p.emitting = true
+	p.one_shot = true
+	p.explosiveness = 0.9
+	p.amount = 20
+	p.lifetime = 0.35
+	p.direction = normal
+	p.spread = 45.0
+	p.initial_velocity_min = 10.0
+	p.initial_velocity_max = 22.0
+	
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color(1.0, 0.8, 0.2)
+	mat.emission_enabled = true
+	mat.emission = Color(1.0, 0.7, 0.1)
+	mat.emission_energy_multiplier = 4.0
+	
+	var quad = QuadMesh.new()
+	quad.size = Vector2(0.25, 0.25)
+	quad.material = mat
+	p.mesh = quad
+	
+	var parent_target = get_parent() if get_parent() else self
+	parent_target.add_child(p)
+	p.finished.connect(p.queue_free)
+
+func _spawn_crash_explosion(pos: Vector3, _normal: Vector3) -> void:
+	if not is_inside_tree():
+		return
+	var exp_root = Node3D.new()
+	exp_root.top_level = true
+	exp_root.global_position = pos
+	
+	# Fireball Light Flash
+	var light = OmniLight3D.new()
+	light.light_color = Color(1.0, 0.55, 0.15)
+	light.light_energy = 16.0
+	light.omni_range = 80.0
+	exp_root.add_child(light)
+	
+	# Debris & Fireball Particles
+	var p = CPUParticles3D.new()
+	p.emitting = true
+	p.one_shot = true
+	p.explosiveness = 0.95
+	p.amount = 48
+	p.lifetime = 1.0
+	p.direction = Vector3.UP
+	p.spread = 85.0
+	p.initial_velocity_min = 15.0
+	p.initial_velocity_max = 35.0
+	
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color(1.0, 0.35, 0.05)
+	mat.emission_enabled = true
+	mat.emission = Color(1.0, 0.4, 0.05)
+	mat.emission_energy_multiplier = 5.0
+	
+	var sphere = SphereMesh.new()
+	sphere.radius = 1.2
+	sphere.height = 2.4
+	sphere.material = mat
+	p.mesh = sphere
+	exp_root.add_child(p)
+	
+	var parent_target = get_parent() if get_parent() else self
+	parent_target.add_child(exp_root)
+	
+	var tw = create_tween()
+	if tw:
+		tw.tween_property(light, "light_energy", 0.0, 0.9)
+		tw.finished.connect(exp_root.queue_free)
+
 

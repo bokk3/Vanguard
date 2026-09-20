@@ -9,6 +9,7 @@ signal missile_fired(remaining: int)
 signal missile_replenished(remaining: int)
 signal cannon_fired(remaining: int)
 signal cannon_replenished(remaining: int)
+signal ship_destroyed()
 
 # 1. Health & Shields
 @export_group("Vital Systems")
@@ -83,6 +84,9 @@ func apply_damage(amount: float) -> void:
 	
 	shield_changed.emit(current_shield, max_shield)
 	hull_changed.emit(current_hull, max_hull)
+	
+	if current_hull <= 0.0:
+		ship_destroyed.emit()
 
 func _process_shield_recharge(delta: float) -> void:
 	time_since_damage += delta

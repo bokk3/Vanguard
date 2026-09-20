@@ -33,6 +33,10 @@ func _ready() -> void:
 	_setup_http_nodes()
 	_ensure_directories()
 	
+	# Do not run update check in headless or automated test mode
+	if DisplayServer.get_name() == "headless":
+		return
+		
 	# Delay initial silent check by 1.0 second so game initialization completes cleanly
 	get_tree().create_timer(1.0).timeout.connect(check_for_updates_silently)
 

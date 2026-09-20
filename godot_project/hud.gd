@@ -202,6 +202,10 @@ func _draw() -> void:
 	if ship.enable_gravity and ship.current_speed < ship.stall_speed:
 		_draw_stall_warning(center)
 
+	# 7b. Terrain / Pull-Up Warning (Center Screen)
+	if ship and ship.global_position.y < 35.0 and ship.velocity.y < -4.0:
+		_draw_terrain_warning(center)
+
 	# 8. Combat Status Event Toast
 	_draw_combat_event_toast(center)
 
@@ -724,6 +728,23 @@ func _draw_stall_warning(center: Vector2) -> void:
 	draw_rect(Rect2(Vector2(bx, by), Vector2(banner_w, banner_h)), Color(0.2, 0.02, 0.04, 0.85), true)
 	draw_rect(Rect2(Vector2(bx, by), Vector2(banner_w, banner_h)), COLOR_RED, false, 2.0)
 	draw_string(ThemeDB.fallback_font, Vector2(bx + 20, by + 23), ">>> STALL WARNING - INSUFFICIENT LIFT <<<", HORIZONTAL_ALIGNMENT_CENTER, -1, 12, COLOR_RED)
+
+# -----------------------------------------------------------------
+# 7b. Terrain / Pull-Up Warning Banner
+# -----------------------------------------------------------------
+func _draw_terrain_warning(center: Vector2) -> void:
+	var banner_w = 340.0
+	var banner_h = 36.0
+	var bx = center.x - (banner_w * 0.5)
+	var by = center.y + 155.0
+
+	var pulse = 0.5 + sin(Time.get_ticks_msec() * 0.012) * 0.5
+	var bg_col = Color(0.35, 0.05, 0.02, 0.85 * pulse)
+	var border_col = Color(1.0, 0.25, 0.1, pulse)
+
+	draw_rect(Rect2(Vector2(bx, by), Vector2(banner_w, banner_h)), bg_col, true)
+	draw_rect(Rect2(Vector2(bx, by), Vector2(banner_w, banner_h)), border_col, false, 2.0)
+	draw_string(ThemeDB.fallback_font, Vector2(bx + 20, by + 23), ">>> CAUTION: TERRAIN // PULL UP <<<", HORIZONTAL_ALIGNMENT_CENTER, -1, 12, border_col)
 
 # -----------------------------------------------------------------
 # 8. Combat Status Event Toast
