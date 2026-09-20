@@ -33,6 +33,7 @@ var mouse_input: Vector2 = Vector2.ZERO
 var downward_velocity: float = 0.0
 
 @onready var camera: Camera3D = get_node_or_null("../Camera3D")
+@onready var telemetry: Node = $CombatTelemetry
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -56,7 +57,6 @@ func detect_keyboard_layout() -> void:
 		err = OS.execute("reg", ["query", "HKCU\\Keyboard Layout\\Preload"], out_preload)
 		if err == 0 and out_preload.size() > 0:
 			var txt = str(out_preload[0]).to_lower()
-			# 080c = Belgian French, 0813 = Belgian Dutch, 040c = French Standard AZERTY
 			if "080c" in txt or "0813" in txt or "040c" in txt:
 				is_azerty = true
 				return
@@ -78,22 +78,31 @@ func detect_keyboard_layout() -> void:
 	is_azerty = false
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Mouse look / steering
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		mouse_input = event.relative
 	
-	# Toggle layout manually with F1
 	if event is InputEventKey and event.pressed and event.keycode == KEY_F1:
 		is_azerty = not is_azerty
 		layout_changed.emit(is_azerty)
 		print("Keyboard layout switched to: ", "AZERTY" if is_azerty else "QWERTY")
 	
-	# Escape toggles mouse capture
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		else:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+	# Test Damage Key: H
+	if event is InputEventKey and event.pressed and event.keycode == KEY_H:
+		if telemetry:
+			telemetry.apply_damage(25.0)
+			print("Simulated Hull/Shield hit: -25 HP")
+
+	# Fire Missile: Space or Enter
+	if event is InputEventKey and event.pressed and (event.keycode == KEY_SPACE or event.keycode == KEY_ENTER):
+		if telemetry:
+			if telemetry.fire_missile():
+				print("MISSILE LAUNCHED! Remaining: ", telemetry.missiles_remaining)
 
 func _physics_process(delta: float) -> void:
 	# ----------------------------------------------------
@@ -107,13 +116,6 @@ func _physics_process(delta: float) -> void:
 	var yaw_right = false
 
 	if is_azerty:
-		# AZERTY Layout:
-		# Accelerate = Z (or physical W)
-		# Airbrake   = S
-		# Roll Left  = Q (or physical A)
-		# Roll Right = D
-		# Yaw Left   = A (or physical Q)
-		# Yaw Right  = E
 		throttle_up = Input.is_key_pressed(KEY_Z) or Input.is_physical_key_pressed(KEY_W)
 		throttle_down = Input.is_key_pressed(KEY_S)
 		roll_left = Input.is_key_pressed(KEY_Q) or Input.is_physical_key_pressed(KEY_A)
@@ -121,13 +123,6 @@ func _physics_process(delta: float) -> void:
 		yaw_left = Input.is_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_Q)
 		yaw_right = Input.is_key_pressed(KEY_E)
 	else:
-		# QWERTY Layout:
-		# Accelerate = W (or physical W)
-		# Airbrake   = S
-		# Roll Left  = A (or physical A)
-		# Roll Right = D
-		# Yaw Left   = Q (or physical Q)
-		# Yaw Right  = E
 		throttle_up = Input.is_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_W)
 		throttle_down = Input.is_key_pressed(KEY_S)
 		roll_left = Input.is_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_A)
@@ -136,10 +131,14 @@ func _physics_process(delta: float) -> void:
 		yaw_right = Input.is_key_pressed(KEY_E)
 
 	# ----------------------------------------------------
-	# 2. Throttle & Speed Management
+	# 2. Nitro-Limited Throttle & Speed Management
 	# ----------------------------------------------------
-	var is_boosting = Input.is_key_pressed(KEY_SHIFT)
-	var target_top_speed = boost_speed if is_boosting else cruise_speed
+	var wants_boost = Input.is_key_pressed(KEY_SHIFT)
+	var can_boost = false
+	if wants_boost and telemetry:
+		can_boost = telemetry.request_afterburner(delta)
+	
+	var target_top_speed = boost_speed if can_boost else cruise_speed
 
 	if throttle_up:
 		current_speed = move_toward(current_speed, target_top_speed, acceleration * delta)
@@ -172,7 +171,6 @@ func _physics_process(delta: float) -> void:
 	y_input += -mouse_input.x * mouse_sensitivity * 18.0
 	mouse_input = Vector2.ZERO
 
-	# Apply rotation to local basis
 	rotate_object_local(Vector3.RIGHT, p_input * pitch_rate * delta)
 	rotate_object_local(Vector3.FORWARD, r_input * roll_rate * delta)
 	rotate_object_local(Vector3.UP, y_input * yaw_rate * delta)

@@ -1,0 +1,17 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Target Acquisition Corners -->
+  <path d="M48 80V48H80" stroke="#00E5FF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M208 80V48H176" stroke="#00E5FF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M48 176V208H80" stroke="#00E5FF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M208 176V208H176" stroke="#00E5FF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Center Crosshair Pip -->
+  <circle cx="128" cy="128" r="4" fill="#00E5FF"/>
+  <circle cx="128" cy="128" r="28" stroke="#00E5FF" stroke-width="2" stroke-dasharray="8 6"/>
+
+  <!-- Missile Lock Ring (Hostile Crimson) -->
+  <circle cx="128" cy="128" r="56" stroke="#FF2A4D" stroke-width="3" stroke-dasharray="16 10"/>
+  
+  <!-- Off-Screen Target Chevron Indicator -->
+  <path d="M128 12L144 32H112L128 12Z" fill="#FF2A4D"/>
+</svg>

@@ -1,8 +1,10 @@
-[gd_scene load_steps=12 format=3 uid="uid://b6q0a6p4n8k11"]
+[gd_scene load_steps=16 format=3 uid="uid://b6q0a6p4n8k11"]
 
 [ext_resource type="Script" path="res://spaceship_controller.gd" id="1_ctrl"]
 [ext_resource type="PackedScene" uid="uid://c21sm6f7vcpq4" path="res://Spaceship_Sculpted_V_Hull.glb" id="2_ship"]
 [ext_resource type="Script" path="res://hud.gd" id="3_hud"]
+[ext_resource type="Script" path="res://combat_telemetry.gd" id="4_telem"]
+[ext_resource type="Script" path="res://target_drone.gd" id="5_drone"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.12, 0.25, 0.45, 1)
@@ -41,6 +43,17 @@ roughness = 0.35
 material = SubResource("StandardMaterial3D_tower")
 size = Vector3(16, 200, 16)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gold"]
+albedo_color = Color(1, 0.85, 0, 1)
+emission_enabled = true
+emission = Color(1, 0.85, 0, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_beacon"]
+material = SubResource("StandardMaterial3D_gold")
+radius = 5.0
+height = 10.0
+
 [node name="Main" type="Node3D"]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
@@ -65,12 +78,23 @@ mesh = SubResource("BoxMesh_tower")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 150, 100, -600)
 mesh = SubResource("BoxMesh_tower")
 
+[node name="NavBeaconAlpha" type="MeshInstance3D" parent="." groups=["radar_targets"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -280, 110, -450)
+mesh = SubResource("SphereMesh_beacon")
+
+[node name="EnemyDroneAlpha" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 75, -350)
+script = ExtResource("5_drone")
+
 [node name="Spaceship" type="CharacterBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 40, 0)
 script = ExtResource("1_ctrl")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Spaceship"]
 shape = SubResource("BoxShape3D_ship")
+
+[node name="CombatTelemetry" type="Node" parent="Spaceship"]
+script = ExtResource("4_telem")
 
 [node name="Model" parent="Spaceship" instance=ExtResource("2_ship")]
 
@@ -79,4 +103,12 @@ transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 
 fov = 75.0
 
 [node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="TacticalOverlay" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("3_hud")
