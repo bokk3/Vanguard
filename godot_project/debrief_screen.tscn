@@ -1,0 +1,325 @@
+[gd_scene load_steps=8 format=3 uid="uid://cx41l8v8m2r5j"]
+
+[ext_resource type="Script" path="res://debrief_screen.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.02, 0.05, 0.09, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.92, 1, 0.85)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0.8, 1, 0.2)
+shadow_size = 18
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 16.0
+content_margin_top = 14.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0.01, 0.03, 0.06, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0.7, 0.9, 0.3)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn"]
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+bg_color = Color(0.04, 0.11, 0.18, 0.85)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0.8, 1, 0.45)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+bg_color = Color(0.08, 0.22, 0.35, 0.95)
+border_width_left = 4
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.84, 0, 0.95)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary"]
+content_margin_left = 20.0
+content_margin_top = 10.0
+content_margin_right = 20.0
+content_margin_bottom = 10.0
+bg_color = Color(0.05, 0.28, 0.25, 0.95)
+border_width_left = 3
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 1, 0.75, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_rank_box"]
+content_margin_left = 12.0
+content_margin_top = 12.0
+content_margin_right = 12.0
+content_margin_bottom = 12.0
+bg_color = Color(0.02, 0.04, 0.08, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.84, 0, 0.6)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="DebriefScreen" type="Control"]
+process_mode = 3
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.01, 0.02, 0.05, 0.8)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ModalPanel" type="PanelContainer" parent="Center"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(740, 490)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="Margin" type="MarginContainer" parent="Center/ModalPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 28
+
+[node name="VBox" type="VBoxContainer" parent="Center/ModalPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="HeaderBox" type="VBoxContainer" parent="Center/ModalPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="BannerTitle" type="Label" parent="Center/ModalPanel/Margin/VBox/HeaderBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "◈ MISSION ACCOMPLISHED // CORRIDOR SECURED ◈"
+
+[node name="BannerSubtitle" type="Label" parent="Center/ModalPanel/Margin/VBox/HeaderBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.95)
+theme_override_font_sizes/font_size = 13
+text = "SORTIE [M01] CLOUDBURST — ALL MANDATORY OBJECTIVES NOMINAL"
+
+[node name="HSeparator" type="HSeparator" parent="Center/ModalPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="ContentRow" type="HBoxContainer" parent="Center/ModalPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="StatsCard" type="PanelContainer" parent="Center/ModalPanel/Margin/VBox/ContentRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="StatsGrid" type="GridContainer" parent="Center/ModalPanel/Margin/VBox/ContentRow/StatsCard"]
+layout_mode = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 10
+columns = 2
+
+[node name="LblTime" type="Label" parent="Center/ModalPanel/Margin/VBox/ContentRow/StatsCard/StatsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.8, 0.95, 0.8)
+theme_override_font_sizes/font_size = 12
+text = "SORTIE DURATION:"
+
+[node name="StatTimeVal" type="Label" parent="Center/ModalPanel/Margin/VBox/ContentRow/StatsCard/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "01:42"
+
+[node name="LblTargets" type="Label" parent="Center/ModalPanel/Margin/VBox/ContentRow/StatsCard/StatsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.8, 0.95, 0.8)
+theme_override_font_sizes/font_size = 12
+text = "HOSTILES SPLASHED:"
+
+[node name="StatTargetsVal" type="Label" parent="Center/ModalPanel/Margin/VBox/ContentRow/StatsCard/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0.7, 1)
+theme_override_font_sizes/font_size = 13
+text = "4 HOSTILES"
+
+[node name="LblAccuracy" type="Label" parent="Center/ModalPanel/Margin/VBox/ContentRow/StatsCard/StatsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.8, 0.95, 0.8)
+theme_override_font_sizes/font_size = 12
+text = "MISSILE ACCURACY:"
+
+[node name="StatAccuracyVal" type="Label" parent="Center/ModalPanel/Margin/VBox/ContentRow/StatsCard/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 13
+text = "100%"
+
+[node name="LblHull" type="Label" parent="Center/ModalPanel/Margin/VBox/ContentRow/StatsCard/StatsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.8, 0.95, 0.8)
+theme_override_font_sizes/font_size = 12
+text = "HULL INTEGRITY:"
+
+[node name="StatHullVal" type="Label" parent="Center/ModalPanel/Margin/VBox/ContentRow/StatsCard/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "100%"
+
+[node name="LblCannon" type="Label" parent="Center/ModalPanel/Margin/VBox/ContentRow/StatsCard/StatsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.8, 0.95, 0.8)
+theme_override_font_sizes/font_size = 12
+text = "CANNON ROUNDS:"
+
+[node name="StatCannonVal" type="Label" parent="Center/ModalPanel/Margin/VBox/ContentRow/StatsCard/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 0.9)
+theme_override_font_sizes/font_size = 13
+text = "120 ROUNDS"
+
+[node name="LblScore" type="Label" parent="Center/ModalPanel/Margin/VBox/ContentRow/StatsCard/StatsGrid"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.8, 0.95, 0.8)
+theme_override_font_sizes/font_size = 12
+text = "TACTICAL SCORE:"
+
+[node name="StatScoreVal" type="Label" parent="Center/ModalPanel/Margin/VBox/ContentRow/StatsCard/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 14
+text = "18,400 PTS"
+
+[node name="RankCard" type="PanelContainer" parent="Center/ModalPanel/Margin/VBox/ContentRow"]
+custom_minimum_size = Vector2(230, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_rank_box")
+
+[node name="RankVBox" type="VBoxContainer" parent="Center/ModalPanel/Margin/VBox/ContentRow/RankCard"]
+layout_mode = 2
+alignment = 1
+
+[node name="RankCaption" type="Label" parent="Center/ModalPanel/Margin/VBox/ContentRow/RankCard/RankVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.75, 0.9, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "// COMBAT EVALUATION"
+horizontal_alignment = 1
+
+[node name="RankBadge" type="Label" parent="Center/ModalPanel/Margin/VBox/ContentRow/RankCard/RankVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 64
+text = "S"
+horizontal_alignment = 1
+
+[node name="RankTitle" type="Label" parent="Center/ModalPanel/Margin/VBox/ContentRow/RankCard/RankVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.95)
+theme_override_font_sizes/font_size = 11
+text = "APEX PREDATOR"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="Center/ModalPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 2
+
+[node name="HangarBtn" type="Button" parent="Center/ModalPanel/Margin/VBox/ButtonRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 0.95, 0.85)
+theme_override_font_sizes/font_size = 12
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "[ RETURN TO HANGAR ]"
+
+[node name="ReplayBtn" type="Button" parent="Center/ModalPanel/Margin/VBox/ButtonRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 0.95, 0.85)
+theme_override_font_sizes/font_size = 12
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "[ REPLAY SORTIE ]"
+
+[node name="ScrambleNextBtn" type="Button" parent="Center/ModalPanel/Margin/VBox/ButtonRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(240, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0.8, 1)
+theme_override_font_sizes/font_size = 12
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
+text = "[ SCRAMBLE SORTIE M02 ]"

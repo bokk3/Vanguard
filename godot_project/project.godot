@@ -13,6 +13,7 @@ config/features=PackedStringArray("4.7", "Forward Plus")
 
 [autoload]
 
+Updater="*res://updater.gd"
 ConfigManager="*res://config_manager.gd"
 SaveManager="*res://save_manager.gd"
 MissionManager="*res://mission_manager.gd"

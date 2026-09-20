@@ -19,6 +19,8 @@ extends Node3D
 @onready var close_specs_btn: Button = %CloseSpecsBtn
 @onready var settings_modal: Control = %SettingsMenu
 @onready var mission_selector: Control = %MissionSelector
+@onready var update_badge_btn: Button = %UpdateBadgeBtn
+@onready var update_dialog: Control = %UpdateDialog
 
 @onready var repair_progress_bar: ProgressBar = %RepairProgressBar
 @onready var repair_status_label: Label = %RepairStatusLabel
@@ -47,6 +49,19 @@ func _ready() -> void:
 	specs_btn.pressed.connect(_on_specs_pressed)
 	quit_btn.pressed.connect(_on_quit_pressed)
 	close_specs_btn.pressed.connect(func(): specs_panel.hide())
+	
+	if update_badge_btn:
+		update_badge_btn.pressed.connect(_on_update_badge_pressed)
+		update_badge_btn.hide()
+	
+	if update_dialog:
+		update_dialog.hide()
+	
+	var updater = get_node_or_null("/root/Updater")
+	if updater:
+		updater.update_available.connect(_on_update_available)
+		if not updater.available_version.is_empty():
+			_show_update_notification(updater.available_version)
 	
 	settings_modal.closed.connect(_on_settings_closed)
 	specs_panel.hide()
@@ -186,3 +201,21 @@ func _on_specs_pressed() -> void:
 
 func _on_quit_pressed() -> void:
 	get_tree().quit()
+
+func _on_update_available(version: String, _changelog: String, _url: String, _size: int) -> void:
+	_show_update_notification(version)
+
+func _show_update_notification(version: String) -> void:
+	if update_badge_btn:
+		update_badge_btn.text = "◈ UPGRADE READY // %s" % version
+		update_badge_btn.visible = true
+	
+	var updater = get_node_or_null("/root/Updater")
+	if updater and not updater.has_dismissed_prompt:
+		if update_dialog:
+			update_dialog.show_update_prompt()
+
+func _on_update_badge_pressed() -> void:
+	if update_dialog:
+		update_dialog.show_update_prompt()
+

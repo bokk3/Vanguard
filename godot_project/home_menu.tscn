@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3]
+[gd_scene load_steps=28 format=3]
 
 [ext_resource type="Script" path="res://home_menu.gd" id="1_menu"]
 [ext_resource type="PackedScene" uid="uid://c21sm6f7vcpq4" path="res://Spaceship_Sculpted_V_Hull.glb" id="2_ship"]
@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" path="res://ui/fighter_blueprint_topdown.png" id="9_blueprint"]
 [ext_resource type="Texture2D" path="res://ui/project_vanguard_title_cropped.png" id="10_title"]
 [ext_resource type="PackedScene" path="res://mission_selector.tscn" id="11_selector"]
+[ext_resource type="PackedScene" path="res://update_dialog.tscn" id="12_updater"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_eerie"]
 sky_top_color = Color(0.95, 0.96, 0.98, 1)
@@ -135,6 +136,22 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0, 1, 0.85, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.24, 0.16, 0.02, 0.9)
+border_width_left = 3
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.84, 0, 0.95)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
@@ -312,6 +329,19 @@ layout_mode = 2
 [node name="MenuButtons" type="VBoxContainer" parent="UI/Sidebar/Margin/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 12
+
+[node name="UpdateBadgeBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 0.4, 1)
+theme_override_font_sizes/font_size = 12
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_badge")
+text = "◈ UPDATE AVAILABLE // v0.8.0"
+alignment = 0
 
 [node name="ContinueBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
 unique_name_in_owner = true
@@ -514,3 +544,8 @@ visible = false
 [node name="MissionSelector" parent="UI" instance=ExtResource("11_selector")]
 unique_name_in_owner = true
 visible = false
+
+[node name="UpdateDialog" parent="UI" instance=ExtResource("12_updater")]
+unique_name_in_owner = true
+visible = false
+

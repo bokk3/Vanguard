@@ -519,13 +519,23 @@ func complete_mission() -> void:
 	
 	is_sortie_active = false
 	var hit_rate = float(missiles_hit) / float(max(1, missiles_fired)) if missiles_fired > 0 else 1.0
+	var final_hull = 100.0
+	var cannon_spent = 0
+	if active_ship:
+		var telem = active_ship.get_node_or_null("CombatTelemetry")
+		if telem:
+			final_hull = telem.current_hull
+			cannon_spent = max(0, 600 - telem.cannon_rounds)
+	
 	var stats = {
 		"mission_id": current_mission_id,
 		"elapsed_time": sortie_elapsed_time,
 		"missiles_fired": missiles_fired,
 		"missiles_hit": missiles_hit,
 		"hit_rate": hit_rate,
-		"targets_destroyed": targets_destroyed
+		"targets_destroyed": targets_destroyed,
+		"hull_remaining": final_hull,
+		"cannon_expended": cannon_spent
 	}
 	
 	# Unlock next mission
