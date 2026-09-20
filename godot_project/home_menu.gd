@@ -8,6 +8,7 @@ extends Node3D
 @onready var repair_sparks: CPUParticles3D = $HangarScene/ShipTurntable/RepairSparks
 @onready var scan_light: OmniLight3D = $HangarScene/ShipTurntable/ScanRing/ScanLight
 
+@onready var continue_btn: Button = %ContinueBtn
 @onready var deploy_btn: Button = %DeployBtn
 @onready var config_btn: Button = %ConfigBtn
 @onready var specs_btn: Button = %SpecsBtn
@@ -19,6 +20,8 @@ extends Node3D
 
 @onready var repair_progress_bar: ProgressBar = %RepairProgressBar
 @onready var repair_status_label: Label = %RepairStatusLabel
+@onready var telemetry_summary: Label = %TelemetrySummary
+@onready var footer_label: Label = %FooterLabel
 
 var anim_time: float = 0.0
 var repair_percent: float = 84.0
@@ -26,7 +29,13 @@ var repair_percent: float = 84.0
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	
+	# Dynamic version string from project settings
+	var ver = ProjectSettings.get_setting("application/config/version", "0.5.0")
+	if footer_label:
+		footer_label.text = "PROJECT VANGUARD v%s\nSYSTEMS INITIALIZED // READY" % ver
+	
 	# Connect buttons
+	continue_btn.pressed.connect(_on_continue_pressed)
 	deploy_btn.pressed.connect(_on_deploy_pressed)
 	config_btn.pressed.connect(_on_config_pressed)
 	specs_btn.pressed.connect(_on_specs_pressed)
@@ -36,6 +45,27 @@ func _ready() -> void:
 	settings_modal.closed.connect(_on_settings_closed)
 	specs_panel.hide()
 	settings_modal.hide()
+	
+	_check_save_game_state()
+
+func _check_save_game_state() -> void:
+	var sm = get_node_or_null("/root/SaveManager")
+	if sm and sm.has_save():
+		var info = sm.get_save_info()
+		var date_str = info.get("display_date", "UNKNOWN")
+		var telem = info.get("telemetry", {})
+		var hull_val = telem.get("current_hull", 100.0)
+		var missiles_val = telem.get("missiles_remaining", 4)
+		
+		continue_btn.visible = true
+		continue_btn.text = "  [ 01 ]  CONTINUE SORTIE"
+		deploy_btn.text = "  [ 02 ]  NEW SORTIE"
+		
+		if telemetry_summary:
+			telemetry_summary.text = "ACTIVE SORTIE: %s\nHULL INTEGRITY: %d%%\nMISSILES ARMED: %d/4" % [date_str, int(hull_val), int(missiles_val)]
+	else:
+		continue_btn.visible = false
+		deploy_btn.text = "  [ 01 ]  DEPLOY SORTIE"
 
 func _process(delta: float) -> void:
 	anim_time += delta
@@ -63,8 +93,16 @@ func _process(delta: float) -> void:
 	if repair_status_label:
 		repair_status_label.text = "DIAGNOSTIC CYCLE: %d%% NOMINAL" % int(repair_percent)
 
+func _on_continue_pressed() -> void:
+	var sm = get_node_or_null("/root/SaveManager")
+	if sm:
+		sm.should_load_on_start = true
+	get_tree().change_scene_to_file("res://main.tscn")
+
 func _on_deploy_pressed() -> void:
-	# Launch into flight mission
+	var sm = get_node_or_null("/root/SaveManager")
+	if sm:
+		sm.should_load_on_start = false
 	get_tree().change_scene_to_file("res://main.tscn")
 
 func _on_config_pressed() -> void:

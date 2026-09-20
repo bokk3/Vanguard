@@ -40,3 +40,20 @@ func take_damage(amount: float) -> void:
 	health -= amount
 	if health <= 0:
 		queue_free()
+
+func get_save_data() -> Dictionary:
+	return {
+		"angle": angle,
+		"health": health,
+		"global_pos": [global_position.x, global_position.y, global_position.z]
+	}
+
+func restore_save_data(data: Dictionary) -> void:
+	if data.has("angle"):
+		angle = float(data["angle"])
+	if data.has("health"):
+		health = float(data["health"])
+	if data.has("global_pos"):
+		var p = data["global_pos"]
+		global_position = Vector3(p[0], p[1], p[2])
+

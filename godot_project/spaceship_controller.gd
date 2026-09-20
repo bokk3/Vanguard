@@ -45,6 +45,11 @@ func _ready() -> void:
 		detect_keyboard_layout()
 	print(">>> Project Vanguard Flight Controller Active!")
 	print("Auto-detected Keyboard Layout: %s (Press F1 in-game to toggle)" % ("AZERTY" if is_azerty else "QWERTY"))
+	
+	var sm = get_node_or_null("/root/SaveManager")
+	if sm and sm.should_load_on_start:
+		sm.call_deferred("apply_save_to_current_scene")
+		sm.should_load_on_start = false
 
 func _on_settings_changed() -> void:
 	var cfg = get_node_or_null("/root/ConfigManager")
@@ -222,3 +227,32 @@ func _physics_process(delta: float) -> void:
 		camera.global_position = camera.global_position.lerp(target_cam_pos, camera_lerp_speed * delta)
 		var look_target = global_position + (forward_dir * 8.0)
 		camera.look_at(look_target, global_transform.basis.y)
+
+# -----------------------------------------------------------------------------
+# Save / Restore Interface
+# -----------------------------------------------------------------------------
+func get_save_data() -> Dictionary:
+	return {
+		"position": [global_position.x, global_position.y, global_position.z],
+		"rotation": [rotation.x, rotation.y, rotation.z],
+		"current_speed": current_speed,
+		"downward_velocity": downward_velocity
+	}
+
+func restore_save_data(data: Dictionary) -> void:
+	if data.has("position"):
+		var p = data["position"]
+		global_position = Vector3(p[0], p[1], p[2])
+	if data.has("rotation"):
+		var r = data["rotation"]
+		rotation = Vector3(r[0], r[1], r[2])
+	if data.has("current_speed"):
+		current_speed = float(data["current_speed"])
+	if data.has("downward_velocity"):
+		downward_velocity = float(data["downward_velocity"])
+	
+	if camera:
+		var forward_dir = -global_transform.basis.z.normalized()
+		camera.global_position = global_position + (global_transform.basis.z * camera_distance) + (global_transform.basis.y * camera_height)
+		camera.look_at(global_position + (forward_dir * 8.0), global_transform.basis.y)
+

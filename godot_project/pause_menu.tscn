@@ -70,6 +70,22 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_toast"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(0.01, 0.14, 0.11, 0.92)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 1, 0.65, 0.85)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
 [node name="PauseMenu" type="Control"]
 process_mode = 3
 layout_mode = 3
@@ -98,7 +114,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(460, 420)
+custom_minimum_size = Vector2(480, 500)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
 
@@ -111,7 +127,7 @@ theme_override_constants/margin_bottom = 24
 
 [node name="VBox" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="HeaderBox" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 layout_mode = 2
@@ -143,12 +159,12 @@ horizontal_alignment = 1
 layout_mode = 2
 
 [node name="Spacer1" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
-custom_minimum_size = Vector2(0, 6)
+custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
 
 [node name="ResumeBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 14
@@ -159,57 +175,97 @@ icon = ExtResource("4_icon_deploy")
 alignment = 0
 expand_icon = true
 
-[node name="RestartBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
+[node name="SaveBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 13
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  [ 02 ]  RESTART SORTIE"
+text = "  [ 02 ]  SAVE SORTIE"
+icon = ExtResource("6_icon_config")
+alignment = 0
+expand_icon = true
+
+[node name="LoadBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "  [ 03 ]  LOAD LAST SAVE"
+icon = ExtResource("5_icon_specs")
+alignment = 0
+expand_icon = true
+
+[node name="RestartBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "  [ 04 ]  RESTART SORTIE"
 icon = ExtResource("5_icon_specs")
 alignment = 0
 expand_icon = true
 
 [node name="ConfigBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 13
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  [ 03 ]  AVIONICS CONFIG"
+text = "  [ 05 ]  AVIONICS CONFIG"
 icon = ExtResource("6_icon_config")
 alignment = 0
 expand_icon = true
 
 [node name="HangarBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 13
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  [ 04 ]  RETURN TO HANGAR"
+text = "  [ 06 ]  RETURN TO HANGAR"
 icon = ExtResource("3_badge")
 alignment = 0
 expand_icon = true
 
 [node name="QuitBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 38)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 13
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  [ 05 ]  ABORT TO DESKTOP"
+text = "  [ 07 ]  ABORT TO DESKTOP"
 icon = ExtResource("7_icon_quit")
 alignment = 0
 expand_icon = true
+
+[node name="SaveToast" type="PanelContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_toast")
+
+[node name="SaveToastLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBox/SaveToast"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0.7, 1)
+theme_override_font_sizes/font_size = 11
+text = "// SORTIE SAVED // SECURE SYNC COMPLETE"
+horizontal_alignment = 1
 
 [node name="Spacer2" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 layout_mode = 2

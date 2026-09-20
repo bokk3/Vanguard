@@ -4,18 +4,26 @@ extends Control
 ## Freezes game simulation, captures/releases mouse, and links to Settings, Restart, or Hangar.
 
 @onready var resume_btn: Button = %ResumeBtn
+@onready var save_btn: Button = %SaveBtn
+@onready var load_btn: Button = %LoadBtn
 @onready var restart_btn: Button = %RestartBtn
 @onready var config_btn: Button = %ConfigBtn
 @onready var hangar_btn: Button = %HangarBtn
 @onready var quit_btn: Button = %QuitBtn
 
 @onready var settings_modal: Control = %SettingsMenu
+@onready var save_toast: PanelContainer = %SaveToast
+@onready var save_toast_label: Label = %SaveToastLabel
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	hide()
+	if save_toast:
+		save_toast.hide()
 	
 	resume_btn.pressed.connect(resume_flight)
+	save_btn.pressed.connect(save_sortie)
+	load_btn.pressed.connect(load_last_save)
 	restart_btn.pressed.connect(restart_sortie)
 	config_btn.pressed.connect(open_config)
 	hangar_btn.pressed.connect(return_to_hangar)
@@ -37,7 +45,44 @@ func _unhandled_input(event: InputEvent) -> void:
 func pause_flight() -> void:
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_refresh_save_buttons()
+	if save_toast:
+		save_toast.hide()
 	show()
+
+func _refresh_save_buttons() -> void:
+	var sm = get_node_or_null("/root/SaveManager")
+	if load_btn:
+		load_btn.disabled = not (sm and sm.has_save())
+
+func save_sortie() -> void:
+	var sm = get_node_or_null("/root/SaveManager")
+	if sm and sm.save_game():
+		_refresh_save_buttons()
+		_show_toast("// SORTIE SAVED // SECURE SYNC COMPLETE")
+	else:
+		_show_toast("[!] FAILED TO SAVE SORTIE", true)
+
+func load_last_save() -> void:
+	var sm = get_node_or_null("/root/SaveManager")
+	if sm and sm.has_save():
+		if sm.apply_save_to_current_scene():
+			resume_flight()
+
+func _show_toast(msg: String, is_err: bool = false) -> void:
+	if not save_toast or not save_toast_label:
+		return
+	save_toast_label.text = msg
+	if is_err:
+		save_toast_label.set("theme_override_colors/font_color", Color(1, 0.25, 0.25, 1))
+	else:
+		save_toast_label.set("theme_override_colors/font_color", Color(0, 1, 0.7, 1))
+	save_toast.show()
+	
+	get_tree().create_timer(2.5, true, false, true).timeout.connect(func():
+		if is_instance_valid(save_toast):
+			save_toast.hide()
+	)
 
 func resume_flight() -> void:
 	if settings_modal:

@@ -192,3 +192,36 @@ func _update_target_lock(delta: float) -> void:
 		is_locked = false
 	
 	lock_state_changed.emit(current_target, lock_progress, is_locked)
+
+# -----------------------------------------------------------------------------
+# Save / Restore Interface
+# -----------------------------------------------------------------------------
+func get_save_data() -> Dictionary:
+	return {
+		"current_shield": current_shield,
+		"current_hull": current_hull,
+		"current_nitro": current_nitro,
+		"is_overheated": is_overheated,
+		"overheat_timer": overheat_timer,
+		"missiles_remaining": missiles_remaining
+	}
+
+func restore_save_data(data: Dictionary) -> void:
+	if data.has("current_shield"):
+		current_shield = float(data["current_shield"])
+	if data.has("current_hull"):
+		current_hull = float(data["current_hull"])
+	if data.has("current_nitro"):
+		current_nitro = float(data["current_nitro"])
+	if data.has("is_overheated"):
+		is_overheated = bool(data["is_overheated"])
+	if data.has("overheat_timer"):
+		overheat_timer = float(data["overheat_timer"])
+	if data.has("missiles_remaining"):
+		missiles_remaining = int(data["missiles_remaining"])
+	
+	shield_changed.emit(current_shield, max_shield)
+	hull_changed.emit(current_hull, max_hull)
+	nitro_changed.emit(current_nitro, max_nitro, is_overheated)
+	missile_fired.emit(missiles_remaining)
+

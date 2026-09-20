@@ -296,6 +296,7 @@ value = 84.0
 show_percentage = false
 
 [node name="TelemetrySummary" type="Label" parent="UI/Sidebar/Margin/VBox/StatusBox/VBox"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 0.85)
 theme_override_font_sizes/font_size = 11
@@ -310,14 +311,28 @@ layout_mode = 2
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="DeployBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
+[node name="ContinueBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
 unique_name_in_owner = true
+visible = false
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 15
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
+text = "  [ 01 ]  CONTINUE SORTIE"
+icon = ExtResource("5_icon_deploy")
+alignment = 0
+expand_icon = true
+
+[node name="DeployBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
 text = "  [ 01 ]  DEPLOY SORTIE"
 icon = ExtResource("5_icon_deploy")
 alignment = 0
@@ -366,11 +381,12 @@ expand_icon = true
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Footer" type="Label" parent="UI/Sidebar/Margin/VBox"]
+[node name="FooterLabel" type="Label" parent="UI/Sidebar/Margin/VBox"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.6, 0.75, 0.7)
 theme_override_font_sizes/font_size = 10
-text = "PROJECT VANGUARD v0.4.2
+text = "PROJECT VANGUARD v0.5.0
 SYSTEMS INITIALIZED // READY"
 
 [node name="SpecsPanel" type="PanelContainer" parent="UI"]
