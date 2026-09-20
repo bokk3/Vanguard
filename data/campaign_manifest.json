@@ -1,0 +1,129 @@
+{
+  "campaign_title": "Project Vanguard: The Ascension War",
+  "version": "1.0",
+  "missions": [
+    {
+      "id": "M01",
+      "codename": "CLOUDBURST",
+      "theater": "Sub-Cloud Interception Sector 07",
+      "sky_preset": "overcast_storm",
+      "stall_speed_ms": 25.0,
+      "player": {
+        "ship_scene": "res://Spaceship_Sculpted_V_Hull.glb",
+        "missiles_count": 4,
+        "cannon_rounds": 1200
+      },
+      "enemies": [
+        {
+          "type": "recon_drone",
+          "script": "res://target_drone.gd",
+          "count": 4,
+          "spawn_distance_m": 350.0
+        }
+      ],
+      "objectives": [
+        { "id": "obj_fly", "text": "Maintain airspeed above stall threshold (>25 m/s)", "mandatory": true },
+        { "id": "obj_destroy_all", "text": "Neutralize 4x Helion Recon Drones", "mandatory": true },
+        { "id": "obj_accuracy", "text": "Achieve 100% missile hit rate", "mandatory": false }
+      ]
+    },
+    {
+      "id": "M02",
+      "codename": "IRON CANYON",
+      "theater": "The Red Sinks Canyon Complex",
+      "sky_preset": "dusk_canyon",
+      "stall_speed_ms": 25.0,
+      "altitude_limit_m": 120.0,
+      "player": {
+        "ship_scene": "res://Spaceship_Sculpted_V_Hull.glb",
+        "missiles_count": 4,
+        "cannon_rounds": 1200
+      },
+      "targets": [
+        {
+          "type": "ground_relay",
+          "mesh": "res://assets/meshes/environment/Modular_SciFi_Wall_01_game_ready.fbx",
+          "count": 3
+        }
+      ],
+      "enemies": [
+        {
+          "type": "canyon_patrol",
+          "script": "res://target_drone.gd",
+          "count": 4
+        }
+      ],
+      "objectives": [
+        { "id": "obj_canyon", "text": "Fly below 120m to stay under enemy radar", "mandatory": true },
+        { "id": "obj_relays", "text": "Destroy 3x Helion Jamming Relays", "mandatory": true },
+        { "id": "obj_escorts", "text": "Neutralize 4x Canyon Patrol Drones", "mandatory": true }
+      ]
+    },
+    {
+      "id": "M03",
+      "codename": "APEX LIFTOFF",
+      "theater": "Equatorial Ascension Catapult Corridor",
+      "sky_preset": "dawn_clear",
+      "stall_speed_ms": 25.0,
+      "player": {
+        "ship_scene": "res://Spaceship_Sculpted_V_Hull.glb",
+        "missiles_count": 4,
+        "cannon_rounds": 1200
+      },
+      "allies": [
+        {
+          "callsign": "Viper 2",
+          "pilot": "Lt. Vance Miller",
+          "ship_scene": "res://assets/meshes/vehicles/Spaceship_Viper_Supreme_HD.fbx"
+        }
+      ],
+      "protected_target": {
+        "name": "Olympus-4 Heavy Transport",
+        "max_hull": 500,
+        "max_shield": 300
+      },
+      "waves": [
+        { "wave_num": 1, "type": "skirmisher", "count": 4, "spawn_bearing": 180 },
+        { "wave_num": 2, "type": "dive_bomber", "count": 6, "spawn_bearing": 90 },
+        { "wave_num": 3, "type": "heavy_interceptor", "count": 4, "spawn_bearing": 270 }
+      ],
+      "objectives": [
+        { "id": "obj_protect", "text": "Protect Olympus-4 until catapult ignition", "mandatory": true },
+        { "id": "obj_waves", "text": "Eliminate all incoming drone saturation waves", "mandatory": true }
+      ]
+    },
+    {
+      "id": "M04",
+      "codename": "STRATOSPHERE ZERO",
+      "theater": "The Karman Boundary (Altitude: 45,000m+)",
+      "sky_preset": "stratosphere_space",
+      "stall_speed_ms": 45.0,
+      "player": {
+        "ship_scene": "res://Spaceship_Sculpted_V_Hull.glb",
+        "missiles_count": 4,
+        "cannon_rounds": 1200
+      },
+      "boss": {
+        "callsign": "Combine Ghost",
+        "pilot": "Helion Strike Commander",
+        "ship_scene": "res://assets/meshes/vehicles/Spaceship_Viper_Supreme_HD.fbx",
+        "material_override": "crimson_stealth_pbr",
+        "max_hull": 350,
+        "max_shield": 250
+      },
+      "enemies": [
+        {
+          "type": "elite_guard",
+          "script": "res://target_drone.gd",
+          "count": 4,
+          "formation": "diamond"
+        }
+      ],
+      "objectives": [
+        { "id": "obj_intercept", "text": "Intercept high-apogee command fighter", "mandatory": true },
+        { "id": "obj_boss", "text": "Destroy the Combine Ghost in aerial dogfight", "mandatory": true },
+        { "id": "obj_escorts", "text": "Splash 4x Elite Escort Drones", "mandatory": true }
+      ]
+    }
+  ]
+}

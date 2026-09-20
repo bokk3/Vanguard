@@ -57,6 +57,8 @@ Comprehensive engineering and design documents are available in the [`docs/`](do
 
 * 🌌 **[Worldbuilding & Lore Bible](docs/lore/README.md)**  
   *The Ascension War chronology, Sol Orbital Directorate vs Helion Combine, 404th Vanguard Strike Wing, and diegetic aircraft dossiers.*
+* 🎯 **[Campaign Missions (01-04)](docs/lore/CAMPAIGN_MISSIONS.md)**  
+  *Detailed combat operations, AWACS dialogue, objective design, and 100% realistic asset feasibility matrix for the first 4 missions.*
 * 🎮 **[Tactical HUD & Combat Telemetry](docs/HUD_AND_COMBAT_SYSTEM.md)**  
   *Compass horizon ribbon, 350m circular radar, screen-space target lock, and nitro afterburner mechanics.*
 * ✈️ **[Flight Dynamics, Gravity & Controls Guide](docs/CONTROLS_AND_PHYSICS.md)**  

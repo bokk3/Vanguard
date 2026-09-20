@@ -22,9 +22,11 @@ extends Node3D
 @onready var repair_status_label: Label = %RepairStatusLabel
 @onready var telemetry_summary: Label = %TelemetrySummary
 @onready var footer_label: Label = %FooterLabel
+@onready var title_box_right: Control = %TitleBoxRight
 
 var anim_time: float = 0.0
 var repair_percent: float = 84.0
+var initial_title_y: float = 28.0
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -45,6 +47,9 @@ func _ready() -> void:
 	settings_modal.closed.connect(_on_settings_closed)
 	specs_panel.hide()
 	settings_modal.hide()
+	
+	if title_box_right:
+		initial_title_y = title_box_right.position.y
 	
 	_setup_turntable_hardpoints()
 	_check_save_game_state()
@@ -130,6 +135,10 @@ func _process(delta: float) -> void:
 		repair_progress_bar.value = repair_percent
 	if repair_status_label:
 		repair_status_label.text = "DIAGNOSTIC CYCLE: %d%% NOMINAL" % int(repair_percent)
+	
+	# Title overlay subtle floating hover
+	if title_box_right:
+		title_box_right.position.y = initial_title_y + sin(anim_time * 1.4) * 4.0
 
 func _on_continue_pressed() -> void:
 	var sm = get_node_or_null("/root/SaveManager")
