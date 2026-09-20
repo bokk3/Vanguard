@@ -1,0 +1,64 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://explosion_fx.gd" id="1_fx"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_spark"]
+albedo_color = Color(1, 0.7, 0.2, 1)
+emission_enabled = true
+emission = Color(1, 0.5, 0.1, 1)
+emission_energy_multiplier = 5.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_debris"]
+material = SubResource("StandardMaterial3D_spark")
+radius = 0.3
+height = 0.6
+radial_segments = 8
+rings = 4
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ring"]
+transparency = 1
+cull_mode = 2
+albedo_color = Color(1, 0.8, 0.4, 0.85)
+emission_enabled = true
+emission = Color(1, 0.6, 0.2, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="TorusMesh" id="TorusMesh_shock"]
+inner_radius = 0.85
+outer_radius = 1.0
+rings = 32
+ring_segments = 12
+
+[node name="ExplosionFX" type="Node3D"]
+script = ExtResource("1_fx")
+
+[node name="Light" type="OmniLight3D" parent="."]
+light_color = Color(1, 0.7, 0.3, 1)
+light_energy = 6.0
+omni_range = 35.0
+
+[node name="DebrisParticles" type="CPUParticles3D" parent="."]
+emitting = false
+amount = 45
+lifetime = 0.9
+one_shot = true
+explosiveness = 0.95
+randomness = 0.5
+mesh = SubResource("SphereMesh_debris")
+emission_shape = 1
+emission_sphere_radius = 1.0
+spread = 180.0
+gravity = Vector3(0, -4, 0)
+initial_velocity_min = 16.0
+initial_velocity_max = 40.0
+damping_min = 2.0
+damping_max = 5.0
+scale_amount_min = 0.6
+scale_amount_max = 1.8
+
+[node name="Shockwave" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("TorusMesh_shock")
+surface_material_override/0 = SubResource("StandardMaterial3D_ring")
+
+[node name="AudioPlayer3D" type="AudioStreamPlayer3D" parent="."]

@@ -32,6 +32,10 @@ var current_speed: float = 0.0
 var mouse_input: Vector2 = Vector2.ZERO
 var downward_velocity: float = 0.0
 
+var hardpoint_nodes: Array[Node3D] = []
+var hardpoint_missiles: Array[Node3D] = []
+const LAUNCH_SEQUENCE: Array[int] = [0, 3, 1, 2] # Left Outer, Right Outer, Left Inner, Right Inner
+
 @onready var camera: Camera3D = get_node_or_null("../Camera3D")
 @onready var telemetry: Node = $CombatTelemetry
 
@@ -45,6 +49,10 @@ func _ready() -> void:
 		detect_keyboard_layout()
 	print(">>> Project Vanguard Flight Controller Active!")
 	print("Auto-detected Keyboard Layout: %s (Press F1 in-game to toggle)" % ("AZERTY" if is_azerty else "QWERTY"))
+	
+	_setup_weapon_hardpoints()
+	if telemetry:
+		telemetry.missile_fired.connect(_on_missile_fired_sync)
 	
 	var sm = get_node_or_null("/root/SaveManager")
 	if sm and sm.should_load_on_start:
@@ -128,9 +136,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	# Fire Missile: Action fire_missile
 	if event.is_action_pressed("fire_missile"):
-		if telemetry:
-			if telemetry.fire_missile():
-				print("MISSILE LAUNCHED! Remaining: ", telemetry.missiles_remaining)
+		_fire_missile()
 
 func _physics_process(delta: float) -> void:
 	# ----------------------------------------------------
@@ -196,6 +202,107 @@ func _physics_process(delta: float) -> void:
 		camera.look_at(look_target, global_transform.basis.y)
 
 # -----------------------------------------------------------------------------
+# Weapon Hardpoints & Missile Launch System
+# -----------------------------------------------------------------------------
+func _setup_weapon_hardpoints() -> void:
+	hardpoint_nodes.clear()
+	hardpoint_missiles.clear()
+	
+	# Clean up any existing hardpoints if re-running
+	for child in get_children():
+		if child.name.begins_with("Hardpoint_"):
+			child.queue_free()
+	
+	var station_positions = [
+		Vector3(-3.2, -0.22, 1.2),  # Station 0: Left Outer
+		Vector3(-2.2, -0.26, 0.4),  # Station 1: Left Inner
+		Vector3(2.2, -0.26, 0.4),   # Station 2: Right Inner
+		Vector3(3.2, -0.22, 1.2)    # Station 3: Right Outer
+	]
+	
+	var missile_packed = load("res://Vanguard_Strike_Missile.fbx")
+	var pylon_mat = StandardMaterial3D.new()
+	pylon_mat.albedo_color = Color(0.12, 0.14, 0.16, 1.0)
+	pylon_mat.metallic = 0.85
+	pylon_mat.roughness = 0.35
+	
+	for i in range(station_positions.size()):
+		var hp = Node3D.new()
+		hp.name = "Hardpoint_0" + str(i + 1)
+		hp.position = station_positions[i]
+		add_child(hp)
+		hardpoint_nodes.append(hp)
+		
+		# 1. Aerodynamic Pylon Mount
+		var pylon = MeshInstance3D.new()
+		pylon.name = "Pylon"
+		var pylon_mesh = BoxMesh.new()
+		pylon_mesh.size = Vector3(0.06, 0.12, 1.35)
+		pylon_mesh.material = pylon_mat
+		pylon.mesh = pylon_mesh
+		pylon.position = Vector3(0, 0.05, 0)
+		hp.add_child(pylon)
+		
+		# 2. Mounted Missile Visual
+		if missile_packed:
+			var m_inst = missile_packed.instantiate()
+			m_inst.name = "MountedMissile"
+			m_inst.position = Vector3(0, -0.10, -0.3)
+			hp.add_child(m_inst)
+			hardpoint_missiles.append(m_inst)
+	
+	# Initial sync with telemetry
+	if telemetry:
+		update_missile_racks(telemetry.missiles_remaining)
+
+func update_missile_racks(remaining: int) -> void:
+	var fired_count = 4 - remaining
+	for i in range(hardpoint_missiles.size()):
+		var is_fired = false
+		for f in range(fired_count):
+			if f < LAUNCH_SEQUENCE.size() and LAUNCH_SEQUENCE[f] == i:
+				is_fired = true
+				break
+		if is_instance_valid(hardpoint_missiles[i]):
+			hardpoint_missiles[i].visible = not is_fired
+
+func _on_missile_fired_sync(remaining: int) -> void:
+	update_missile_racks(remaining)
+
+func _fire_missile() -> void:
+	if not telemetry or telemetry.missiles_remaining <= 0:
+		print("ORDNANCE DEPLETED! No missiles remaining on racks.")
+		return
+	
+	var fired_count = 4 - telemetry.missiles_remaining
+	var hp_idx = LAUNCH_SEQUENCE[fired_count % LAUNCH_SEQUENCE.size()]
+	var hp_node = hardpoint_nodes[hp_idx]
+	
+	# Detach/hide mounted visual on that hardpoint
+	if hp_idx < hardpoint_missiles.size() and is_instance_valid(hardpoint_missiles[hp_idx]):
+		hardpoint_missiles[hp_idx].visible = false
+	
+	# Spawn live missile projectile
+	var missile_scene = load("res://missile.tscn")
+	if missile_scene:
+		var missile = missile_scene.instantiate()
+		var spawn_parent = get_tree().current_scene if get_tree().current_scene else get_parent()
+		if not spawn_parent:
+			spawn_parent = get_tree().root
+		spawn_parent.add_child(missile)
+		missile.global_transform = hp_node.global_transform
+		missile.launch(self, current_speed, telemetry.current_target)
+		print(">>> MISSILE LAUNCHED from Station 0", hp_idx + 1, "! Remaining: ", telemetry.missiles_remaining - 1)
+		
+		# Notify HUD combat event
+		var hud = get_node_or_null("../HUD/TacticalOverlay")
+		if hud and hud.has_method("notify_combat_event"):
+			hud.notify_combat_event("// MISSILE AWAY // TGT ACQUIRED", Color(0.0, 0.95, 1.0))
+	
+	# Decrement in telemetry
+	telemetry.fire_missile()
+
+# -----------------------------------------------------------------------------
 # Save / Restore Interface
 # -----------------------------------------------------------------------------
 func get_save_data() -> Dictionary:
@@ -222,4 +329,7 @@ func restore_save_data(data: Dictionary) -> void:
 		var forward_dir = -global_transform.basis.z.normalized()
 		camera.global_position = global_position + (global_transform.basis.z * camera_distance) + (global_transform.basis.y * camera_height)
 		camera.look_at(global_position + (forward_dir * 8.0), global_transform.basis.y)
+	
+	if telemetry:
+		update_missile_racks(telemetry.missiles_remaining)
 

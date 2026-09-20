@@ -46,7 +46,45 @@ func _ready() -> void:
 	specs_panel.hide()
 	settings_modal.hide()
 	
+	_setup_turntable_hardpoints()
 	_check_save_game_state()
+
+func _setup_turntable_hardpoints() -> void:
+	var ship_model = ship_pivot.get_node_or_null("SpaceshipModel")
+	if not ship_model:
+		return
+	
+	var station_positions = [
+		Vector3(-3.2, -0.22, 1.2),  # Station 0: Left Outer
+		Vector3(-2.2, -0.26, 0.4),  # Station 1: Left Inner
+		Vector3(2.2, -0.26, 0.4),   # Station 2: Right Inner
+		Vector3(3.2, -0.22, 1.2)    # Station 3: Right Outer
+	]
+	
+	var missile_packed = load("res://Vanguard_Strike_Missile.fbx")
+	var pylon_mat = StandardMaterial3D.new()
+	pylon_mat.albedo_color = Color(0.12, 0.14, 0.16, 1.0)
+	pylon_mat.metallic = 0.85
+	pylon_mat.roughness = 0.35
+	
+	for i in range(station_positions.size()):
+		var hp = Node3D.new()
+		hp.name = "HangarHardpoint_0" + str(i + 1)
+		hp.position = station_positions[i]
+		ship_model.add_child(hp)
+		
+		var pylon = MeshInstance3D.new()
+		var pylon_mesh = BoxMesh.new()
+		pylon_mesh.size = Vector3(0.06, 0.12, 1.35)
+		pylon_mesh.material = pylon_mat
+		pylon.mesh = pylon_mesh
+		pylon.position = Vector3(0, 0.05, 0)
+		hp.add_child(pylon)
+		
+		if missile_packed:
+			var m_inst = missile_packed.instantiate()
+			m_inst.position = Vector3(0, -0.10, -0.3)
+			hp.add_child(m_inst)
 
 func _check_save_game_state() -> void:
 	var sm = get_node_or_null("/root/SaveManager")

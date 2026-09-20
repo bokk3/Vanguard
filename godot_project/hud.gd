@@ -16,6 +16,12 @@ const COLOR_SHIELD = Color(0.2, 0.75, 1.0, 0.9)
 # Radar Toggle
 var show_circular_radar: bool = true
 
+# Hitmarker & Combat Feedback
+var hitmarker_timer: float = 0.0
+var combat_event_text: String = ""
+var combat_event_color: Color = COLOR_CYAN
+var combat_event_timer: float = 0.0
+
 func _ready() -> void:
 	var cfg = get_node_or_null("/root/ConfigManager")
 	if cfg:
@@ -28,13 +34,27 @@ func _ready() -> void:
 	if ship:
 		telemetry = ship.get_node_or_null("CombatTelemetry")
 
+func trigger_hitmarker() -> void:
+	hitmarker_timer = 0.35
+	queue_redraw()
+
+func notify_combat_event(text: String, col: Color = COLOR_CYAN) -> void:
+	combat_event_text = text
+	combat_event_color = col
+	combat_event_timer = 2.5
+	queue_redraw()
+
 func _unhandled_input(event: InputEvent) -> void:
 	# Toggle circular radar via customizable action
 	if event.is_action_pressed("toggle_radar"):
 		show_circular_radar = not show_circular_radar
 		queue_redraw()
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	if hitmarker_timer > 0.0:
+		hitmarker_timer = max(0.0, hitmarker_timer - delta)
+	if combat_event_timer > 0.0:
+		combat_event_timer = max(0.0, combat_event_timer - delta)
 	queue_redraw()
 
 func _draw() -> void:
@@ -66,6 +86,9 @@ func _draw() -> void:
 	# 7. Stall Warning (Center Screen)
 	if ship.enable_gravity and ship.current_speed < ship.stall_speed:
 		_draw_stall_warning(center)
+
+	# 8. Combat Status Event Toast
+	_draw_combat_event_toast(center)
 
 # -----------------------------------------------------------------
 # 1. Top Compass Horizon Ribbon
@@ -197,6 +220,17 @@ func _draw_center_crosshair(center: Vector2) -> void:
 	draw_line(Vector2(center.x - 36, center.y), Vector2(center.x - 36, center.y + 6), COLOR_CYAN, 2.0)
 	draw_line(Vector2(center.x + 36, center.y), Vector2(center.x + 36, center.y + 6), COLOR_CYAN, 2.0)
 
+	# Tactical Hitmarker 'X' Flash
+	if hitmarker_timer > 0.0:
+		var hm_size = 14.0
+		var hm_gap = 5.0
+		var hm_alpha = clamp(hitmarker_timer / 0.1, 0.0, 1.0)
+		var hm_col = Color(1.0, 0.85, 0.2, hm_alpha)
+		draw_line(center + Vector2(-hm_gap, -hm_gap), center + Vector2(-hm_size, -hm_size), hm_col, 2.5)
+		draw_line(center + Vector2(hm_gap, -hm_gap), center + Vector2(hm_size, -hm_size), hm_col, 2.5)
+		draw_line(center + Vector2(-hm_gap, hm_gap), center + Vector2(-hm_size, hm_size), hm_col, 2.5)
+		draw_line(center + Vector2(hm_gap, hm_gap), center + Vector2(hm_size, hm_size), hm_col, 2.5)
+
 # -----------------------------------------------------------------
 # 4. Target Acquisition & Missile Lock-On Reticle
 # -----------------------------------------------------------------
@@ -215,6 +249,29 @@ func _draw_target_tracking(vp: Vector2, center: Vector2) -> void:
 			# Target Corner Brackets
 			var b_size = clamp(3600.0 / max(dist_m, 10.0), 22.0, 64.0)
 			_draw_bracket_box(s_pos, b_size, box_col)
+
+			# Target Health Gauge (for damageable entities)
+			var target_node = t["node"]
+			if is_instance_valid(target_node):
+				var cur_hp = target_node.get("health")
+				var max_hp = target_node.get("max_health")
+				if cur_hp != null and max_hp != null and max_hp > 0.0:
+					var hp_ratio = clamp(float(cur_hp) / float(max_hp), 0.0, 1.0)
+					var bar_w = max(b_size * 1.5, 46.0)
+					var bar_h = 5.0
+					var bar_x = s_pos.x - (bar_w * 0.5)
+					var bar_y = s_pos.y - (b_size * 0.5) - 10.0
+					draw_rect(Rect2(bar_x, bar_y, bar_w, bar_h), COLOR_PANEL_BG, true)
+					draw_rect(Rect2(bar_x, bar_y, bar_w, bar_h), box_col * 0.7, false, 1.0)
+					
+					var fill_col = COLOR_RED if hp_ratio <= 0.5 else COLOR_GOLD
+					if hp_ratio > 0.75:
+						fill_col = Color(0.1, 0.95, 0.4, 0.95)
+					if hp_ratio > 0.0:
+						draw_rect(Rect2(bar_x + 1, bar_y + 1, (bar_w - 2) * hp_ratio, bar_h - 2), fill_col, true)
+					
+					var hp_txt = "%d%%" % int(hp_ratio * 100.0)
+					draw_string(ThemeDB.fallback_font, Vector2(bar_x + bar_w + 4, bar_y + 5), hp_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, fill_col)
 			
 			# Range label
 			var info_txt = "%s [%dm]" % [t["name"], dist_m]
@@ -354,3 +411,19 @@ func _draw_stall_warning(center: Vector2) -> void:
 	draw_rect(Rect2(Vector2(bx, by), Vector2(banner_w, banner_h)), Color(0.2, 0.02, 0.04, 0.85), true)
 	draw_rect(Rect2(Vector2(bx, by), Vector2(banner_w, banner_h)), COLOR_RED, false, 2.0)
 	draw_string(ThemeDB.fallback_font, Vector2(bx + 20, by + 23), ">>> STALL WARNING - INSUFFICIENT LIFT <<<", HORIZONTAL_ALIGNMENT_CENTER, -1, 12, COLOR_RED)
+
+# -----------------------------------------------------------------
+# 8. Combat Status Event Toast
+# -----------------------------------------------------------------
+func _draw_combat_event_toast(center: Vector2) -> void:
+	if combat_event_timer > 0.0 and combat_event_text != "":
+		var toast_alpha = clamp(combat_event_timer / 0.4, 0.0, 1.0)
+		var toast_col = Color(combat_event_color.r, combat_event_color.g, combat_event_color.b, toast_alpha)
+		
+		# Toast background pill
+		var txt_w = 360.0
+		var txt_h = 28.0
+		var pill_rect = Rect2(Vector2(center.x - (txt_w * 0.5), center.y + 120.0), Vector2(txt_w, txt_h))
+		draw_rect(pill_rect, Color(0.02, 0.04, 0.08, 0.85 * toast_alpha), true)
+		draw_rect(pill_rect, Color(combat_event_color.r, combat_event_color.g, combat_event_color.b, 0.6 * toast_alpha), false, 1.2)
+		draw_string(ThemeDB.fallback_font, Vector2(center.x - (txt_w * 0.5), center.y + 138.0), combat_event_text, HORIZONTAL_ALIGNMENT_CENTER, txt_w, 12, toast_col)
