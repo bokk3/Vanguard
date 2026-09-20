@@ -1,0 +1,289 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://settings_menu.gd" id="1_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.03, 0.07, 0.12, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.9, 1, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0.85, 1, 0.15)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.05, 0.12, 0.2, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0.9, 1, 0.6)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.08, 0.2, 0.32, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.84, 0, 0.95)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_apply"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0, 0.35, 0.45, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 1, 0.85, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="SettingsMenu" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.05, 0.08, 0.78)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(620, 500)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HeaderBox" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HeaderBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "AVIONICS CONFIGURATION"
+
+[node name="SubLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HeaderBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.85)
+theme_override_font_sizes/font_size = 11
+text = "TACTICAL CALIBRATION & SYSTEM PREFERENCES"
+
+[node name="HSeparator1" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ControlsHeader" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.8, 1, 0.95)
+theme_override_font_sizes/font_size = 13
+text = "// CONTROLS & AVIONICS"
+
+[node name="LayoutRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/LayoutRow"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+text = "Keyboard Layout"
+
+[node name="LayoutOption" type="OptionButton" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/LayoutRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SensRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/SensRow"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+text = "Flight Stick Sensitivity"
+
+[node name="SensSlider" type="HSlider" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/SensRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = 0.2
+max_value = 3.0
+step = 0.1
+value = 1.0
+
+[node name="SensValLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/SensRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "1.0x"
+horizontal_alignment = 2
+
+[node name="InvertCheck" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = " Invert Pitch (Flight Stick Style)"
+
+[node name="GravityCheck" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = " Atmospheric Gravity & Stall Compensation"
+
+[node name="HSeparator2" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="DisplayHeader" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.8, 1, 0.95)
+theme_override_font_sizes/font_size = 13
+text = "// TACTICAL DISPLAY & HUD"
+
+[node name="RadarCheck" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = " Show Circular Radar Disc by Default"
+
+[node name="WindowRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/WindowRow"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+text = "Display Window Mode"
+
+[node name="WindowOption" type="OptionButton" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/WindowRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HSeparator3" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="AudioHeader" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.8, 1, 0.95)
+theme_override_font_sizes/font_size = 13
+text = "// AUDIO SYSTEMS"
+
+[node name="MasterRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/MasterRow"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+text = "Master Avionics Volume"
+
+[node name="MasterSlider" type="HSlider" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/MasterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="MasterValLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/MasterRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "100%"
+horizontal_alignment = 2
+
+[node name="SfxRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/SfxRow"]
+custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
+text = "Thrusters & Weapons SFX"
+
+[node name="SfxSlider" type="HSlider" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/SfxRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 0.85
+
+[node name="SfxValLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/SfxRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(50, 0)
+layout_mode = 2
+text = "85%"
+horizontal_alignment = 2
+
+[node name="Spacer" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 2
+
+[node name="CloseBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "[ CANCEL ]"
+
+[node name="ApplyBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_apply")
+text = "[ APPLY & SAVE ]"

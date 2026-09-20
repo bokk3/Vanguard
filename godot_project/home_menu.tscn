@@ -1,0 +1,401 @@
+[gd_scene load_steps=19 format=3]
+
+[ext_resource type="Script" path="res://home_menu.gd" id="1_menu"]
+[ext_resource type="PackedScene" uid="uid://c21sm6f7vcpq4" path="res://Spaceship_Sculpted_V_Hull.glb" id="2_ship"]
+[ext_resource type="PackedScene" path="res://settings_menu.tscn" id="3_settings"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_eerie"]
+sky_top_color = Color(0.95, 0.96, 0.98, 1)
+sky_horizon_color = Color(0.9, 0.92, 0.95, 1)
+ground_bottom_color = Color(0.85, 0.88, 0.92, 1)
+ground_horizon_color = Color(0.9, 0.92, 0.95, 1)
+
+[sub_resource type="Sky" id="Sky_eerie"]
+sky_material = SubResource("ProceduralSkyMaterial_eerie")
+
+[sub_resource type="Environment" id="Environment_eerie"]
+background_mode = 2
+sky = SubResource("Sky_eerie")
+ambient_light_source = 2
+ambient_light_color = Color(0.9, 0.93, 0.97, 1)
+ambient_light_energy = 1.0
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.8
+glow_bloom = 0.12
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
+size = Vector2(80, 80)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
+albedo_color = Color(0.92, 0.94, 0.96, 1)
+metallic = 0.08
+roughness = 0.18
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_dock"]
+top_radius = 6.5
+bottom_radius = 7.0
+height = 0.15
+radial_segments = 48
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dock"]
+albedo_color = Color(0.15, 0.18, 0.22, 1)
+metallic = 0.4
+roughness = 0.3
+
+[sub_resource type="TorusMesh" id="TorusMesh_ring"]
+inner_radius = 5.5
+outer_radius = 5.7
+rings = 48
+ring_segments = 16
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_scan"]
+albedo_color = Color(0, 0.92, 1, 1)
+emission_enabled = true
+emission = Color(0, 0.92, 1, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_spark"]
+albedo_color = Color(1, 0.88, 0.3, 1)
+emission_enabled = true
+emission = Color(0, 0.95, 1, 1)
+emission_energy_multiplier = 3.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sidebar"]
+bg_color = Color(0.02, 0.05, 0.09, 0.9)
+border_width_right = 2
+border_color = Color(0, 0.9, 1, 0.6)
+shadow_color = Color(0, 0.8, 1, 0.1)
+shadow_size = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status"]
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+bg_color = Color(0.04, 0.09, 0.15, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0.75, 0.9, 0.4)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0.04, 0.1, 0.17, 0.85)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0.85, 1, 0.5)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0.08, 0.22, 0.35, 0.95)
+border_width_left = 4
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.84, 0, 0.95)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary"]
+content_margin_left = 16.0
+content_margin_top = 14.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0, 0.32, 0.42, 0.9)
+border_width_left = 4
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 1, 0.85, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="HomeMenu" type="Node3D"]
+script = ExtResource("1_menu")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_eerie")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.819152, -0.422618, 0.388229, 0, 0.676876, 0.736097, -0.573576, -0.602976, 0.554464, 0, 15, 0)
+light_color = Color(0.98, 0.98, 1, 1)
+light_energy = 1.4
+shadow_enabled = true
+
+[node name="FillLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.707107, 0.353553, -0.612372, 0, 0.866025, 0.5, 0.707107, 0.353553, -0.612372, 0, 10, 0)
+light_color = Color(0.85, 0.9, 0.96, 1)
+light_energy = 0.6
+
+[node name="HangarScene" type="Node3D" parent="."]
+
+[node name="HangarFloor" type="MeshInstance3D" parent="HangarScene"]
+mesh = SubResource("PlaneMesh_floor")
+surface_material_override/0 = SubResource("StandardMaterial3D_floor")
+
+[node name="DockingPlatform" type="MeshInstance3D" parent="HangarScene"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4, 0.08, 0)
+mesh = SubResource("CylinderMesh_dock")
+surface_material_override/0 = SubResource("StandardMaterial3D_dock")
+
+[node name="ShipTurntable" type="Node3D" parent="HangarScene"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4, 0.9, 0)
+
+[node name="SpaceshipModel" parent="HangarScene/ShipTurntable" instance=ExtResource("2_ship")]
+
+[node name="ScanRing" type="Node3D" parent="HangarScene/ShipTurntable"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+
+[node name="RingMesh" type="MeshInstance3D" parent="HangarScene/ShipTurntable/ScanRing"]
+mesh = SubResource("TorusMesh_ring")
+surface_material_override/0 = SubResource("StandardMaterial3D_scan")
+
+[node name="ScanLight" type="OmniLight3D" parent="HangarScene/ShipTurntable/ScanRing"]
+light_color = Color(0, 0.9, 1, 1)
+light_energy = 2.0
+omni_range = 8.0
+
+[node name="RepairSparks" type="CPUParticles3D" parent="HangarScene/ShipTurntable"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+amount = 24
+lifetime = 0.6
+explosiveness = 0.1
+randomness = 0.4
+emission_shape = 1
+emission_sphere_radius = 3.5
+gravity = Vector3(0, -6, 0)
+initial_velocity_min = 2.0
+initial_velocity_max = 6.0
+color = Color(0, 0.9, 1, 0.8)
+
+[node name="SpotLight3D" type="SpotLight3D" parent="HangarScene"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 2.4, 9, 0)
+light_color = Color(0.9, 0.95, 1, 1)
+light_energy = 3.5
+spot_range = 14.0
+spot_angle = 45.0
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.956305, -0.0496156, 0.288167, 0, 0.985556, 0.169349, -0.292372, -0.16195, 0.942491, 0.8, 2.3, 7.8)
+fov = 68.0
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Sidebar" type="PanelContainer" parent="UI"]
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 420.0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_sidebar")
+
+[node name="Margin" type="MarginContainer" parent="UI/Sidebar"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 32
+
+[node name="VBox" type="VBoxContainer" parent="UI/Sidebar/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="HeaderBox" type="VBoxContainer" parent="UI/Sidebar/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SubTitle" type="Label" parent="UI/Sidebar/Margin/VBox/HeaderBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "AVIONICS DOCK // HANGAR 07"
+
+[node name="Title" type="Label" parent="UI/Sidebar/Margin/VBox/HeaderBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 26
+text = "PROJECT VANGUARD"
+
+[node name="ClassTag" type="Label" parent="UI/Sidebar/Margin/VBox/HeaderBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.7, 0.85, 0.9)
+theme_override_font_sizes/font_size = 12
+text = "V-HULL STRIKE INTERCEPTOR"
+
+[node name="Sep1" type="HSeparator" parent="UI/Sidebar/Margin/VBox"]
+layout_mode = 2
+
+[node name="StatusBox" type="PanelContainer" parent="UI/Sidebar/Margin/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_status")
+
+[node name="VBox" type="VBoxContainer" parent="UI/Sidebar/Margin/VBox/StatusBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="StatusHeader" type="Label" parent="UI/Sidebar/Margin/VBox/StatusBox/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.85, 1, 0.95)
+theme_override_font_sizes/font_size = 11
+text = "// MAINTENANCE OVERVIEW"
+
+[node name="RepairStatusLabel" type="Label" parent="UI/Sidebar/Margin/VBox/StatusBox/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.95)
+theme_override_font_sizes/font_size = 12
+text = "DIAGNOSTIC CYCLE: 84% NOMINAL"
+
+[node name="RepairProgressBar" type="ProgressBar" parent="UI/Sidebar/Margin/VBox/StatusBox/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+value = 84.0
+show_percentage = false
+
+[node name="TelemetrySummary" type="Label" parent="UI/Sidebar/Margin/VBox/StatusBox/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 0.85)
+theme_override_font_sizes/font_size = 11
+text = "SHIELDS: FULL CHARGE
+HULL: COMPOSITE NANITE SEAL
+ORDNANCE: 4x AGM-90 ARMED"
+
+[node name="Sep2" type="HSeparator" parent="UI/Sidebar/Margin/VBox"]
+layout_mode = 2
+
+[node name="MenuButtons" type="VBoxContainer" parent="UI/Sidebar/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DeployBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
+text = "[ 01 ]  DEPLOY SORTIE"
+alignment = 0
+
+[node name="ConfigBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "[ 02 ]  AVIONICS CONFIG"
+alignment = 0
+
+[node name="SpecsBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "[ 03 ]  FIGHTER SPECS"
+alignment = 0
+
+[node name="QuitBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "[ 04 ]  ABORT / QUIT"
+alignment = 0
+
+[node name="Spacer" type="Control" parent="UI/Sidebar/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Footer" type="Label" parent="UI/Sidebar/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.6, 0.75, 0.7)
+theme_override_font_sizes/font_size = 10
+text = "PROJECT VANGUARD v0.4.2
+SYSTEMS INITIALIZED // READY"
+
+[node name="SpecsPanel" type="PanelContainer" parent="UI"]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -220.0
+offset_right = 260.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_status")
+
+[node name="Margin" type="MarginContainer" parent="UI/SpecsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="UI/SpecsPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="UI/SpecsPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "VANGUARD STRIKE FIGHTER // SPECS"
+
+[node name="HSeparator" type="HSeparator" parent="UI/SpecsPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="SpecsData" type="Label" parent="UI/SpecsPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.92, 1, 0.9)
+theme_override_font_sizes/font_size = 12
+text = "• HULL DESIGN: Sculpted V-Hull Low-RCS Composite
+• MASS: 12,400 kg dry / 18,200 kg combat loaded
+• PROPULSION: Dual Vectoring Ion-Pulse Turbines
+• CRUISE SPEED: 180 m/s (approx 650 km/h)
+• NITRO BOOST: 290 m/s with Afterburner Capacitor
+• STRIKE PAYLOAD: 4x AGM-90 Radar Lock-On Missiles
+• PRIMARY CANNON: 20mm Rotary Tri-Barrel Autocannon
+• DEFENSIVE SUITE: Multi-Phase Regenerative Shield Halo"
+
+[node name="CloseSpecsBtn" type="Button" parent="UI/SpecsPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "[ CLOSE SPECS ]"
+
+[node name="SettingsMenu" parent="UI" instance=ExtResource("3_settings")]
+unique_name_in_owner = true
+visible = false

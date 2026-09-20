@@ -37,10 +37,24 @@ var downward_velocity: float = 0.0
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	# Auto-detect keyboard layout (AZERTY vs QWERTY)
-	detect_keyboard_layout()
+	var cfg = get_node_or_null("/root/ConfigManager")
+	if cfg:
+		cfg.settings_changed.connect(_on_settings_changed)
+		_apply_config(cfg)
+	else:
+		detect_keyboard_layout()
 	print(">>> Project Vanguard Flight Controller Active!")
 	print("Auto-detected Keyboard Layout: %s (Press F1 in-game to toggle)" % ("AZERTY" if is_azerty else "QWERTY"))
+
+func _on_settings_changed() -> void:
+	var cfg = get_node_or_null("/root/ConfigManager")
+	if cfg:
+		_apply_config(cfg)
+
+func _apply_config(cfg: Node) -> void:
+	is_azerty = cfg.is_azerty
+	mouse_sensitivity = 0.0025 * cfg.mouse_sensitivity
+	enable_gravity = cfg.enable_gravity
 
 func detect_keyboard_layout() -> void:
 	# 1. On Windows, check native user locale & keyboard preloads via reg query (<1ms)
@@ -87,10 +101,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		print("Keyboard layout switched to: ", "AZERTY" if is_azerty else "QWERTY")
 	
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		var pause_menu = get_node_or_null("../HUD/PauseMenu")
+		if pause_menu:
+			pause_menu.pause_flight()
+			get_viewport().set_input_as_handled()
+			return
 		else:
-			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+			if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			else:
+				Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 	# Test Damage Key: H
 	if event is InputEventKey and event.pressed and event.keycode == KEY_H:
@@ -167,7 +187,9 @@ func _physics_process(delta: float) -> void:
 	if Input.is_key_pressed(KEY_DOWN):
 		p_input += 1.0
 
-	p_input += -mouse_input.y * mouse_sensitivity * 25.0
+	var cfg = get_node_or_null("/root/ConfigManager")
+	var pitch_invert = -1.0 if (cfg and cfg.invert_pitch) else 1.0
+	p_input += -mouse_input.y * mouse_sensitivity * 25.0 * pitch_invert
 	y_input += -mouse_input.x * mouse_sensitivity * 18.0
 	mouse_input = Vector2.ZERO
 

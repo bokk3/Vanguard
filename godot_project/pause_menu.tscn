@@ -1,0 +1,199 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://pause_menu.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://settings_menu.tscn" id="2_settings"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.02, 0.06, 0.11, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.92, 1, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0.8, 1, 0.15)
+shadow_size = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn"]
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 10.0
+bg_color = Color(0.04, 0.11, 0.18, 0.85)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0.8, 1, 0.45)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 10.0
+bg_color = Color(0.08, 0.22, 0.35, 0.95)
+border_width_left = 4
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.84, 0, 0.95)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_resume"]
+content_margin_left = 16.0
+content_margin_top = 12.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+bg_color = Color(0, 0.35, 0.45, 0.9)
+border_width_left = 4
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 1, 0.85, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="PauseMenu" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.01, 0.03, 0.06, 0.75)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(460, 420)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HeaderBox" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Title" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBox/HeaderBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "TACTICAL PAUSE"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBox/HeaderBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.85)
+theme_override_font_sizes/font_size = 11
+text = "AVIONICS STANDBY // SIMULATION SUSPENDED"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="Spacer1" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
+custom_minimum_size = Vector2(0, 6)
+layout_mode = 2
+
+[node name="ResumeBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_resume")
+text = "[ 01 ]  RESUME FLIGHT"
+alignment = 0
+
+[node name="RestartBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "[ 02 ]  RESTART SORTIE"
+alignment = 0
+
+[node name="ConfigBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "[ 03 ]  AVIONICS CONFIG"
+alignment = 0
+
+[node name="HangarBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "[ 04 ]  RETURN TO HANGAR"
+alignment = 0
+
+[node name="QuitBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "[ 05 ]  ABORT TO DESKTOP"
+alignment = 0
+
+[node name="Spacer2" type="Control" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Footer" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.6, 0.75, 0.65)
+theme_override_font_sizes/font_size = 10
+text = "PRESS ESC TO RESUME"
+horizontal_alignment = 1
+
+[node name="SettingsMenu" parent="." instance=ExtResource("2_settings")]
+unique_name_in_owner = true
+visible = false

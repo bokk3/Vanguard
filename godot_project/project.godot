@@ -7,8 +7,12 @@ config_version=5
 [application]
 
 config/name="Project Vanguard"
-run/main_scene="res://main.tscn"
+run/main_scene="res://home_menu.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
+
+[autoload]
+
+ConfigManager="*res://config_manager.gd"
 
 [dotnet]
 

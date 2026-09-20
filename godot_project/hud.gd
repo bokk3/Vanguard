@@ -17,6 +17,10 @@ const COLOR_SHIELD = Color(0.2, 0.75, 1.0, 0.9)
 var show_circular_radar: bool = true
 
 func _ready() -> void:
+	var cfg = get_node_or_null("/root/ConfigManager")
+	if cfg:
+		show_circular_radar = cfg.radar_circular_default
+		cfg.settings_changed.connect(func(): show_circular_radar = cfg.radar_circular_default)
 	var root = get_tree().current_scene
 	if root:
 		ship = root.get_node_or_null("Spaceship") as CharacterBody3D
