@@ -1,0 +1,236 @@
+[gd_scene load_steps=18 format=3 uid="uid://b8cutsceneinterlude"]
+
+[ext_resource type="Script" path="res://interlude_cutscene.gd" id="1_interlude"]
+[ext_resource type="PackedScene" uid="uid://c21sm6f7vcpq4" path="res://Spaceship_Sculpted_V_Hull.glb" id="2_ship"]
+[ext_resource type="PackedScene" path="res://assets/meshes/vehicles/Spaceship_Viper_Supreme_HD.fbx" id="3_viper"]
+[ext_resource type="PackedScene" path="res://transport_olympus4.tscn" id="4_transport"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_dusk"]
+sky_top_color = Color(0.18, 0.12, 0.28, 1)
+sky_horizon_color = Color(0.92, 0.46, 0.16, 1)
+ground_bottom_color = Color(0.18, 0.09, 0.08, 1)
+ground_horizon_color = Color(0.52, 0.24, 0.14, 1)
+
+[sub_resource type="Sky" id="Sky_env"]
+sky_material = SubResource("ProceduralSkyMaterial_dusk")
+
+[sub_resource type="Environment" id="Environment_cutscene"]
+background_mode = 2
+sky = SubResource("Sky_env")
+ambient_light_source = 2
+ambient_light_color = Color(0.85, 0.8, 0.75, 1)
+ambient_light_energy = 0.9
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 1.1
+glow_bloom = 0.18
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_plume"]
+albedo_color = Color(0.1, 0.9, 1, 1)
+emission_enabled = true
+emission = Color(0, 0.95, 1, 1)
+emission_energy_multiplier = 6.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_plume"]
+material = SubResource("StandardMaterial3D_plume")
+top_radius = 0.15
+bottom_radius = 0.55
+height = 3.2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_finale"]
+bg_color = Color(0.01, 0.03, 0.06, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.84, 0, 0.8)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="InterludeCutscene" type="Node3D"]
+script = ExtResource("1_interlude")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_cutscene")
+
+[node name="SunLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.25, 0.433, 0, 0.866, 0.5, -0.5, -0.433, 0.75, 0, 40, 0)
+light_color = Color(1, 0.85, 0.7, 1)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="CameraRig" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 18)
+current = true
+fov = 62.0
+
+[node name="ShipRig" type="Node3D" parent="."]
+
+[node name="SpaceshipModel" parent="ShipRig" instance=ExtResource("2_ship")]
+
+[node name="EngineLightLeft" type="OmniLight3D" parent="ShipRig"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2, 0.2, 3.4)
+light_color = Color(0, 0.9, 1, 1)
+light_energy = 4.0
+omni_range = 14.0
+
+[node name="EngineLightRight" type="OmniLight3D" parent="ShipRig"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0.2, 3.4)
+light_color = Color(0, 0.9, 1, 1)
+light_energy = 4.0
+omni_range = 14.0
+
+[node name="EnginePlumeLeft" type="MeshInstance3D" parent="ShipRig"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, -1.2, 0.2, 4.8)
+mesh = SubResource("CylinderMesh_plume")
+
+[node name="EnginePlumeRight" type="MeshInstance3D" parent="ShipRig"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 1.2, 0.2, 4.8)
+mesh = SubResource("CylinderMesh_plume")
+
+[node name="AfterburnerFlare" type="OmniLight3D" parent="ShipRig"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 4.0)
+visible = false
+light_color = Color(0.2, 0.95, 1, 1)
+light_energy = 8.0
+omni_range = 25.0
+
+[node name="WingmanRig" type="Node3D" parent="."]
+visible = false
+
+[node name="ViperModel" parent="WingmanRig" instance=ExtResource("3_viper")]
+
+[node name="TransportRig" type="Node3D" parent="."]
+visible = false
+
+[node name="TransportModel" parent="TransportRig" instance=ExtResource("4_transport")]
+
+[node name="AudioNarrator" type="AudioStreamPlayer" parent="."]
+bus = &"Master"
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="LetterboxTop" type="ColorRect" parent="UI"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 54.0
+grow_horizontal = 2
+color = Color(0, 0, 0, 1)
+
+[node name="LetterboxBottom" type="ColorRect" parent="UI"]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -54.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(0, 0, 0, 1)
+
+[node name="ActBadge" type="Label" parent="UI"]
+unique_name_in_owner = true
+offset_left = 32.0
+offset_top = 64.0
+offset_right = 500.0
+offset_bottom = 90.0
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.95)
+theme_override_font_sizes/font_size = 14
+text = "CHAPTER 1 // INTERLUDE I  |  INTO THE RED SINKS"
+
+[node name="SubtitleLabel" type="Label" parent="UI"]
+unique_name_in_owner = true
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 60.0
+offset_top = -105.0
+offset_right = -60.0
+offset_bottom = -65.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.9)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 16
+text = "Subtitles will appear here..."
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="SkipPrompt" type="Label" parent="UI"]
+unique_name_in_owner = true
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -260.0
+offset_top = -42.0
+offset_right = -24.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 0.6)
+theme_override_font_sizes/font_size = 11
+text = "[SPACE / CLICK TO SKIP]"
+horizontal_alignment = 2
+
+[node name="FinaleCard" type="CenterContainer" parent="UI"]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CardPanel" type="PanelContainer" parent="UI/FinaleCard"]
+custom_minimum_size = Vector2(620, 240)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_finale")
+
+[node name="VBox" type="VBoxContainer" parent="UI/FinaleCard/CardPanel"]
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="FinaleTitle" type="Label" parent="UI/FinaleCard/CardPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 22
+text = "PROJECT VANGUARD // CHAPTER 1 COMPLETE"
+horizontal_alignment = 1
+
+[node name="StarRating" type="Label" parent="UI/FinaleCard/CardPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "★ ★ ★  ASCENSION CORRIDORS LIBERATED  ★ ★ ★"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="UI/FinaleCard/CardPanel/VBox"]
+layout_mode = 2
+
+[node name="FinaleSubtitle" type="Label" parent="UI/FinaleCard/CardPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.92, 1, 0.9)
+theme_override_font_sizes/font_size = 14
+text = "CHAPTER 2: BELT INVASION // COMING SOON"
+horizontal_alignment = 1
+
+[node name="FadeOverlay" type="ColorRect" parent="UI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 1)

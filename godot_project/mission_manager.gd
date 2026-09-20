@@ -20,7 +20,9 @@ const SPEAKERS = {
 	"AEGIS_7":  { "name": "Aegis-7 (Cockpit EVA)",  "callsign": "AEGIS-7",  "color": Color(0.0, 0.90, 1.0) },
 	"VIPER_2":  { "name": "Lt. Vance Miller",       "callsign": "VIPER-2",  "color": Color(0.2, 0.95, 0.4) },
 	"OLYMPUS_4":{ "name": "Transport Olympus-4",   "callsign": "OLYMPUS-4","color": Color(0.4, 0.75, 1.0) },
-	"GHOST":    { "name": "Helion Commander",      "callsign": "GHOST",    "color": Color(1.0, 0.22, 0.3) }
+	"GHOST":    { "name": "Helion Commander",      "callsign": "GHOST",    "color": Color(1.0, 0.22, 0.3) },
+	"ROSS":     { "name": "Captain Ross (Carrier)", "callsign": "DAUNTLESS","color": Color(0.35, 0.75, 1.0) },
+	"VANE":     { "name": "Warlord Vane (Boss)",    "callsign": "NEMESIS-9","color": Color(1.0, 0.15, 0.25) }
 }
 
 # Campaign Definitions
@@ -197,21 +199,27 @@ func _setup_objectives(m_data: Dictionary) -> void:
 		}
 		
 		# Configure numeric targets
-		if item["id"] == "obj_destroy_all" or item["id"] == "obj_escorts":
+		if item["id"] in ["obj_destroy_all", "obj_escorts", "obj_mines", "obj_skirmishers", "obj_flak_pods"]:
 			item["target_val"] = 4
 			targets_total += 4
-		elif item["id"] == "obj_relays":
+		elif item["id"] in ["obj_relays", "obj_generators"]:
 			item["target_val"] = 3
 			targets_total += 3
-		elif item["id"] == "obj_boss":
+		elif item["id"] == "obj_shield_domes":
+			item["target_val"] = 2
+			targets_total += 2
+		elif item["id"] == "obj_laser_sentries":
+			item["target_val"] = 6
+			targets_total += 6
+		elif item["id"] == "obj_intercept_torps":
+			item["target_val"] = 8
+			targets_total += 8
+		elif item["id"] in ["obj_boss", "obj_protect", "obj_defend_carrier", "obj_destroy_dreadnought"]:
 			item["target_val"] = 1
 			targets_total += 1
 		elif item["id"] == "obj_waves":
 			item["target_val"] = 12
 			targets_total += 12
-		elif item["id"] == "obj_protect":
-			item["target_val"] = 1
-			targets_total += 1
 		
 		active_objectives.append(item)
 		objective_updated.emit(item["id"], item["status"], item["text"], item["current_val"], item["target_val"])
@@ -234,6 +242,14 @@ func _spawn_mission_entities(m_data: Dictionary) -> void:
 			_spawn_m03_transport_and_allies()
 		"M04":
 			_spawn_m04_boss_and_escorts()
+		"M05":
+			_spawn_m05_mines_and_skirmishers()
+		"M06":
+			_spawn_m06_cavern_trench()
+		"M07":
+			_spawn_m07_carrier_and_torpedoes()
+		"M08":
+			_spawn_m08_dreadnought_boss()
 
 # -----------------------------------------------------------------------------
 # 3. Environment & Atmosphere Presets
@@ -296,6 +312,55 @@ func _apply_skybox_preset(preset_name: String) -> void:
 				active_sun.light_energy = 1.6
 				active_sun.rotation_degrees = Vector3(-45, 0, 0)
 			env.volumetric_fog_enabled = false
+			
+		"deep_space_belt": # M05: Dark starfield, amber solar backlighting, rocky dust ring
+			sky_mat.sky_top_color = Color(0.01, 0.01, 0.02)
+			sky_mat.sky_horizon_color = Color(0.12, 0.08, 0.04)
+			sky_mat.ground_bottom_color = Color(0.005, 0.005, 0.01)
+			sky_mat.ground_horizon_color = Color(0.08, 0.05, 0.03)
+			sky_mat.sun_angle_max = 8.0
+			if active_sun:
+				active_sun.light_color = Color(1.0, 0.95, 0.85)
+				active_sun.light_energy = 1.8
+				active_sun.rotation_degrees = Vector3(-35, 120, 0)
+			env.volumetric_fog_enabled = false
+			
+		"asteroid_cavern": # M06: Enclosed subterranean cavern with magma glow & steel bulkheads
+			sky_mat.sky_top_color = Color(0.05, 0.03, 0.02)
+			sky_mat.sky_horizon_color = Color(0.65, 0.22, 0.08)
+			sky_mat.ground_bottom_color = Color(0.08, 0.02, 0.01)
+			sky_mat.ground_horizon_color = Color(0.50, 0.15, 0.05)
+			if active_sun:
+				active_sun.light_color = Color(1.0, 0.45, 0.15)
+				active_sun.light_energy = 0.9
+				active_sun.rotation_degrees = Vector3(-80, 0, 0)
+			env.volumetric_fog_enabled = true
+			env.volumetric_fog_density = 0.006
+			env.volumetric_fog_albedo = Color(0.7, 0.25, 0.08)
+			
+		"carrier_orbit": # M07: Fleet defense orbit, deep navy space with carrier illumination
+			sky_mat.sky_top_color = Color(0.01, 0.02, 0.05)
+			sky_mat.sky_horizon_color = Color(0.08, 0.25, 0.45)
+			sky_mat.ground_bottom_color = Color(0.01, 0.01, 0.03)
+			sky_mat.ground_horizon_color = Color(0.05, 0.15, 0.30)
+			if active_sun:
+				active_sun.light_color = Color(0.9, 0.95, 1.0)
+				active_sun.light_energy = 1.5
+				active_sun.rotation_degrees = Vector3(-45, -30, 0)
+			env.volumetric_fog_enabled = false
+			
+		"crucible_forge": # M08: Ominous crimson shipyard industrial zone
+			sky_mat.sky_top_color = Color(0.02, 0.01, 0.02)
+			sky_mat.sky_horizon_color = Color(0.70, 0.10, 0.15)
+			sky_mat.ground_bottom_color = Color(0.03, 0.01, 0.01)
+			sky_mat.ground_horizon_color = Color(0.40, 0.05, 0.08)
+			if active_sun:
+				active_sun.light_color = Color(1.0, 0.3, 0.35)
+				active_sun.light_energy = 1.6
+				active_sun.rotation_degrees = Vector3(-55, 45, 0)
+			env.volumetric_fog_enabled = true
+			env.volumetric_fog_density = 0.003
+			env.volumetric_fog_albedo = Color(0.8, 0.1, 0.15)
 	
 	var sky = Sky.new()
 	sky.sky_material = sky_mat
@@ -607,6 +672,263 @@ func _spawn_m04_boss_and_escorts() -> void:
 		d.destroyed.connect(_on_mission_target_destroyed.bind(d, "obj_escorts"))
 		active_root.add_child(d)
 
+func _spawn_m05_mines_and_skirmishers() -> void:
+	var drone_script = load("res://target_drone.gd")
+	var mine_mesh = load("res://assets/meshes/environment/asteroid_tether_mine.glb")
+	var ast_med = load("res://assets/meshes/environment/asteroid_boulder_medium.glb")
+	var ast_lrg = load("res://assets/meshes/environment/asteroid_cluster_large.glb")
+	
+	var belt_root = Node3D.new()
+	belt_root.name = "AsteroidBeltRoot"
+	active_root.add_child(belt_root)
+	
+	# 1. Spawn asteroid field
+	var ast_locs = [
+		Vector3(-140, 20, -320), Vector3(160, -15, -400),
+		Vector3(-80, 55, -500), Vector3(120, 40, -580),
+		Vector3(0, -30, -360), Vector3(-200, -10, -450),
+		Vector3(220, 25, -520), Vector3(-50, 70, -650)
+	]
+	for i in range(ast_locs.size()):
+		var m = (ast_lrg if i % 3 == 0 else ast_med)
+		if m:
+			var inst = m.instantiate()
+			inst.name = "Asteroid_" + str(i + 1)
+			inst.position = ast_locs[i]
+			inst.rotation = Vector3(i * 0.4, i * 0.7, i * 0.2)
+			belt_root.add_child(inst)
+			
+	# 2. Spawn 4 Tether-Mines
+	var mine_locs = [
+		Vector3(-90, 30, -300), Vector3(80, 10, -380),
+		Vector3(-30, 45, -480), Vector3(110, 20, -600)
+	]
+	for i in range(mine_locs.size()):
+		var m = Node3D.new()
+		m.name = "TetherMine_0" + str(i + 1)
+		m.set_script(drone_script)
+		m.drone_type = "mine"
+		m.center_point = mine_locs[i]
+		m.orbit_radius = 0.0
+		m.orbit_speed = 0.0
+		m.altitude = mine_locs[i].y
+		m.max_health = 60.0
+		m.health = 60.0
+		m.respawn_enabled = false
+		m.destroyed.connect(_on_mission_target_destroyed.bind(m, "obj_mines"))
+		active_root.add_child(m)
+		m.position = mine_locs[i]
+		
+		if mine_mesh:
+			var vis = mine_mesh.instantiate()
+			m.add_child(vis)
+			
+	# 3. Spawn 4 Cloaked Stealth Skirmishers
+	for i in range(4):
+		var d = Node3D.new()
+		d.name = "StealthSkirmisher_0" + str(i + 1)
+		d.set_script(drone_script)
+		d.drone_type = "skirmisher"
+		d.center_point = Vector3((i - 1.5) * 120.0, 40.0, -420.0)
+		d.orbit_radius = 140.0
+		d.orbit_speed = 0.45 * (-1 if i % 2 == 1 else 1)
+		d.altitude = 40.0
+		d.respawn_enabled = false
+		d.destroyed.connect(_on_mission_target_destroyed.bind(d, "obj_skirmishers"))
+		active_root.add_child(d)
+
+func _spawn_m06_cavern_trench() -> void:
+	var ring_mesh = load("res://assets/meshes/environment/cavern_tunnel_straight.glb")
+	var gen_mesh = load("res://assets/meshes/environment/cavern_generator_core.glb")
+	var sentry_mesh = load("res://assets/meshes/environment/laser_sentry_turret.glb")
+	var drone_script = load("res://target_drone.gd")
+	
+	var cavern_root = Node3D.new()
+	cavern_root.name = "CavernTrenchRoot"
+	active_root.add_child(cavern_root)
+	
+	# 1. Spawn 6 Tunnel Segments along Z axis
+	if ring_mesh:
+		for i in range(7):
+			var r = ring_mesh.instantiate()
+			r.name = "CavernRing_" + str(i + 1)
+			r.position = Vector3(0, 50, -i * 110.0)
+			cavern_root.add_child(r)
+			
+	# 2. Spawn 3 Geothermal Extraction Generators
+	var gen_locs = [
+		Vector3(-35, 30, -220),
+		Vector3(40, 45, -440),
+		Vector3(0, 25, -620)
+	]
+	for i in range(gen_locs.size()):
+		var g = Node3D.new()
+		g.name = "GeothermalGen_0" + str(i + 1)
+		g.set_script(drone_script)
+		g.drone_type = "generator"
+		g.center_point = gen_locs[i]
+		g.orbit_radius = 0.0
+		g.orbit_speed = 0.0
+		g.altitude = gen_locs[i].y
+		g.max_health = 150.0
+		g.health = 150.0
+		g.respawn_enabled = false
+		g.destroyed.connect(_on_mission_target_destroyed.bind(g, "obj_generators"))
+		active_root.add_child(g)
+		g.position = gen_locs[i]
+		
+		if gen_mesh:
+			var vis = gen_mesh.instantiate()
+			g.add_child(vis)
+			
+	# 3. Spawn 6 Automated Laser Sentries
+	var sentry_locs = [
+		Vector3(-55, 65, -150), Vector3(55, 65, -150),
+		Vector3(-55, 35, -330), Vector3(55, 35, -330),
+		Vector3(-55, 50, -520), Vector3(55, 50, -520)
+	]
+	for i in range(sentry_locs.size()):
+		var s = Node3D.new()
+		s.name = "LaserSentry_0" + str(i + 1)
+		s.set_script(drone_script)
+		s.drone_type = "sentry"
+		s.center_point = sentry_locs[i]
+		s.orbit_radius = 0.0
+		s.orbit_speed = 0.0
+		s.altitude = sentry_locs[i].y
+		s.max_health = 80.0
+		s.health = 80.0
+		s.respawn_enabled = false
+		s.destroyed.connect(_on_mission_target_destroyed.bind(s, "obj_laser_sentries"))
+		active_root.add_child(s)
+		s.position = sentry_locs[i]
+		
+		if sentry_mesh:
+			var vis = sentry_mesh.instantiate()
+			s.add_child(vis)
+
+func _spawn_m07_carrier_and_torpedoes() -> void:
+	var carrier_mesh = load("res://assets/meshes/vehicles/carrier_soc_dauntless.glb")
+	var torp_mesh = load("res://assets/meshes/vehicles/heavy_anti_ship_torpedo.glb")
+	var drone_script = load("res://target_drone.gd")
+	
+	# 1. Spawn SOC Dauntless Carrier
+	var carrier = Node3D.new()
+	carrier.name = "SOC_Dauntless"
+	carrier.position = Vector3(0, 60, 200)
+	carrier.add_to_group("friendlies")
+	active_root.add_child(carrier)
+	if carrier_mesh:
+		var vis = carrier_mesh.instantiate()
+		carrier.add_child(vis)
+		
+	# 2. Spawn Wingman Viper 2 (Miller)
+	var viper_mesh = load("res://assets/meshes/vehicles/Spaceship_Viper_Supreme_HD.fbx")
+	var wingman = Node3D.new()
+	wingman.name = "Wingman_Miller"
+	wingman.position = Vector3(45, 65, 80)
+	wingman.add_to_group("friendlies")
+	active_root.add_child(wingman)
+	if viper_mesh:
+		var v_vis = viper_mesh.instantiate()
+		wingman.add_child(v_vis)
+		
+	# 3. Spawn 8 Heavy Anti-Ship Fusion Torpedoes
+	var torp_origins = [
+		Vector3(-180, 80, -600), Vector3(180, 75, -650),
+		Vector3(-240, 95, -720), Vector3(240, 85, -750),
+		Vector3(-120, 110, -820), Vector3(120, 100, -840),
+		Vector3(-300, 90, -900), Vector3(300, 90, -920)
+	]
+	for i in range(torp_origins.size()):
+		var t = Node3D.new()
+		t.name = "FusionTorpedo_0" + str(i + 1)
+		t.set_script(drone_script)
+		t.drone_type = "bomber"
+		t.center_point = torp_origins[i]
+		t.orbit_radius = 60.0
+		t.orbit_speed = 0.35
+		t.altitude = torp_origins[i].y
+		t.max_health = 75.0
+		t.health = 75.0
+		t.respawn_enabled = false
+		t.destroyed.connect(_on_mission_target_destroyed.bind(t, "obj_intercept_torps"))
+		active_root.add_child(t)
+		t.position = torp_origins[i]
+		
+		if torp_mesh:
+			var vis = torp_mesh.instantiate()
+			t.add_child(vis)
+
+func _spawn_m08_dreadnought_boss() -> void:
+	var dread_mesh = load("res://assets/meshes/vehicles/dreadnought_nemesis9.glb")
+	var drone_script = load("res://target_drone.gd")
+	
+	# 1. Spawn Dreadnought Nemesis-9
+	var dread = Node3D.new()
+	dread.name = "Dreadnought_Nemesis9"
+	dread.position = Vector3(0, 80, -420)
+	dread.add_to_group("enemies")
+	active_root.add_child(dread)
+	if dread_mesh:
+		var vis = dread_mesh.instantiate()
+		dread.add_child(vis)
+		
+	# 2. Phase 1: 4 Rotary Flak Pods
+	var flak_offsets = [
+		Vector3(-32, 22, -40), Vector3(32, 22, -40),
+		Vector3(-32, 22, 50), Vector3(32, 22, 50)
+	]
+	for i in range(flak_offsets.size()):
+		var fp = Node3D.new()
+		fp.name = "FlakPod_0" + str(i + 1)
+		fp.set_script(drone_script)
+		fp.drone_type = "sentry"
+		fp.center_point = dread.position + flak_offsets[i]
+		fp.orbit_radius = 0.0
+		fp.orbit_speed = 0.0
+		fp.altitude = (dread.position + flak_offsets[i]).y
+		fp.max_health = 100.0
+		fp.health = 100.0
+		fp.respawn_enabled = false
+		fp.destroyed.connect(_on_mission_target_destroyed.bind(fp, "obj_flak_pods"))
+		active_root.add_child(fp)
+		fp.position = dread.position + flak_offsets[i]
+		
+	# 3. Phase 2: 2 Ventral Shield Generators
+	for i in range(2):
+		var sg = Node3D.new()
+		sg.name = "ShieldDome_0" + str(i + 1)
+		sg.set_script(drone_script)
+		sg.drone_type = "generator"
+		var offset = Vector3(-28.0 if i == 0 else 28.0, -20.0, 0.0)
+		sg.center_point = dread.position + offset
+		sg.orbit_radius = 0.0
+		sg.orbit_speed = 0.0
+		sg.altitude = (dread.position + offset).y
+		sg.max_health = 150.0
+		sg.health = 150.0
+		sg.respawn_enabled = false
+		sg.destroyed.connect(_on_mission_target_destroyed.bind(sg, "obj_shield_domes"))
+		active_root.add_child(sg)
+		sg.position = dread.position + offset
+		
+	# 4. Phase 3: Core Reactor
+	var core = Node3D.new()
+	core.name = "ReactorCore"
+	core.set_script(drone_script)
+	core.drone_type = "boss"
+	core.center_point = dread.position + Vector3(0, -18, 20)
+	core.orbit_radius = 0.0
+	core.orbit_speed = 0.0
+	core.altitude = (dread.position + Vector3(0, -18, 20)).y
+	core.max_health = 350.0
+	core.health = 350.0
+	core.respawn_enabled = false
+	core.destroyed.connect(_on_mission_target_destroyed.bind(core, "obj_destroy_dreadnought"))
+	active_root.add_child(core)
+	core.position = dread.position + Vector3(0, -18, 20)
+
 # -----------------------------------------------------------------------------
 # 5. Continuous Objective Evaluation & Altitude Monitoring
 # -----------------------------------------------------------------------------
@@ -836,6 +1158,19 @@ func _trigger_intro_comms(mission_id: String) -> void:
 		"M04":
 			queue_transmission("APEX_CMD", "Vanguard 1, crossing forty thousand meters. Skies are turning black. You are on vectoring thrusters.", 4.5, "res://audio/comms/m04_apex_vacuum_entry.mp3")
 			queue_transmission("GHOST", "So the Directorate sent their prized pilot to freeze in the vacuum. Let's see how your V-hull handles true zero-G!", 5.0, "res://audio/comms/m04_ghost_challenge.mp3")
+		"M05":
+			queue_transmission("APEX_CMD", "Vanguard 1, Apex Command. You are clear of the Dauntless hangar bay. Watch your RCS thrusters.", 4.5, "res://audio/comms/m05_apex_carrier_launch.mp3")
+			queue_transmission("AEGIS_7", "Orbital vacuum confirmed. Inertial drift compensators online.", 3.5, "res://audio/comms/m05_aegis_vacuum_online.mp3")
+			queue_transmission("VIPER_2", "Look at this junk field, Lead. The Combine seeded the rim with magnetic tether-mines.", 4.5, "res://audio/comms/m05_miller_tether_warning.mp3")
+		"M06":
+			queue_transmission("APEX_CMD", "Vanguard 1, you're entering the Iron Hollow. Trench clearance is less than 150 meters.", 4.5, "res://audio/comms/m06_apex_enter_cavern.mp3")
+			queue_transmission("AEGIS_7", "Warning: Multiple automated laser cutting arrays active along cavern bulkheads.", 3.5, "res://audio/comms/m06_aegis_laser_warning.mp3")
+		"M07":
+			queue_transmission("ROSS", "All stations, general quarters! Combine bombers jumping in! They've launched heavy torpedoes!", 4.5, "res://audio/comms/m07_ross_general_quarters.mp3")
+			queue_transmission("APEX_CMD", "Vanguard Flight, priority one is fleet defense! Splash those fusion warheads!", 4.5, "res://audio/comms/m07_apex_defend_carrier.mp3")
+		"M08":
+			queue_transmission("APEX_CMD", "There she is... the Nemesis-9. Look at the armor plating on that monster.", 4.5, "res://audio/comms/m08_apex_nemesis_visual.mp3")
+			queue_transmission("VANE", "Directorate lapdogs. You bled for this rock, and here you shall be buried! Fire flak batteries!", 5.0, "res://audio/comms/m08_vane_challenge.mp3")
 
 func _trigger_victory_comms(mission_id: String) -> void:
 	match mission_id:
@@ -849,6 +1184,19 @@ func _trigger_victory_comms(mission_id: String) -> void:
 		"M04":
 			queue_transmission("AEGIS_7", "Catastrophic core rupture on target. Threat destroyed.", 3.5, "res://audio/comms/m04_aegis_target_rupture.mp3")
 			queue_transmission("APEX_CMD", "Combine Ghost is down! The entire drone network is offline. Outstanding work, Vanguard 1... You saved Ascension!", 5.5, "res://audio/comms/m04_apex_ace_victory.mp3")
+		"M05":
+			queue_transmission("VIPER_2", "Splash two! You got the others, Lead! Perimeter corridor is clean.", 4.0, "res://audio/comms/m05_miller_perimeter_clear.mp3")
+			queue_transmission("APEX_CMD", "Good hunting, Vanguard. Telemetry decoded coordinates to their internal foundry. Prep for cavern infiltration.", 5.0, "res://audio/comms/m05_apex_foundry_coords.mp3")
+		"M06":
+			queue_transmission("APEX_CMD", "Hit full afterburners, Vanguard 1! Get out of that rock before the shaft collapses!", 4.0, "res://audio/comms/m06_apex_afterburners_escape.mp3")
+			queue_transmission("VIPER_2", "Punch it, Lead! I see your exhaust plume breaking through the exit fissure!", 4.0, "res://audio/comms/m06_miller_exit_visual.mp3")
+		"M07":
+			queue_transmission("ROSS", "Direct hit on the final bomber! All torpedo tracks dissipated. The Dauntless owes you her life!", 4.5, "res://audio/comms/m07_ross_carrier_saved.mp3")
+			queue_transmission("APEX_CMD", "We tracked the bombers' telemetry back to the Celestial Forge. We're taking the fight to their front door!", 5.0, "res://audio/comms/m07_apex_forge_tracking.mp3")
+		"M08":
+			queue_transmission("AEGIS_7", "Thermal core breached! Critical containment failure imminent!", 3.5, "res://audio/comms/m08_aegis_core_rupture.mp3")
+			queue_transmission("VANE", "Impossible... My forge... my empire... CURSE YOU, VANGUARD!", 4.0, "res://audio/comms/m08_vane_death_cry.mp3")
+			queue_transmission("APEX_CMD", "Confirmed! Dreadnought Nemesis-9 is detonating! The Celestial Forge is broken! Chapter Two is ours!", 5.5, "res://audio/comms/m08_apex_chapter2_victory.mp3")
 
 # -----------------------------------------------------------------------------
 # 7. Persistence Integration

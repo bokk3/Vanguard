@@ -345,14 +345,13 @@ alignment = 0
 
 [node name="ContinueBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
 unique_name_in_owner = true
-visible = false
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 15
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
-text = "  [ 01 ]  CONTINUE SORTIE"
+text = "  [ 01 ]  RESUME SORTIE"
 icon = ExtResource("5_icon_deploy")
 alignment = 0
 expand_icon = true
@@ -365,7 +364,7 @@ theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 14
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  [ 01 ]  DEPLOY SORTIE"
+text = "  [ 02 ]  MISSION SELECTOR"
 icon = ExtResource("5_icon_deploy")
 alignment = 0
 expand_icon = true

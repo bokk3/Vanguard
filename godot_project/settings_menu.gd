@@ -31,6 +31,11 @@ signal closed
 @onready var sfx_slider: HSlider = %SfxSlider
 @onready var sfx_val_label: Label = %SfxValLabel
 
+# Gamepad & Controller
+@onready var pad_status_label: Label = %PadStatusLabel
+@onready var rumble_check: CheckBox = %RumbleCheck
+@onready var pad_layout_list: VBoxContainer = %PadLayoutList
+
 @onready var apply_btn: Button = %ApplyBtn
 @onready var close_btn: Button = %CloseBtn
 
@@ -39,6 +44,13 @@ var key_buttons_map: Dictionary = {}
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	# Listen for controller connect / disconnect events
+	Input.joy_connection_changed.connect(func(_device, _connected):
+		var cfg = get_node_or_null("/root/ConfigManager")
+		if pad_status_label and cfg and cfg.has_method("get_connected_controller_name"):
+			pad_status_label.text = cfg.get_connected_controller_name()
+	)
 	
 	# Populate difficulty options
 	if difficulty_option:
@@ -70,6 +82,7 @@ func _ready() -> void:
 		rebind_overlay.hide()
 	
 	_build_keybindings_ui()
+	_build_gamepad_ui()
 	refresh_from_config()
 
 func _build_keybindings_ui() -> void:
@@ -131,6 +144,11 @@ func refresh_from_config() -> void:
 	master_val_label.text = "%d%%" % int(cfg.master_volume * 100)
 	sfx_slider.value = cfg.sfx_volume
 	sfx_val_label.text = "%d%%" % int(cfg.sfx_volume * 100)
+	
+	if pad_status_label and cfg.has_method("get_connected_controller_name"):
+		pad_status_label.text = cfg.get_connected_controller_name()
+	if rumble_check and "enable_rumble" in cfg:
+		rumble_check.button_pressed = cfg.enable_rumble
 	
 	# Refresh key button labels
 	for action in key_buttons_map.keys():
@@ -219,6 +237,9 @@ func _on_apply_pressed() -> void:
 				_:
 					cfg.difficulty = "NORMAL"
 		
+		if rumble_check and "enable_rumble" in cfg:
+			cfg.enable_rumble = rumble_check.button_pressed
+		
 		cfg.radar_circular_default = radar_check.button_pressed
 		cfg.window_mode = window_option.selected
 		
@@ -232,3 +253,66 @@ func _on_apply_pressed() -> void:
 func _on_close_pressed() -> void:
 	hide()
 	closed.emit()
+
+func _build_gamepad_ui() -> void:
+	var cfg = get_node_or_null("/root/ConfigManager")
+	if not cfg or not pad_layout_list:
+		return
+	
+	for child in pad_layout_list.get_children():
+		child.queue_free()
+	
+	# Header row
+	var header = HBoxContainer.new()
+	var h_act = Label.new()
+	h_act.text = "FLIGHT ACTION"
+	h_act.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h_act.set("theme_override_colors/font_color", Color(0, 0.92, 1, 1))
+	h_act.set("theme_override_font_sizes/font_size", 11)
+	header.add_child(h_act)
+	
+	var h_xb = Label.new()
+	h_xb.custom_minimum_size = Vector2(170, 0)
+	h_xb.text = "XBOX / PC LAYOUT"
+	h_xb.set("theme_override_colors/font_color", Color(0.2, 1.0, 0.4, 1))
+	h_xb.set("theme_override_font_sizes/font_size", 11)
+	header.add_child(h_xb)
+	
+	var h_ps = Label.new()
+	h_ps.custom_minimum_size = Vector2(170, 0)
+	h_ps.text = "PS5 / DUALSENSE"
+	h_ps.set("theme_override_colors/font_color", Color(0.3, 0.7, 1.0, 1))
+	h_ps.set("theme_override_font_sizes/font_size", 11)
+	header.add_child(h_ps)
+	pad_layout_list.add_child(header)
+	
+	var sep = HSeparator.new()
+	pad_layout_list.add_child(sep)
+	
+	if "JOYPAD_CONTROLS_TABLE" in cfg:
+		for item in cfg.JOYPAD_CONTROLS_TABLE:
+			var row = HBoxContainer.new()
+			row.custom_minimum_size = Vector2(0, 24)
+			
+			var l_act = Label.new()
+			l_act.text = item["action"]
+			l_act.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			l_act.set("theme_override_font_sizes/font_size", 11)
+			l_act.set("theme_override_colors/font_color", Color(0.9, 0.95, 1.0, 0.95))
+			row.add_child(l_act)
+			
+			var l_xb = Label.new()
+			l_xb.custom_minimum_size = Vector2(170, 0)
+			l_xb.text = item["xbox"]
+			l_xb.set("theme_override_font_sizes/font_size", 11)
+			l_xb.set("theme_override_colors/font_color", Color(0.8, 1.0, 0.85, 0.9))
+			row.add_child(l_xb)
+			
+			var l_ps = Label.new()
+			l_ps.custom_minimum_size = Vector2(170, 0)
+			l_ps.text = item["ps"]
+			l_ps.set("theme_override_font_sizes/font_size", 11)
+			l_ps.set("theme_override_colors/font_color", Color(0.8, 0.9, 1.0, 0.9))
+			row.add_child(l_ps)
+			
+			pad_layout_list.add_child(row)

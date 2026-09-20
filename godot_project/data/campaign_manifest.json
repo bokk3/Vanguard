@@ -124,6 +124,138 @@
         { "id": "obj_boss", "text": "Destroy the Combine Ghost in aerial dogfight", "mandatory": true },
         { "id": "obj_escorts", "text": "Splash 4x Elite Escort Drones", "mandatory": true }
       ]
+    },
+    {
+      "id": "M05",
+      "codename": "SILENT ORBIT",
+      "theater": "Gordian Asteroid Belt Rim (Sector 24)",
+      "sky_preset": "deep_space_belt",
+      "stall_speed_ms": 0.0,
+      "player": {
+        "ship_scene": "res://Spaceship_Sculpted_V_Hull.glb",
+        "missiles_count": 4,
+        "cannon_rounds": 1200
+      },
+      "targets": [
+        {
+          "type": "tether_mine",
+          "mesh": "res://assets/meshes/environment/asteroid_tether_mine.glb",
+          "count": 4
+        }
+      ],
+      "enemies": [
+        {
+          "type": "skirmisher",
+          "script": "res://target_drone.gd",
+          "count": 4
+        }
+      ],
+      "objectives": [
+        { "id": "obj_navigate", "text": "Navigate asteroid field in zero-G vacuum", "mandatory": true },
+        { "id": "obj_mines", "text": "Destroy 4x Helion Tether-Mine Clusters", "mandatory": true },
+        { "id": "obj_skirmishers", "text": "Neutralize 4x Cloaked Stealth Skirmishers", "mandatory": true }
+      ]
+    },
+    {
+      "id": "M06",
+      "codename": "GHOST REEF",
+      "theater": "The Iron Hollow (Asteroid 433-Eros)",
+      "sky_preset": "asteroid_cavern",
+      "stall_speed_ms": 0.0,
+      "altitude_limit_m": 140.0,
+      "player": {
+        "ship_scene": "res://Spaceship_Sculpted_V_Hull.glb",
+        "missiles_count": 4,
+        "cannon_rounds": 1200
+      },
+      "targets": [
+        {
+          "type": "geothermal_core",
+          "mesh": "res://assets/meshes/environment/cavern_generator_core.glb",
+          "count": 3
+        }
+      ],
+      "sentries": [
+        {
+          "type": "laser_turret",
+          "mesh": "res://assets/meshes/environment/laser_sentry_turret.glb",
+          "count": 6
+        }
+      ],
+      "objectives": [
+        { "id": "obj_cavern", "text": "Penetrate excavation trench within 140m clearance", "mandatory": true },
+        { "id": "obj_generators", "text": "Destroy 3x Geothermal Extraction Generators", "mandatory": true },
+        { "id": "obj_escape", "text": "Rocket through exit fissure before thermal blowout", "mandatory": true }
+      ]
+    },
+    {
+      "id": "M07",
+      "codename": "DAUNTLESS DEFENDER",
+      "theater": "5th Fleet Perimeter, Dauntless Staging Sector",
+      "sky_preset": "carrier_orbit",
+      "stall_speed_ms": 0.0,
+      "player": {
+        "ship_scene": "res://Spaceship_Sculpted_V_Hull.glb",
+        "missiles_count": 4,
+        "cannon_rounds": 1200
+      },
+      "allies": [
+        {
+          "callsign": "Viper 2",
+          "pilot": "Lt. Vance Miller",
+          "ship_scene": "res://assets/meshes/vehicles/Spaceship_Viper_Supreme_HD.fbx"
+        }
+      ],
+      "protected_target": {
+        "name": "SOC Dauntless Fleet Carrier",
+        "max_hull": 1000,
+        "max_shield": 600,
+        "mesh": "res://assets/meshes/vehicles/carrier_soc_dauntless.glb"
+      },
+      "waves": [
+        { "wave_num": 1, "type": "torpedo_bomber", "count": 4, "torpedoes": 2 },
+        { "wave_num": 2, "type": "heavy_gunboat", "count": 4, "torpedoes": 3 },
+        { "wave_num": 3, "type": "saturation_strike", "count": 6, "torpedoes": 3 }
+      ],
+      "objectives": [
+        { "id": "obj_defend_carrier", "text": "Protect Flagship SOC Dauntless from destruction", "mandatory": true },
+        { "id": "obj_intercept_torps", "text": "Intercept 8x Heavy Anti-Ship Fusion Torpedoes", "mandatory": true },
+        { "id": "obj_waves", "text": "Repel all 3 bomber assault waves", "mandatory": true }
+      ]
+    },
+    {
+      "id": "M08",
+      "codename": "NEXUS CRUCIBLE",
+      "theater": "The Celestial Forge (Combine Command Shipyard)",
+      "sky_preset": "crucible_forge",
+      "stall_speed_ms": 0.0,
+      "player": {
+        "ship_scene": "res://Spaceship_Sculpted_V_Hull.glb",
+        "missiles_count": 4,
+        "cannon_rounds": 1200
+      },
+      "boss": {
+        "callsign": "Nemesis-9",
+        "commander": "Helion Warlord Vane",
+        "ship_scene": "res://assets/meshes/vehicles/dreadnought_nemesis9.glb",
+        "max_hull": 1200,
+        "max_shield": 800,
+        "flak_pods": 4,
+        "shield_generators": 2
+      },
+      "enemies": [
+        {
+          "type": "elite_guard",
+          "script": "res://target_drone.gd",
+          "count": 4,
+          "formation": "echelon"
+        }
+      ],
+      "objectives": [
+        { "id": "obj_flak_pods", "text": "Phase 1: Destroy 4x Dreadnought Rotary Flak Pods", "mandatory": true },
+        { "id": "obj_shield_domes", "text": "Phase 2: Shatter Twin Ventral Shield Generators", "mandatory": true },
+        { "id": "obj_destroy_dreadnought", "text": "Phase 3: Destroy Dreadnought Nemesis-9 via Exposed Reactor Core", "mandatory": true }
+      ]
     }
   ]
 }

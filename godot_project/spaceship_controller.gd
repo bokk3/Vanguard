@@ -145,7 +145,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		layout_changed.emit(is_azerty)
 		print("Keyboard layout switched to: ", "AZERTY" if is_azerty else "QWERTY")
 	
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
+	var is_pause_key = event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE
+	var is_pause_pad = event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_START
+	if is_pause_key or is_pause_pad:
 		var pause_menu = get_node_or_null("../HUD/PauseMenu")
 		if pause_menu:
 			pause_menu.pause_flight()
@@ -365,6 +367,10 @@ func _fire_missile() -> void:
 		var mm = get_node_or_null("/root/MissionManager")
 		if mm and mm.has_method("record_shot_fired"):
 			mm.record_shot_fired(true)
+		
+		var cfg = get_node_or_null("/root/ConfigManager")
+		if cfg and cfg.has_method("play_rumble"):
+			cfg.play_rumble(0.65, 0.5, 0.25)
 	
 	# Decrement in telemetry
 	telemetry.fire_missile()
@@ -467,7 +473,11 @@ func _process_machine_gun(delta: float) -> void:
 			gun_timer += (1.0 / gun_fire_rate)
 			max_burst_per_frame -= 1
 
-		# Subtle camera recoil vibration
+		# Subtle camera recoil vibration & controller haptics
+		var cfg = get_node_or_null("/root/ConfigManager")
+		if cfg and cfg.has_method("play_rumble"):
+			cfg.play_rumble(0.22, 0.08, 0.06)
+		
 		if camera:
 			camera.position += Vector3(
 				randf_range(-0.025, 0.025),
@@ -524,8 +534,10 @@ func _fire_machine_gun_round() -> void:
 		telemetry.fire_cannon_round()
 
 func take_damage(amount: float) -> void:
-	var cfg = get_tree().root.get_node_or_null("ConfigManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
+	var cfg = get_node_or_null("/root/ConfigManager")
 	var mult = cfg.get_difficulty_damage_multiplier() if (cfg and cfg.has_method("get_difficulty_damage_multiplier")) else 1.0
 	if telemetry:
 		telemetry.apply_damage(amount * mult)
+	if cfg and cfg.has_method("play_rumble"):
+		cfg.play_rumble(0.85, 0.9, 0.35)
 

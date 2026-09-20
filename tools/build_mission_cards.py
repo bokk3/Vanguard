@@ -291,12 +291,156 @@ def create_card_m04():
     
     return img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
 
+def create_card_m05():
+    img = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    pad = 20 * SCALE
+    
+    draw_hud_frame(draw, "OPERATION: SILENT ORBIT [M-05]", "THEATER: GORDIAN BELT RIM // PROXIMITY SCREEN // ZERO-G", (255, 180, 0, 240))
+    
+    # Asteroid field silhouettes
+    asteroids = [
+        (SW // 2 - 140 * SCALE, SH // 2 + 10 * SCALE, 45 * SCALE),
+        (SW // 2 + 160 * SCALE, SH // 2 - 30 * SCALE, 55 * SCALE),
+        (SW // 2 - 40 * SCALE, SH // 2 - 60 * SCALE, 30 * SCALE),
+        (SW // 2 + 80 * SCALE, SH // 2 + 70 * SCALE, 38 * SCALE)
+    ]
+    for ax, ay, ar in asteroids:
+        draw.ellipse([ax - ar, ay - ar, ax + ar, ay + ar], fill=(22, 24, 28, 200), outline=(60, 65, 75, 220), width=2 * SCALE)
+    
+    # 4 Amber Tether Mines
+    mines = [
+        (SW // 2 - 90 * SCALE, SH // 2 + 30 * SCALE),
+        (SW // 2 + 70 * SCALE, SH // 2 - 20 * SCALE),
+        (SW // 2 - 20 * SCALE, SH // 2 + 60 * SCALE),
+        (SW // 2 + 110 * SCALE, SH // 2 + 40 * SCALE)
+    ]
+    for mx, my in mines:
+        # Warning diamond & tether radius
+        draw.ellipse([mx - 22*SCALE, my - 22*SCALE, mx + 22*SCALE, my + 22*SCALE], outline=(255, 160, 0, 80), width=1*SCALE)
+        ms = 7 * SCALE
+        draw.polygon([(mx, my - ms), (mx + ms, my), (mx, my + ms), (mx - ms, my)], fill=(255, 170, 0, 240))
+        # Spikes
+        draw.line([(mx - 12*SCALE, my), (mx + 12*SCALE, my)], fill=(255, 190, 0, 240), width=2*SCALE)
+        draw.line([(mx, my - 12*SCALE), (mx, my + 12*SCALE)], fill=(255, 190, 0, 240), width=2*SCALE)
+
+    f_info = get_font(9)
+    draw.text((pad + 18 * SCALE, SH - pad - 26 * SCALE), "THREAT: 4X TETHER-MINE CLUSTERS // 4X CLOAKED SKIRMISHERS // VACUUM PHYSICS (STALL: 0 M/S)",
+              fill=(255, 180, 0, 230), font=f_info)
+    return img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+
+def create_card_m06():
+    img = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    pad = 20 * SCALE
+    
+    draw_hud_frame(draw, "OPERATION: GHOST REEF [M-06]", "THEATER: ASTEROID 433-EROS // THE IRON HOLLOW // CLEARANCE: 140M", (0, 240, 255, 240))
+    
+    # Wireframe Cavern Tunnel Rings
+    cx, cy = SW // 2, SH // 2 + 15 * SCALE
+    for rad, alpha in [(120 * SCALE, 60), (95 * SCALE, 100), (70 * SCALE, 140), (45 * SCALE, 200)]:
+        draw.ellipse([cx - rad, cy - rad * 0.7, cx + rad, cy + rad * 0.7], outline=(0, 200, 255, alpha), width=2 * SCALE)
+    
+    # Laser Cutter Grids (Red warning beams across tunnel)
+    draw.line([(cx - 80 * SCALE, cy - 30 * SCALE), (cx + 80 * SCALE, cy + 30 * SCALE)], fill=(255, 30, 60, 220), width=2 * SCALE)
+    draw.line([(cx - 70 * SCALE, cy + 35 * SCALE), (cx + 70 * SCALE, cy - 35 * SCALE)], fill=(255, 30, 60, 220), width=2 * SCALE)
+    
+    # 3 Geothermal Extraction Generators (Cyan Cores)
+    gens = [
+        (cx - 75 * SCALE, cy + 10 * SCALE),
+        (cx + 80 * SCALE, cy - 10 * SCALE),
+        (cx, cy + 45 * SCALE)
+    ]
+    for gx, gy in gens:
+        draw.rectangle([gx - 10*SCALE, gy - 10*SCALE, gx + 10*SCALE, gy + 10*SCALE], fill=(0, 240, 255, 240), outline=(255, 255, 255, 255), width=2*SCALE)
+        
+    f_info = get_font(9)
+    draw.text((pad + 18 * SCALE, SH - pad - 26 * SCALE), "OBJECTIVES: 3X GEOTHERMAL CORES // 6X WALL SENTRIES // ESCAPE SHAFT BEFORE MELTDOWN",
+              fill=(0, 240, 255, 230), font=f_info)
+    return img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+
+def create_card_m07():
+    img = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    pad = 20 * SCALE
+    
+    draw_hud_frame(draw, "OPERATION: DAUNTLESS DEFENDER [M-07]", "THEATER: 5TH FLEET PERIMETER // CARRIER ESCORT // TORPEDO THREAT", (100, 220, 255, 240))
+    
+    # Carrier SOC Dauntless Silhouette (Center Left)
+    cx, cy = SW // 2 - 60 * SCALE, SH // 2 + 10 * SCALE
+    draw.polygon([
+        (cx - 130 * SCALE, cy - 25 * SCALE),
+        (cx + 120 * SCALE, cy - 30 * SCALE),
+        (cx + 140 * SCALE, cy + 20 * SCALE),
+        (cx - 110 * SCALE, cy + 25 * SCALE)
+    ], fill=(20, 35, 55, 240), outline=(0, 180, 255, 220), width=2 * SCALE)
+    # Island tower
+    draw.rectangle([cx + 30 * SCALE, cy - 50 * SCALE, cx + 60 * SCALE, cy - 25 * SCALE], fill=(30, 50, 75, 240), outline=(255, 200, 0, 240), width=2 * SCALE)
+    
+    # 3 Incoming Fusion Torpedo Vectors (Red arrows plunging toward carrier)
+    torps = [
+        ((SW // 2 + 140 * SCALE, cy - 80 * SCALE), (cx + 80 * SCALE, cy - 20 * SCALE)),
+        ((SW // 2 + 160 * SCALE, cy + 10 * SCALE), (cx + 90 * SCALE, cy + 5 * SCALE)),
+        ((SW // 2 + 130 * SCALE, cy + 90 * SCALE), (cx + 70 * SCALE, cy + 20 * SCALE))
+    ]
+    for start, end in torps:
+        draw.line([start, end], fill=(255, 50, 50, 220), width=3 * SCALE)
+        tx, ty = start
+        draw.ellipse([tx - 8*SCALE, ty - 8*SCALE, tx + 8*SCALE, ty + 8*SCALE], fill=(255, 60, 60, 255))
+        
+    f_info = get_font(9)
+    draw.text((pad + 18 * SCALE, SH - pad - 26 * SCALE), "PROTECTED ASSET: SOC DAUNTLESS (1,000 HP) // INTERCEPT 8X HEAVY FUSION TORPEDOES",
+              fill=(255, 100, 100, 230), font=f_info)
+    return img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+
+def create_card_m08():
+    img = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    pad = 20 * SCALE
+    
+    draw_hud_frame(draw, "OPERATION: NEXUS CRUCIBLE [M-08]", "THEATER: CELESTIAL FORGE // DREADNOUGHT NEMESIS-9 // CHAPTER 2 CLIMAX", (255, 60, 80, 240), border_color=(255, 50, 70, 200))
+    
+    # Dreadnought Nemesis-9 Menacing Dagger Silhouette
+    cx, cy = SW // 2, SH // 2 + 5 * SCALE
+    draw.polygon([
+        (cx + 140 * SCALE, cy),
+        (cx - 110 * SCALE, cy - 65 * SCALE),
+        (cx - 140 * SCALE, cy - 35 * SCALE),
+        (cx - 140 * SCALE, cy + 35 * SCALE),
+        (cx - 110 * SCALE, cy + 65 * SCALE)
+    ], fill=(25, 18, 22, 240), outline=(255, 40, 60, 240), width=2 * SCALE)
+    
+    # Railgun Prow
+    draw.rectangle([cx + 100 * SCALE, cy - 8 * SCALE, cx + 160 * SCALE, cy + 8 * SCALE], fill=(40, 20, 25, 240), outline=(255, 70, 90, 240), width=2 * SCALE)
+    
+    # 4 Rotary Flak Pods (Subsystem targets)
+    flak_pods = [
+        (cx - 20 * SCALE, cy - 40 * SCALE),
+        (cx + 40 * SCALE, cy - 30 * SCALE),
+        (cx - 20 * SCALE, cy + 40 * SCALE),
+        (cx + 40 * SCALE, cy + 30 * SCALE)
+    ]
+    for fx, fy in flak_pods:
+        draw.ellipse([fx - 8*SCALE, fy - 8*SCALE, fx + 8*SCALE, fy + 8*SCALE], outline=(255, 180, 0, 240), width=2*SCALE)
+        
+    # Central Reactor Core
+    draw.ellipse([cx - 50*SCALE, cy - 14*SCALE, cx - 18*SCALE, cy + 14*SCALE], fill=(255, 30, 40, 240), outline=(255, 255, 255, 255), width=2*SCALE)
+    
+    f_info = get_font(9)
+    draw.text((pad + 18 * SCALE, SH - pad - 26 * SCALE), "BOSS: NEMESIS-9 (WARLORD VANE) // PHASE 1: FLAK PODS // PHASE 2: SHIELDS // PHASE 3: REACTOR",
+              fill=(255, 80, 100, 240), font=f_info)
+    return img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+
 def main():
     generators = [
         ("mission_card_m01.png", create_card_m01),
         ("mission_card_m02.png", create_card_m02),
         ("mission_card_m03.png", create_card_m03),
-        ("mission_card_m04.png", create_card_m04)
+        ("mission_card_m04.png", create_card_m04),
+        ("mission_card_m05.png", create_card_m05),
+        ("mission_card_m06.png", create_card_m06),
+        ("mission_card_m07.png", create_card_m07),
+        ("mission_card_m08.png", create_card_m08)
     ]
     
     for filename, gen_func in generators:

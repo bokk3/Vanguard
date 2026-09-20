@@ -179,17 +179,229 @@ SCRIPT = [
         "pitch": "-2Hz",
         "rate": "+2%",
         "text": "Combine Ghost is down! The entire drone network is offline across the hemisphere. Outstanding work, Vanguard 1... You saved Ascension!"
+    },
+
+    # -------------------------------------------------------------
+    # MISSION 05: OPERATION SILENT ORBIT
+    # -------------------------------------------------------------
+    {
+        "filename": "m05_apex_carrier_launch.mp3",
+        "voice": "apex_command",
+        "pitch": "-2Hz",
+        "rate": "+2%",
+        "text": "Vanguard 1, Apex Command. You are clear of the Dauntless hangar bay. Atmospheric seals disengaged—welcome to hard vacuum. Watch your RCS thrusters among those rocks."
+    },
+    {
+        "filename": "m05_aegis_vacuum_online.mp3",
+        "voice": "aegis_ai",
+        "pitch": "+0Hz",
+        "rate": "+1%",
+        "text": "Orbital vacuum confirmed. Aerodynamic stall envelope disengaged. Inertial drift compensators online."
+    },
+    {
+        "filename": "m05_miller_tether_warning.mp3",
+        "voice": "wingman_miller",
+        "pitch": "+1Hz",
+        "rate": "+3%",
+        "text": "Look at this junk field, Lead. The Combine seeded the rim with magnetic tether-mines. One wrong move and they'll clamp right onto your hull."
+    },
+    {
+        "filename": "m05_aegis_mine_cleared.mp3",
+        "voice": "aegis_ai",
+        "pitch": "+0Hz",
+        "rate": "+3%",
+        "text": "Mine cluster eliminated. Proximity grid sector alpha clear."
+    },
+    {
+        "filename": "m05_apex_stealth_warning.mp3",
+        "voice": "apex_command",
+        "pitch": "-2Hz",
+        "rate": "+3%",
+        "text": "Careful, Vanguard. Sensor signatures popping up on the radar disc—they're using the asteroid shadows to cloak!"
+    },
+    {
+        "filename": "m05_miller_perimeter_clear.mp3",
+        "voice": "wingman_miller",
+        "pitch": "+1Hz",
+        "rate": "+2%",
+        "text": "Splash two! You got the others, Lead! Perimeter corridor is clean."
+    },
+    {
+        "filename": "m05_apex_foundry_coords.mp3",
+        "voice": "apex_command",
+        "pitch": "-2Hz",
+        "rate": "+2%",
+        "text": "Good hunting, Vanguard Flight. Telemetry decoders just pulled coordinates to their internal foundry. Prep for cavern infiltration."
+    },
+
+    # -------------------------------------------------------------
+    # MISSION 06: OPERATION GHOST REEF
+    # -------------------------------------------------------------
+    {
+        "filename": "m06_apex_enter_cavern.mp3",
+        "voice": "apex_command",
+        "pitch": "-2Hz",
+        "rate": "+2%",
+        "text": "Vanguard 1, telemetry is degrading as you enter the rock. You're entering the Iron Hollow. Keep your nose steady—clearance in that trench is less than one-hundred-fifty meters."
+    },
+    {
+        "filename": "m06_aegis_laser_warning.mp3",
+        "voice": "aegis_ai",
+        "pitch": "+0Hz",
+        "rate": "+2%",
+        "text": "Warning: Multiple automated laser cutting arrays active along cavern bulkheads. Recommend immediate evasive maneuvers."
+    },
+    {
+        "filename": "m06_apex_generators_status.mp3",
+        "voice": "apex_command",
+        "pitch": "-2Hz",
+        "rate": "+3%",
+        "text": "Generator Alpha down! Two remaining! Keep moving, the facility is switching auxiliary power to automated sentry turrets!"
+    },
+    {
+        "filename": "m06_aegis_core_destabilizing.mp3",
+        "voice": "aegis_ai",
+        "pitch": "+0Hz",
+        "rate": "+1%",
+        "text": "All three generators neutralized. Geothermal core destabilizing. Catastrophic thermal blowout in forty seconds."
+    },
+    {
+        "filename": "m06_apex_afterburners_escape.mp3",
+        "voice": "apex_command",
+        "pitch": "-2Hz",
+        "rate": "+4%",
+        "text": "Hit full afterburners, Vanguard 1! Get out of that rock before the shaft collapses!"
+    },
+    {
+        "filename": "m06_miller_exit_visual.mp3",
+        "voice": "wingman_miller",
+        "pitch": "+1Hz",
+        "rate": "+3%",
+        "text": "Punch it, Lead! I see your exhaust plume breaking through the exit fissure!"
+    },
+
+    # -------------------------------------------------------------
+    # MISSION 07: OPERATION DAUNTLESS DEFENDER
+    # -------------------------------------------------------------
+    {
+        "filename": "m07_ross_general_quarters.mp3",
+        "voice": "olympus_captain",
+        "pitch": "-3Hz",
+        "rate": "+1%",
+        "text": "All stations, general quarters! Combine bombers jumping out of hyperspace on our port quarter! Flak batteries are tracking, but they've launched heavy torpedoes!"
+    },
+    {
+        "filename": "m07_apex_defend_carrier.mp3",
+        "voice": "apex_command",
+        "pitch": "-2Hz",
+        "rate": "+3%",
+        "text": "Vanguard Flight, priority one is fleet defense! Those fusion torpedoes will crack the Dauntless flight deck in two hits! Splash those warheads!"
+    },
+    {
+        "filename": "m07_miller_tally_torpedo.mp3",
+        "voice": "wingman_miller",
+        "pitch": "+1Hz",
+        "rate": "+2%",
+        "text": "Tally-ho on lead torpedo! Engaging with cannon!"
+    },
+    {
+        "filename": "m07_aegis_torpedo_warning.mp3",
+        "voice": "aegis_ai",
+        "pitch": "+0Hz",
+        "rate": "+2%",
+        "text": "EMERGENCY: High-velocity fusion torpedo detected on intercept course with Carrier Starboard Engine. Distance fifteen-hundred meters and closing fast!"
+    },
+    {
+        "filename": "m07_ross_carrier_saved.mp3",
+        "voice": "olympus_captain",
+        "pitch": "-3Hz",
+        "rate": "+0%",
+        "text": "Direct hit on the final bomber! Air boss reports all torpedo tracks dissipated. Outstanding flying, Vanguard! The Dauntless owes you her life."
+    },
+    {
+        "filename": "m07_apex_forge_tracking.mp3",
+        "voice": "apex_command",
+        "pitch": "-2Hz",
+        "rate": "+2%",
+        "text": "We tracked the bombers' quantum telemetry trails back to their source: the Celestial Forge. Restock your ordnance, pilots. We're taking the fight to their front door."
+    },
+
+    # -------------------------------------------------------------
+    # MISSION 08: OPERATION NEXUS CRUCIBLE
+    # -------------------------------------------------------------
+    {
+        "filename": "m08_apex_nemesis_visual.mp3",
+        "voice": "apex_command",
+        "pitch": "-2Hz",
+        "rate": "+2%",
+        "text": "There she is... the Nemesis-9. Look at the armor plating on that monster. Standard missile strikes won't penetrate that hull."
+    },
+    {
+        "filename": "m08_vane_challenge.mp3",
+        "voice": "ghost_boss",
+        "pitch": "-4Hz",
+        "rate": "-1%",
+        "text": "Directorate lapdogs. You bled for this rock, and here you shall be buried. Fire all flak batteries! Turn their composite hulls into slag!"
+    },
+    {
+        "filename": "m08_aegis_flak_subsystems.mp3",
+        "voice": "aegis_ai",
+        "pitch": "+0Hz",
+        "rate": "+1%",
+        "text": "Targeting system calibrated. Priority sub-systems tagged: Four rotary flak pods on upper deck."
+    },
+    {
+        "filename": "m08_miller_shields_exposed.mp3",
+        "voice": "wingman_miller",
+        "pitch": "+1Hz",
+        "rate": "+2%",
+        "text": "Upper flak turrets silenced! Her ventral shields are exposed, Lead! Hit those generator domes!"
+    },
+    {
+        "filename": "m08_vane_railgun_charged.mp3",
+        "voice": "ghost_boss",
+        "pitch": "-4Hz",
+        "rate": "-1%",
+        "text": "Insolent gnats! Main railgun charged! Eradicate them!"
+    },
+    {
+        "filename": "m08_aegis_core_rupture.mp3",
+        "voice": "aegis_ai",
+        "pitch": "+0Hz",
+        "rate": "+1%",
+        "text": "Thermal core breached! Critical containment failure imminent!"
+    },
+    {
+        "filename": "m08_vane_death_cry.mp3",
+        "voice": "ghost_boss",
+        "pitch": "-4Hz",
+        "rate": "-1%",
+        "text": "Impossible... My forge... my empire... CURSE YOU, VANGUARD!"
+    },
+    {
+        "filename": "m08_apex_chapter2_victory.mp3",
+        "voice": "apex_command",
+        "pitch": "-2Hz",
+        "rate": "+2%",
+        "text": "Confirmed! Dreadnought Nemesis-9 is detonating! The Celestial Forge is breaking apart! All Vanguard units, disengage and RTB! Chapter Two is ours!"
     }
 ]
 
 async def generate_all():
-    print(f"Generating {len(SCRIPT)} vocal transmissions across all 4 missions...")
+    print(f"Generating vocal transmissions across all missions...", flush=True)
     for item in SCRIPT:
         voice_id = VOICES[item["voice"]]
         out_path = os.path.join(OUTPUT_DIR, item["filename"])
         docs_path = os.path.join(DOCS_AUDIO_DIR, item["filename"])
         
-        # Only generate if not exists or updating
+        if os.path.exists(out_path) and os.path.getsize(out_path) > 1000:
+            print(f"Skipping existing: {item['filename']}", flush=True)
+            if not os.path.exists(docs_path):
+                with open(out_path, "rb") as f_in, open(docs_path, "wb") as f_out:
+                    f_out.write(f_in.read())
+            continue
+            
+        print(f"Synthesizing: {item['filename']} [{item['voice']}]...", flush=True)
         communicate = edge_tts.Communicate(
             text=item["text"],
             voice=voice_id,
@@ -201,7 +413,7 @@ async def generate_all():
         with open(out_path, "rb") as f_in, open(docs_path, "wb") as f_out:
             f_out.write(f_in.read())
             
-        print(f"Generated: {item['filename']} [{item['voice']}]")
+        print(f"Generated: {item['filename']} [{item['voice']}]", flush=True)
 
 if __name__ == "__main__":
     asyncio.run(generate_all())

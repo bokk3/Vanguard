@@ -122,8 +122,8 @@ func _check_save_game_state() -> void:
 		var missiles_val = telem.get("missiles_remaining", 4)
 		
 		continue_btn.visible = true
-		continue_btn.text = "  [ 01 ]  CONTINUE SORTIE"
-		deploy_btn.text = "  [ 02 ]  NEW SORTIE"
+		continue_btn.text = "  [ 01 ]  RESUME SORTIE"
+		deploy_btn.text = "  [ 02 ]  MISSION SELECTOR"
 		if prologue_btn:
 			prologue_btn.text = "  [ 03 ]  WATCH PROLOGUE"
 		config_btn.text = "  [ 04 ]  AVIONICS CONFIG"
@@ -134,7 +134,7 @@ func _check_save_game_state() -> void:
 			telemetry_summary.text = "ACTIVE SORTIE: %s\nHULL INTEGRITY: %d%%\nMISSILES ARMED: %d/4" % [date_str, int(hull_val), int(missiles_val)]
 	else:
 		continue_btn.visible = false
-		deploy_btn.text = "  [ 01 ]  DEPLOY SORTIE"
+		deploy_btn.text = "  [ 01 ]  MISSION SELECTOR"
 		if prologue_btn:
 			prologue_btn.text = "  [ 02 ]  WATCH PROLOGUE"
 		config_btn.text = "  [ 03 ]  AVIONICS CONFIG"

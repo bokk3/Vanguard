@@ -138,18 +138,25 @@ func show_victory_debrief(stats: Dictionary) -> void:
 		if cur_idx != -1 and cur_idx + 1 < mm.mission_ids.size():
 			next_mission_id = mm.mission_ids[cur_idx + 1]
 	else:
-		var default_chain = ["M01", "M02", "M03", "M04"]
+		var default_chain = ["M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08"]
 		var c_idx = default_chain.find(current_mission_id)
 		if c_idx != -1 and c_idx + 1 < default_chain.size():
 			next_mission_id = default_chain[c_idx + 1]
 	
 	if not next_mission_id.is_empty():
 		var next_data = mm.get_mission(next_mission_id) if mm else {}
-		var next_name = next_data.get("codename", "IRON CANYON")
+		var next_name = next_data.get("codename", "SILENT ORBIT")
 		scramble_next_btn.text = "[ SCRAMBLE SORTIE %s: %s ]" % [next_mission_id, next_name]
 		scramble_next_btn.visible = true
 	else:
-		scramble_next_btn.visible = false
+		if current_mission_id == "M08":
+			scramble_next_btn.text = "[ CHAPTER 2 FINALE & EPILOGUE ]"
+			scramble_next_btn.visible = true
+		elif current_mission_id == "M04":
+			scramble_next_btn.text = "[ CHAPTER 1 FINALE & EPILOGUE ]"
+			scramble_next_btn.visible = true
+		else:
+			scramble_next_btn.visible = false
 	
 	replay_btn.text = "[ REPLAY SORTIE ]"
 	hangar_btn.text = "[ RETURN TO HANGAR ]"
@@ -398,16 +405,42 @@ func _display_modal() -> void:
 	show()
 
 func _on_scramble_next_pressed() -> void:
+	var mm = get_node_or_null("/root/MissionManager")
+	get_tree().paused = false
+	
 	if next_mission_id.is_empty():
+		if current_mission_id == "M08":
+			if mm:
+				mm.pending_interlude_id = "EPILOGUE_CH2"
+			get_tree().change_scene_to_file("res://interlude_cutscene.tscn")
+			return
+		elif current_mission_id == "M04":
+			if mm:
+				mm.pending_interlude_id = "EPILOGUE_CH1"
+			get_tree().change_scene_to_file("res://interlude_cutscene.tscn")
+			return
 		_on_hangar_pressed()
 		return
 	
-	var mm = get_node_or_null("/root/MissionManager")
-	if mm:
-		mm.current_mission_id = next_mission_id
+	var interlude_map = {
+		"M02": "INT_M01_M02",
+		"M03": "INT_M02_M03",
+		"M04": "INT_M03_M04",
+		"M05": "INT_M04_M05",
+		"M06": "INT_M05_M06",
+		"M07": "INT_M06_M07",
+		"M08": "INT_M07_M08"
+	}
 	
-	get_tree().paused = false
-	get_tree().reload_current_scene()
+	if interlude_map.has(next_mission_id):
+		if mm:
+			mm.pending_interlude_id = interlude_map[next_mission_id]
+			mm.current_mission_id = next_mission_id
+		get_tree().change_scene_to_file("res://interlude_cutscene.tscn")
+	else:
+		if mm:
+			mm.current_mission_id = next_mission_id
+		get_tree().reload_current_scene()
 
 func _on_replay_pressed() -> void:
 	get_tree().paused = false

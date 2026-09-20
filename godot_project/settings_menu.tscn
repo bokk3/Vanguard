@@ -359,6 +359,63 @@ layout_mode = 2
 text = "85%"
 horizontal_alignment = 2
 
+[node name="Gamepad & Controller" type="MarginContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+metadata/_tab_index = 2
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Gamepad & Controller"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="StatusBox" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Gamepad & Controller/VBox"]
+layout_mode = 2
+
+[node name="PadTitle" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Gamepad & Controller/VBox/StatusBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "HARDWARE:"
+
+[node name="PadStatusLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Gamepad & Controller/VBox/StatusBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 12
+text = "Checking Connected Controllers..."
+
+[node name="RumbleCheck" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Gamepad & Controller/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+button_pressed = true
+text = " Enable Controller Haptic Vibration (DualSense / Xbox Rumble)"
+
+[node name="HSep" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Gamepad & Controller/VBox"]
+layout_mode = 2
+
+[node name="LayoutTitle" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Gamepad & Controller/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "CROSS-PLATFORM GAMEPAD MAPPING (NATIVE SDL DB):"
+
+[node name="PadScroll" type="ScrollContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Gamepad & Controller/VBox"]
+custom_minimum_size = Vector2(0, 190)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PadLayoutList" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Gamepad & Controller/VBox/PadScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
 [node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 16

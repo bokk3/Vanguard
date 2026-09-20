@@ -14,6 +14,7 @@ var difficulty: String = "NORMAL" # "EASY", "NORMAL", "ACE"
 var mouse_sensitivity: float = 1.0
 var invert_pitch: bool = false
 var enable_gravity: bool = true
+var enable_rumble: bool = true
 var radar_circular_default: bool = true
 
 var master_volume: float = 1.0
@@ -116,6 +117,7 @@ func load_settings() -> void:
 	mouse_sensitivity = _config.get_value("controls", "mouse_sensitivity", 1.0)
 	invert_pitch = _config.get_value("controls", "invert_pitch", false)
 	enable_gravity = _config.get_value("flight", "enable_gravity", true)
+	enable_rumble = _config.get_value("controls", "enable_rumble", true)
 	
 	# Keybindings
 	var defaults = get_default_keybindings(is_azerty)
@@ -140,6 +142,7 @@ func save_settings() -> void:
 	_config.set_value("controls", "mouse_sensitivity", mouse_sensitivity)
 	_config.set_value("controls", "invert_pitch", invert_pitch)
 	_config.set_value("flight", "enable_gravity", enable_gravity)
+	_config.set_value("controls", "enable_rumble", enable_rumble)
 	
 	# Save Keybindings
 	for action in keybindings.keys():
@@ -188,6 +191,177 @@ func apply_input_mappings() -> void:
 			var ev_m = InputEventMouseButton.new()
 			ev_m.button_index = MOUSE_BUTTON_RIGHT
 			InputMap.action_add_event(action, ev_m)
+		
+		# Bind Cross-Platform Controller Events (Xbox & PlayStation 5 / DualSense via SDL DB)
+		_apply_joypad_mappings_for_action(action)
+	
+	_apply_ui_joypad_mappings()
+
+func _apply_joypad_mappings_for_action(action: String) -> void:
+	match action:
+		"throttle_up":
+			# Right Trigger RT / R2 (analog acceleration)
+			var m_rt = InputEventJoypadMotion.new()
+			m_rt.axis = JOY_AXIS_TRIGGER_RIGHT
+			m_rt.axis_value = 1.0
+			InputMap.action_add_event(action, m_rt)
+			var b_up = InputEventJoypadButton.new()
+			b_up.button_index = JOY_BUTTON_DPAD_UP
+			InputMap.action_add_event(action, b_up)
+			
+		"throttle_down":
+			# Left Trigger LT / L2 (analog airbrakes)
+			var m_lt = InputEventJoypadMotion.new()
+			m_lt.axis = JOY_AXIS_TRIGGER_LEFT
+			m_lt.axis_value = 1.0
+			InputMap.action_add_event(action, m_lt)
+			var b_dn = InputEventJoypadButton.new()
+			b_dn.button_index = JOY_BUTTON_DPAD_DOWN
+			InputMap.action_add_event(action, b_dn)
+			
+		"pitch_up":
+			# Left Stick Down (+Y) pulls elevator UP
+			var m_pu = InputEventJoypadMotion.new()
+			m_pu.axis = JOY_AXIS_LEFT_Y
+			m_pu.axis_value = 1.0
+			InputMap.action_add_event(action, m_pu)
+			var b_pu = InputEventJoypadButton.new()
+			b_pu.button_index = JOY_BUTTON_DPAD_DOWN
+			InputMap.action_add_event(action, b_pu)
+			
+		"pitch_down":
+			# Left Stick Up (-Y) pushes elevator DOWN
+			var m_pd = InputEventJoypadMotion.new()
+			m_pd.axis = JOY_AXIS_LEFT_Y
+			m_pd.axis_value = -1.0
+			InputMap.action_add_event(action, m_pd)
+			var b_pd = InputEventJoypadButton.new()
+			b_pd.button_index = JOY_BUTTON_DPAD_UP
+			InputMap.action_add_event(action, b_pd)
+			
+		"roll_left":
+			# Left Stick Left (-X) banks LEFT
+			var m_rl = InputEventJoypadMotion.new()
+			m_rl.axis = JOY_AXIS_LEFT_X
+			m_rl.axis_value = -1.0
+			InputMap.action_add_event(action, m_rl)
+			var b_rl = InputEventJoypadButton.new()
+			b_rl.button_index = JOY_BUTTON_DPAD_LEFT
+			InputMap.action_add_event(action, b_rl)
+			
+		"roll_right":
+			# Left Stick Right (+X) banks RIGHT
+			var m_rr = InputEventJoypadMotion.new()
+			m_rr.axis = JOY_AXIS_LEFT_X
+			m_rr.axis_value = 1.0
+			InputMap.action_add_event(action, m_rr)
+			var b_rr = InputEventJoypadButton.new()
+			b_rr.button_index = JOY_BUTTON_DPAD_RIGHT
+			InputMap.action_add_event(action, b_rr)
+			
+		"yaw_left":
+			# Left Bumper LB / L1
+			var b_yl = InputEventJoypadButton.new()
+			b_yl.button_index = JOY_BUTTON_LEFT_SHOULDER
+			InputMap.action_add_event(action, b_yl)
+			# Alternate: Right Stick Left (-X)
+			var m_yl = InputEventJoypadMotion.new()
+			m_yl.axis = JOY_AXIS_RIGHT_X
+			m_yl.axis_value = -1.0
+			InputMap.action_add_event(action, m_yl)
+			
+		"yaw_right":
+			# Right Bumper RB / R1
+			var b_yr = InputEventJoypadButton.new()
+			b_yr.button_index = JOY_BUTTON_RIGHT_SHOULDER
+			InputMap.action_add_event(action, b_yr)
+			# Alternate: Right Stick Right (+X)
+			var m_yr = InputEventJoypadMotion.new()
+			m_yr.axis = JOY_AXIS_RIGHT_X
+			m_yr.axis_value = 1.0
+			InputMap.action_add_event(action, m_yr)
+			
+		"boost":
+			# Left Stick Click (L3)
+			var b_l3 = InputEventJoypadButton.new()
+			b_l3.button_index = JOY_BUTTON_LEFT_STICK
+			InputMap.action_add_event(action, b_l3)
+			# Alternate: Button Y (Xbox Y / PS Triangle)
+			var b_y = InputEventJoypadButton.new()
+			b_y.button_index = JOY_BUTTON_Y
+			InputMap.action_add_event(action, b_y)
+			
+		"fire_gun":
+			# Button A (Xbox A / PS Cross)
+			var b_a = InputEventJoypadButton.new()
+			b_a.button_index = JOY_BUTTON_A
+			InputMap.action_add_event(action, b_a)
+			# Alternate: Right Stick Click (R3)
+			var b_r3 = InputEventJoypadButton.new()
+			b_r3.button_index = JOY_BUTTON_RIGHT_STICK
+			InputMap.action_add_event(action, b_r3)
+			
+		"fire_missile":
+			# Button B (Xbox B / PS Circle)
+			var b_b = InputEventJoypadButton.new()
+			b_b.button_index = JOY_BUTTON_B
+			InputMap.action_add_event(action, b_b)
+			
+		"toggle_radar":
+			# Button X (Xbox X / PS Square)
+			var b_x = InputEventJoypadButton.new()
+			b_x.button_index = JOY_BUTTON_X
+			InputMap.action_add_event(action, b_x)
+
+func _apply_ui_joypad_mappings() -> void:
+	# ui_accept: add Button A (Xbox A / PS Cross)
+	if InputMap.has_action("ui_accept"):
+		var has_a = false
+		for ev in InputMap.action_get_events("ui_accept"):
+			if ev is InputEventJoypadButton and ev.button_index == JOY_BUTTON_A:
+				has_a = true
+				break
+		if not has_a:
+			var ev_a = InputEventJoypadButton.new()
+			ev_a.button_index = JOY_BUTTON_A
+			InputMap.action_add_event("ui_accept", ev_a)
+	
+	# ui_cancel: add Button B (Xbox B / PS Circle)
+	if InputMap.has_action("ui_cancel"):
+		var has_b = false
+		for ev in InputMap.action_get_events("ui_cancel"):
+			if ev is InputEventJoypadButton and ev.button_index == JOY_BUTTON_B:
+				has_b = true
+				break
+		if not has_b:
+			var ev_b = InputEventJoypadButton.new()
+			ev_b.button_index = JOY_BUTTON_B
+			InputMap.action_add_event("ui_cancel", ev_b)
+
+func play_rumble(weak: float, strong: float, duration: float, device: int = 0) -> void:
+	if enable_rumble and Input.get_connected_joypads().size() > 0:
+		Input.start_joy_vibration(device, clamp(weak, 0.0, 1.0), clamp(strong, 0.0, 1.0), duration)
+
+func get_connected_controller_name(device: int = 0) -> String:
+	var joypads = Input.get_connected_joypads()
+	if joypads.has(device):
+		return Input.get_joy_name(device)
+	elif joypads.size() > 0:
+		return Input.get_joy_name(joypads[0])
+	return "No Controller Detected (Plug in Xbox / PS5 via USB or Bluetooth)"
+
+const JOYPAD_CONTROLS_TABLE = [
+	{"action": "Pitch Up / Down", "xbox": "Left Stick Up / Down (Pull to climb)", "ps": "Left Stick Up / Down (Pull to climb)"},
+	{"action": "Roll (Bank Left / Right)", "xbox": "Left Stick Left / Right", "ps": "Left Stick Left / Right"},
+	{"action": "Yaw (Rudders Left / Right)", "xbox": "LB / RB (Bumpers) or Right Stick", "ps": "L1 / R1 (Bumpers) or Right Stick"},
+	{"action": "Throttle / Accelerate", "xbox": "RT (Right Trigger)", "ps": "R2 (Right Trigger)"},
+	{"action": "Airbrakes / Decelerate", "xbox": "LT (Left Trigger)", "ps": "L2 (Left Trigger)"},
+	{"action": "Afterburner Nitro (Boost)", "xbox": "L3 (Click Left Stick) or Y", "ps": "L3 (Click Left Stick) or △ (Triangle)"},
+	{"action": "Rotary Machine Gun (BRRR)", "xbox": "A Button or R3 (Click Right Stick)", "ps": "✕ (Cross) or R3 (Click Right Stick)"},
+	{"action": "Strike Missile", "xbox": "B Button", "ps": "○ (Circle)"},
+	{"action": "Radar Display Mode", "xbox": "X Button", "ps": "▢ (Square)"},
+	{"action": "Pause / In-Flight Menu", "xbox": "Menu / Start Button", "ps": "Options Button"}
+]
 
 func rebind_action(action: String, new_keycode: int) -> void:
 	if not ACTIONS.has(action):

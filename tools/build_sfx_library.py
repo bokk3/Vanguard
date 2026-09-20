@@ -256,6 +256,60 @@ def gen_debrief_rank_slam():
     sound = bass + clack + noise
     save_wav("sfx_debrief_rank_slam.wav", sound)
 
+# -------------------------------------------------------------
+# 5. CHAPTER 2 SPACE & CAPITAL FLEET COMBAT SFX
+# -------------------------------------------------------------
+
+def gen_torpedo_alarm_loop():
+    """Urgent heavy anti-ship torpedo klaxon (Dual sawtooth alert at 380 Hz / 520 Hz)."""
+    duration = 0.4
+    t = np.linspace(0, duration, int(SAMPLE_RATE * duration), False)
+    tone = (np.sin(2 * np.pi * 380.0 * t) * 0.6 + np.sin(2 * np.pi * 520.0 * t) * 0.4)
+    # Warble pulse
+    env = 0.5 + 0.5 * np.sin(2 * np.pi * 8.0 * t)
+    sound = tone * env * 0.8
+    save_wav("sfx_torpedo_alarm_loop.wav", sound)
+
+def gen_asteroid_scrape_impact():
+    """Metallic rock scrape & hull friction transient."""
+    duration = 0.65
+    t = np.linspace(0, duration, int(SAMPLE_RATE * duration), False)
+    noise = np.random.uniform(-1, 1, len(t))
+    # Filter noise to simulate grinding rock
+    grind = noise * np.exp(-t * 3.5) * (0.6 + 0.4 * np.sin(2 * np.pi * 35.0 * t))
+    boom = np.sin(2 * np.pi * 75.0 * t) * np.exp(-t * 6.0) * 0.7
+    sound = grind * 0.6 + boom * 0.5
+    save_wav("sfx_asteroid_scrape_impact.wav", sound)
+
+def gen_laser_sentry_beam():
+    """High-voltage industrial laser beam pulse (Sweep from 2400 Hz down to 600 Hz)."""
+    duration = 0.35
+    t = np.linspace(0, duration, int(SAMPLE_RATE * duration), False)
+    f = 2400.0 * np.exp(-t * 8.0) + 600.0
+    phase = 2 * np.pi * np.cumsum(f) / SAMPLE_RATE
+    laser = np.sin(phase) * np.exp(-t * 5.0) * 0.7
+    noise = np.random.uniform(-1, 1, len(t)) * np.exp(-t * 12.0) * 0.3
+    sound = laser + noise
+    save_wav("sfx_laser_sentry_beam.wav", sound)
+
+def gen_capital_ship_core_explosion():
+    """Massive capital dreadnought core detonation: Sub-bass rumble and cascading blast waves."""
+    duration = 1.4
+    t = np.linspace(0, duration, int(SAMPLE_RATE * duration), False)
+    f_sub = 45.0 * np.exp(-t * 1.5) + 18.0
+    phase = 2 * np.pi * np.cumsum(f_sub) / SAMPLE_RATE
+    sub_bass = np.sin(phase) * np.exp(-t * 2.2) * 0.85
+    # Heavy distorted rumble
+    noise = np.random.uniform(-1, 1, len(t)) * np.exp(-t * 2.8) * 0.55
+    # Secondary echo burst at t=0.4s
+    secondary = np.zeros_like(t)
+    sec_idx = int(0.4 * SAMPLE_RATE)
+    if sec_idx < len(t):
+        sec_t = t[sec_idx:] - 0.4
+        secondary[sec_idx:] = np.sin(2 * np.pi * 55.0 * sec_t) * np.exp(-sec_t * 4.0) * 0.5
+    sound = sub_bass + noise + secondary
+    save_wav("sfx_capital_ship_core_explosion.wav", sound)
+
 if __name__ == "__main__":
     print("Synthesizing Project Vanguard Sound Effects Suite...")
     gen_hud_target_locking()
@@ -273,4 +327,8 @@ if __name__ == "__main__":
     gen_ui_button_click()
     gen_debrief_tally_tick()
     gen_debrief_rank_slam()
+    gen_torpedo_alarm_loop()
+    gen_asteroid_scrape_impact()
+    gen_laser_sentry_beam()
+    gen_capital_ship_core_explosion()
     print("All SFX generated successfully.")

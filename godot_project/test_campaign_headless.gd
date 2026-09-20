@@ -30,10 +30,11 @@ func _init() -> void:
 	var mm_script = load("res://mission_manager.gd")
 	assert(mm_script != null, "Failed to load mission_manager.gd")
 	var mm = Node.new()
+	mm.name = "MissionManager"
 	mm.set_script(mm_script)
 	root.add_child(mm)
 	
-	for mid in ["M01", "M02", "M03", "M04"]:
+	for mid in ["M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08"]:
 		mm.current_mission_id = mid
 		var dummy_root = Node3D.new()
 		dummy_root.name = "LevelRoot"
@@ -74,6 +75,23 @@ func _init() -> void:
 				var boss = dummy_root.find_child("Boss_CombineGhost", true, false)
 				assert(boss != null, "M04 Boss CombineGhost missing")
 				assert(boss.is_in_group("enemies"), "Boss not in group enemies")
+			"M05":
+				assert(dummy_root.find_child("AsteroidBeltRoot", true, false) != null, "M05 Asteroid belt root missing")
+				assert(dummy_root.find_child("TetherMine_01", true, false) != null, "M05 Tether mine missing")
+			"M06":
+				assert(dummy_root.find_child("CavernTrenchRoot", true, false) != null, "M06 Cavern trench root missing")
+				assert(dummy_root.find_child("GeothermalGen_01", true, false) != null, "M06 Geothermal generator missing")
+			"M07":
+				var carrier = dummy_root.find_child("SOC_Dauntless", true, false)
+				assert(carrier != null, "M07 SOC Dauntless missing")
+				assert(carrier.is_in_group("friendlies"), "Carrier not in group friendlies")
+				assert(dummy_root.find_child("FusionTorpedo_01", true, false) != null, "M07 Fusion torpedo missing")
+			"M08":
+				var dread = dummy_root.find_child("Dreadnought_Nemesis9", true, false)
+				assert(dread != null, "M08 Dreadnought Nemesis9 missing")
+				assert(dread.is_in_group("enemies"), "Dreadnought not in group enemies")
+				assert(dummy_root.find_child("FlakPod_01", true, false) != null, "M08 Flak pod missing")
+				assert(dummy_root.find_child("ReactorCore", true, false) != null, "M08 Reactor core missing")
 		
 		dummy_root.queue_free()
 	
@@ -83,7 +101,7 @@ func _init() -> void:
 	var selector = selector_scene.instantiate()
 	root.add_child(selector)
 	selector.open_selector()
-	for mid in ["M01", "M02", "M03", "M04"]:
+	for mid in ["M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08"]:
 		selector.select_mission(mid)
 		print("  -> MissionSelector selected ", mid, " successfully.")
 	selector.queue_free()
@@ -121,6 +139,31 @@ func _init() -> void:
 	print("  -> In-flight HUD flight telemetry & avionics validated successfully.")
 	hud.queue_free()
 	
+	# 6. Test Cinematic Interlude Cutscenes & Chapter 1/2 Finales
+	var cutscene_scene = load("res://interlude_cutscene.tscn")
+	assert(cutscene_scene != null, "Failed to load interlude_cutscene.tscn")
+	
+	var interlude_presets = [
+		"INT_M01_M02", "INT_M02_M03", "INT_M03_M04", "EPILOGUE_CH1",
+		"INT_M04_M05", "INT_M05_M06", "INT_M06_M07", "INT_M07_M08", "EPILOGUE_CH2"
+	]
+	for i_id in interlude_presets:
+		var cutscene = cutscene_scene.instantiate()
+		cutscene.setup(i_id)
+		root.add_child(cutscene)
+		assert(cutscene.current_id == i_id, "Cutscene did not configure id: " + i_id)
+		assert(cutscene.config.has("cues"), "Cutscene config missing cues: " + i_id)
+		assert(cutscene.config["cues"].size() > 0, "Cutscene cues empty: " + i_id)
+		var a_path = cutscene.config.get("audio_path", "")
+		assert(FileAccess.file_exists(a_path), "Cutscene narration audio file missing: " + a_path)
+		
+		# Test frame progression
+		cutscene._process(1.0)
+		assert(cutscene.playback_time >= 1.0, "Cutscene playback_time did not advance")
+		
+		print("  -> Interlude cutscene [", i_id, "] validated successfully (Audio: ", a_path, ").")
+		cutscene.queue_free()
+	
 	mm.queue_free()
-	print("--- ALL CAMPAIGN MISSIONS, DEBRIEF & FLIGHT TELEMETRY CHECKS PASSED (100%) ---")
+	print("--- ALL CAMPAIGN MISSIONS, DEBRIEF, FLIGHT TELEMETRY & CUTSCENES PASSED (100%) ---")
 	quit(0)
