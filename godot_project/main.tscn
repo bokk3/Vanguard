@@ -8,6 +8,8 @@
 [ext_resource type="PackedScene" path="res://pause_menu.tscn" id="6_pause"]
 [ext_resource type="Script" path="res://main.gd" id="7_main"]
 [ext_resource type="PackedScene" path="res://debrief_screen.tscn" id="8_debrief"]
+[ext_resource type="Material" uid="uid://terrain_ground_mat" path="res://shaders/terrain_ground_material.tres" id="9_terrain"]
+[ext_resource type="PackedScene" uid="uid://c7altitudepylon" path="res://altitude_marker_pylon.tscn" id="10_pylon"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.12, 0.25, 0.45, 1)
@@ -29,13 +31,11 @@ glow_bloom = 0.15
 [sub_resource type="BoxShape3D" id="BoxShape3D_ship"]
 size = Vector3(9.8, 2.7, 10.3)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
-albedo_color = Color(0.18, 0.22, 0.26, 1)
-roughness = 0.85
-
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
-material = SubResource("StandardMaterial3D_ground")
-size = Vector2(4000, 4000)
+material = ExtResource("9_terrain")
+size = Vector2(8000, 8000)
+subdivide_width = 8
+subdivide_depth = 8
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tower"]
 albedo_color = Color(0.9, 0.4, 0.1, 1)
@@ -70,17 +70,17 @@ shadow_enabled = true
 [node name="Ground" type="MeshInstance3D" parent="."]
 mesh = SubResource("PlaneMesh_ground")
 
-[node name="Pylon1" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 100, -300)
-mesh = SubResource("BoxMesh_tower")
+[node name="AltitudePylon1" parent="." instance=ExtResource("10_pylon")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -120, 0, -300)
 
-[node name="Pylon2" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -150, 100, -600)
-mesh = SubResource("BoxMesh_tower")
+[node name="AltitudePylon2" parent="." instance=ExtResource("10_pylon")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 120, 0, -650)
 
-[node name="Pylon3" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 150, 100, -600)
-mesh = SubResource("BoxMesh_tower")
+[node name="AltitudePylon3" parent="." instance=ExtResource("10_pylon")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -120, 0, -1100)
+
+[node name="AltitudePylon4" parent="." instance=ExtResource("10_pylon")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 120, 0, -1600)
 
 [node name="NavBeaconAlpha" type="MeshInstance3D" parent="." groups=["radar_targets"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -280, 110, -450)

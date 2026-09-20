@@ -1,0 +1,32 @@
+[gd_resource type="ShaderMaterial" load_steps=6 format=3 uid="uid://terrain_ground_mat"]
+
+[ext_resource type="Shader" path="res://shaders/terrain_ground.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://textures/terrain/terrain_macro_noise.png" id="2_macro"]
+[ext_resource type="Texture2D" path="res://textures/terrain/terrain_micro_normal.png" id="3_normal"]
+[ext_resource type="Texture2D" path="res://textures/terrain/terrain_micro_roughness.png" id="4_rough"]
+[ext_resource type="Texture2D" path="res://textures/terrain/runway_corridor_markings.png" id="5_runway"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/ground_color_primary = Color(0.24, 0.28, 0.32, 1)
+shader_parameter/ground_color_secondary = Color(0.14, 0.17, 0.2, 1)
+shader_parameter/ground_color_mineral = Color(0.38, 0.34, 0.28, 1)
+shader_parameter/macro_scale = 0.0006
+shader_parameter/micro_scale = 0.12
+shader_parameter/normal_depth = 2.2
+shader_parameter/detail_fade_dist = 900.0
+shader_parameter/enable_grid = true
+shader_parameter/grid_spacing = 100.0
+shader_parameter/sub_grid_spacing = 25.0
+shader_parameter/grid_color = Color(0, 0.85, 1, 0.25)
+shader_parameter/sub_grid_color = Color(0.1, 0.45, 0.65, 0.1)
+shader_parameter/enable_corridor = true
+shader_parameter/corridor_width = 80.0
+shader_parameter/corridor_start_z = 250.0
+shader_parameter/corridor_end_z = -3200.0
+shader_parameter/corridor_tile_length = 160.0
+shader_parameter/macro_noise_tex = ExtResource("2_macro")
+shader_parameter/micro_normal_tex = ExtResource("3_normal")
+shader_parameter/micro_rough_tex = ExtResource("4_rough")
+shader_parameter/runway_corridor_tex = ExtResource("5_runway")

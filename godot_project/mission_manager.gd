@@ -288,6 +288,55 @@ func _apply_skybox_preset(preset_name: String) -> void:
 	sky.sky_material = sky_mat
 	env.sky = sky
 	env.background_mode = Environment.BG_SKY
+	
+	_apply_ground_preset(preset_name)
+
+func _apply_ground_preset(preset_name: String) -> void:
+	if not is_instance_valid(active_root):
+		return
+	var ground = active_root.find_child("Ground", true, false)
+	if not ground or not ground is MeshInstance3D:
+		return
+	
+	var mat: Material = ground.material_override
+	if not mat and ground.mesh:
+		mat = ground.mesh.material
+	
+	if not mat is ShaderMaterial:
+		return
+	
+	var sm = mat as ShaderMaterial
+	match preset_name:
+		"overcast_storm": # M01: Wet coastal asphalt & dark stormy rock
+			sm.set_shader_parameter("ground_color_primary", Color(0.18, 0.22, 0.26))
+			sm.set_shader_parameter("ground_color_secondary", Color(0.10, 0.12, 0.15))
+			sm.set_shader_parameter("ground_color_mineral", Color(0.28, 0.30, 0.34))
+			sm.set_shader_parameter("grid_color", Color(0.0, 0.85, 1.0, 0.22))
+			sm.set_shader_parameter("enable_corridor", true)
+			sm.set_shader_parameter("corridor_width", 80.0)
+			
+		"dusk_canyon": # M02: Red sandstone, rich terracotta & desert mineral dust
+			sm.set_shader_parameter("ground_color_primary", Color(0.55, 0.24, 0.14))
+			sm.set_shader_parameter("ground_color_secondary", Color(0.30, 0.11, 0.08))
+			sm.set_shader_parameter("ground_color_mineral", Color(0.74, 0.44, 0.20))
+			sm.set_shader_parameter("grid_color", Color(1.0, 0.65, 0.1, 0.26))
+			sm.set_shader_parameter("enable_corridor", true)
+			sm.set_shader_parameter("corridor_width", 100.0)
+			
+		"dawn_clear": # M03: Aerospace launch corridor, clean concrete tarmac & high-contrast runway
+			sm.set_shader_parameter("ground_color_primary", Color(0.22, 0.26, 0.30))
+			sm.set_shader_parameter("ground_color_secondary", Color(0.13, 0.16, 0.19))
+			sm.set_shader_parameter("ground_color_mineral", Color(0.36, 0.38, 0.42))
+			sm.set_shader_parameter("grid_color", Color(0.0, 0.95, 1.0, 0.32))
+			sm.set_shader_parameter("enable_corridor", true)
+			sm.set_shader_parameter("corridor_width", 90.0)
+			
+		"stratosphere_space": # M04: Orbital oceanic planetary depths seen from 45,000m
+			sm.set_shader_parameter("ground_color_primary", Color(0.04, 0.12, 0.28))
+			sm.set_shader_parameter("ground_color_secondary", Color(0.02, 0.05, 0.14))
+			sm.set_shader_parameter("ground_color_mineral", Color(0.10, 0.28, 0.45))
+			sm.set_shader_parameter("grid_color", Color(0.0, 0.75, 1.0, 0.12))
+			sm.set_shader_parameter("enable_corridor", false)
 
 # -----------------------------------------------------------------------------
 # 4. Spawners for Mission 01–04
