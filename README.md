@@ -1,6 +1,19 @@
+<div align="center">
+
+<img src="docs/lore/images/vanguard_squadron_patch_cropped.png" alt="404th Vanguard Strike Wing" width="180" />
+
 # Project Vanguard 🚀
-### Autonomous Sci-Fi 3D Asset Pipeline & Game Production Suite
-**Autodesk Fusion 360 (CAD) ➔ Blender 4.2 LTS (UV & Shading) ➔ Godot 4 & Unreal Engine 5**
+### Autonomous Sci-Fi 3D Asset Pipeline & Combat Flight Simulator
+**Precision CAD (Fusion 360) ➔ Blender 4.2 LTS (DCC & Shading) ➔ Godot 4 & Unreal Engine 5**
+
+*"Precision in the Void. Firepower in the Envelope."*
+
+[![404th Vanguard](https://img.shields.io/badge/Wing-404th_Vanguard-00E5FF?style=for-the-badge)](docs/lore/README.md)
+[![Status](https://img.shields.io/badge/Status-Combat_Ready-00C853?style=for-the-badge)](godot_project/)
+[![Engine](https://img.shields.io/badge/Engine-Godot_4_%7C_UE5-0D47A1?style=for-the-badge)](docs/PIPELINE_WORKFLOW.md)
+[![Lore Bible](https://img.shields.io/badge/Lore-Ascension_War-FFB300?style=for-the-badge)](docs/lore/README.md)
+
+</div>
 
 ---
 
@@ -41,6 +54,10 @@ graph LR
 
 Comprehensive engineering and design documents are available in the [`docs/`](docs/) directory:
 
+* 🌌 **[Worldbuilding & Lore Bible](docs/lore/README.md)**  
+  *The Ascension War chronology, Sol Orbital Directorate vs Helion Combine, 404th Vanguard Strike Wing, and diegetic aircraft dossiers.*
+* 🎮 **[Tactical HUD & Combat Telemetry](docs/HUD_AND_COMBAT_SYSTEM.md)**  
+  *Compass horizon ribbon, 350m circular radar, screen-space target lock, and nitro afterburner mechanics.*
 * ✈️ **[Flight Dynamics, Gravity & Controls Guide](docs/CONTROLS_AND_PHYSICS.md)**  
   *Aerodynamic lift equations, stall speed mechanics, 6-DOF rotational steering, and zero-latency AZERTY/QWERTY auto-detection.*
 * 🛠️ **[Multi-Engine Asset Pipeline Workflow](docs/PIPELINE_WORKFLOW.md)**  
