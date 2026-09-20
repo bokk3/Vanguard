@@ -11,10 +11,12 @@ signal destroyed()
 @export var hull: float = 500.0
 @export var max_shield: float = 300.0
 @export var shield: float = 300.0
-@export var forward_speed: float = 35.0
+@export var forward_speed: float = 18.0
 
 var is_alive: bool = true
 var is_under_fire_warned: bool = false
+var is_boosting: bool = false
+var boost_climb_speed: float = 0.0
 
 @onready var hit_box: Area3D = $HitBox
 @onready var shield_mesh: MeshInstance3D = $ShieldBubble
@@ -34,12 +36,50 @@ func _process(delta: float) -> void:
 	if not is_alive:
 		return
 	
-	# Slowly advance forward along the catapult track
-	global_translate(-global_transform.basis.z * forward_speed * delta)
+	var cur_z = global_position.z if is_inside_tree() else position.z
+	if is_boosting:
+		forward_speed = move_toward(forward_speed, 260.0, 80.0 * delta)
+		boost_climb_speed = move_toward(boost_climb_speed, 110.0, 35.0 * delta)
+		rotation.x = move_toward(rotation.x, deg_to_rad(24.0), 0.2 * delta)
+		var move_step = (-transform.basis.z * forward_speed + Vector3.UP * boost_climb_speed) * delta
+		if is_inside_tree():
+			global_translate(move_step)
+		else:
+			position += move_step
+	else:
+		# Cruise along catapult corridor and hold at threshold (Z = -1050m) until booster ignition
+		if cur_z > -1050.0:
+			var move_step = -transform.basis.z * forward_speed * delta
+			if is_inside_tree():
+				global_translate(move_step)
+			else:
+				position += move_step
+		else:
+			if is_inside_tree():
+				global_position.z = -1050.0
+			else:
+				position.z = -1050.0
 	
 	# Shield passive regeneration if not destroyed
 	if shield < max_shield:
 		shield = min(max_shield, shield + delta * 12.0)
+
+func engage_booster_liftoff() -> void:
+	if not is_alive or is_boosting:
+		return
+	is_boosting = true
+	if engine_light:
+		engine_light.light_color = Color(0.1, 0.9, 1.0)
+		engine_light.light_energy = 25.0
+		engine_light.omni_range = 100.0
+	if thruster_left:
+		thruster_left.amount = 64
+		thruster_left.initial_velocity_min = 80.0
+		thruster_left.initial_velocity_max = 130.0
+	if thruster_right:
+		thruster_right.amount = 64
+		thruster_right.initial_velocity_min = 80.0
+		thruster_right.initial_velocity_max = 130.0
 
 func take_damage(amount: float) -> void:
 	if not is_alive:

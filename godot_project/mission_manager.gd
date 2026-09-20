@@ -50,6 +50,12 @@ var current_transmission: Dictionary = {}
 var transmission_timer: float = 0.0
 var comms_cooldown: float = 0.0
 
+# M03 Saturation Wave State
+var m03_current_wave: int = 1
+var m03_wave_drones_alive: int = 0
+var m03_transport_node: Node3D = null
+var m03_is_cleared: bool = false
+
 # References to active level nodes
 var active_root: Node3D = null
 var active_ship: CharacterBody3D = null
@@ -197,6 +203,12 @@ func _setup_objectives(m_data: Dictionary) -> void:
 			item["target_val"] = 3
 			targets_total += 3
 		elif item["id"] == "obj_boss":
+			item["target_val"] = 1
+			targets_total += 1
+		elif item["id"] == "obj_waves":
+			item["target_val"] = 12
+			targets_total += 12
+		elif item["id"] == "obj_protect":
 			item["target_val"] = 1
 			targets_total += 1
 		
@@ -457,14 +469,21 @@ func _spawn_m02_canyon_walls() -> void:
 func _spawn_m03_transport_and_allies() -> void:
 	var viper_mesh = load("res://assets/meshes/vehicles/Spaceship_Viper_Supreme_HD.fbx")
 	var transport_scene = load("res://transport_olympus4.tscn")
-	var drone_script = load("res://target_drone.gd")
+	
+	m03_current_wave = 1
+	m03_wave_drones_alive = 0
+	m03_is_cleared = false
 	
 	# Allied Heavy Transport Olympus-4
 	if transport_scene:
 		var transport = transport_scene.instantiate()
 		transport.name = "TransportOlympus4"
 		transport.position = Vector3(0, 30, -100)
+		m03_transport_node = transport
 		active_root.add_child(transport)
+		transport.destroyed.connect(func():
+			fail_mission("TRANSPORT_LOST", "Catastrophic hull failure on Olympus-4. The orbital payload was destroyed.")
+		)
 	
 	# Allied Wingman Viper 2
 	if viper_mesh:
@@ -475,18 +494,48 @@ func _spawn_m03_transport_and_allies() -> void:
 		wingman.position = Vector3(45, 42, -20)
 		active_root.add_child(wingman)
 	
-	# Spawn 4 saturation wave drones targeting corridor:
-	# Strikefly Dive Bombers (heavy anti-transport) & Razor Skirmishers (fast escorts)
-	var drone_configs = [
-		{ "pos": Vector3(-200, 80, -250), "radius": 150.0, "speed": 0.4, "type": "bomber" },
-		{ "pos": Vector3(200, 70, -320),  "radius": 180.0, "speed": -0.35, "type": "bomber" },
-		{ "pos": Vector3(-120, 110, -450), "radius": 200.0, "speed": 0.45, "type": "skirmisher" },
-		{ "pos": Vector3(140, 90, -520),  "radius": 160.0, "speed": -0.4, "type": "skirmisher" }
-	]
+	# Spawn Wave 1
+	_spawn_m03_wave(1)
+
+func _spawn_m03_wave(wave_num: int) -> void:
+	if not active_root:
+		return
+	
+	var drone_script = load("res://target_drone.gd")
+	var drone_configs: Array = []
+	
+	match wave_num:
+		1:
+			# Wave 1: 2x Dive Bombers + 2x Skirmishers
+			drone_configs = [
+				{ "pos": Vector3(-180, 80, -250), "radius": 140.0, "speed": 0.4, "type": "bomber" },
+				{ "pos": Vector3(180, 75, -320),  "radius": 150.0, "speed": -0.35, "type": "bomber" },
+				{ "pos": Vector3(-120, 110, -420), "radius": 180.0, "speed": 0.45, "type": "skirmisher" },
+				{ "pos": Vector3(130, 95, -480),  "radius": 160.0, "speed": -0.4, "type": "skirmisher" }
+			]
+		2:
+			# Wave 2: 2x Dive Bombers + 2x Skirmishers flanking from X = ±240
+			drone_configs = [
+				{ "pos": Vector3(-240, 95, -580), "radius": 160.0, "speed": 0.4, "type": "bomber" },
+				{ "pos": Vector3(240, 90, -650),  "radius": 170.0, "speed": -0.4, "type": "bomber" },
+				{ "pos": Vector3(-160, 125, -720), "radius": 190.0, "speed": 0.5, "type": "skirmisher" },
+				{ "pos": Vector3(170, 115, -780),  "radius": 175.0, "speed": -0.45, "type": "skirmisher" }
+			]
+		3:
+			# Wave 3: Final heavy assault wave closing on catapult pad
+			drone_configs = [
+				{ "pos": Vector3(-100, 110, -880), "radius": 140.0, "speed": 0.45, "type": "bomber" },
+				{ "pos": Vector3(110, 105, -920),  "radius": 150.0, "speed": -0.45, "type": "bomber" },
+				{ "pos": Vector3(-200, 135, -980), "radius": 180.0, "speed": 0.55, "type": "skirmisher" },
+				{ "pos": Vector3(200, 130, -1020), "radius": 180.0, "speed": -0.5, "type": "skirmisher" }
+			]
+	
+	m03_wave_drones_alive = drone_configs.size()
+	
 	for i in range(drone_configs.size()):
 		var cfg = drone_configs[i]
 		var d = Node3D.new()
-		d.name = "StrikeDrone_0" + str(i + 1)
+		d.name = "StrikeDrone_W" + str(wave_num) + "_" + str(i + 1)
 		d.set_script(drone_script)
 		d.drone_type = cfg.get("type", "skirmisher")
 		d.center_point = cfg["pos"]
@@ -494,8 +543,42 @@ func _spawn_m03_transport_and_allies() -> void:
 		d.orbit_speed = cfg["speed"]
 		d.altitude = cfg["pos"].y
 		d.respawn_enabled = false
-		d.destroyed.connect(_on_mission_target_destroyed.bind(d, "obj_destroy_all"))
+		d.destroyed.connect(_on_m03_drone_destroyed.bind(d))
 		active_root.add_child(d)
+
+func _on_m03_drone_destroyed(drone: Node) -> void:
+	_on_mission_target_destroyed(drone, "obj_waves")
+	m03_wave_drones_alive -= 1
+	
+	if m03_wave_drones_alive <= 0:
+		if m03_current_wave == 1:
+			m03_current_wave = 2
+			queue_transmission("APEX_CMD", "Wave 1 neutralized! Second hostile formation incoming from bearing 090!", 4.0)
+			_spawn_m03_wave(2)
+		elif m03_current_wave == 2:
+			m03_current_wave = 3
+			queue_transmission("VIPER_2", "Good hits Vanguard! Final strike wave closing on Olympus... Hold the perimeter!", 4.0)
+			_spawn_m03_wave(3)
+		elif m03_current_wave == 3:
+			m03_is_cleared = true
+			_set_objective_status("obj_waves", "COMPLETED", 12, 12)
+			queue_transmission("APEX_CMD", "Air corridor sanitized. Olympus-4, fire your booster stage!", 4.0, "res://audio/comms/m03_apex_wave_cleared.mp3")
+			
+			if is_instance_valid(m03_transport_node) and m03_transport_node.has_method("engage_booster_liftoff"):
+				m03_transport_node.engage_booster_liftoff()
+			
+			_trigger_victory_comms("M03")
+			
+			if is_inside_tree():
+				var t = create_tween()
+				t.tween_interval(5.5)
+				t.tween_callback(func():
+					_set_objective_status("obj_protect", "COMPLETED", 1, 1)
+					complete_mission()
+				)
+			else:
+				_set_objective_status("obj_protect", "COMPLETED", 1, 1)
+				complete_mission()
 
 func _spawn_m04_boss_and_escorts() -> void:
 	var boss_scene = load("res://boss_combine_ghost.tscn")
@@ -662,7 +745,7 @@ func complete_mission() -> void:
 	_trigger_victory_comms(current_mission_id)
 	
 	# Auto-save campaign state
-	var sm = get_node_or_null("/root/SaveManager")
+	var sm = get_tree().root.get_node_or_null("SaveManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
 	if sm and sm.has_method("save_game"):
 		sm.save_game()
 	

@@ -28,7 +28,7 @@ signal layout_changed(is_azerty: bool)
 @export var camera_height: float = 4.0
 @export var camera_lerp_speed: float = 8.0
 
-var current_speed: float = 0.0
+var current_speed: float = 60.0
 var mouse_input: Vector2 = Vector2.ZERO
 var downward_velocity: float = 0.0
 
@@ -62,6 +62,8 @@ const GUN_MUZZLE_OFFSETS: Array[Vector3] = [
 @onready var telemetry: Node = $CombatTelemetry
 
 func _ready() -> void:
+	current_speed = cruise_speed
+	downward_velocity = 0.0
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	var cfg = get_node_or_null("/root/ConfigManager")
 	if cfg:
@@ -75,8 +77,10 @@ func _ready() -> void:
 	_setup_weapon_hardpoints()
 	_setup_machine_gun()
 	if telemetry:
-		telemetry.missile_fired.connect(_on_missile_fired_sync)
-		telemetry.missile_replenished.connect(_on_missile_replenished_sync)
+		if not telemetry.missile_fired.is_connected(_on_missile_fired_sync):
+			telemetry.missile_fired.connect(_on_missile_fired_sync)
+		if not telemetry.missile_replenished.is_connected(_on_missile_replenished_sync):
+			telemetry.missile_replenished.connect(_on_missile_replenished_sync)
 	
 	var sm = get_node_or_null("/root/SaveManager")
 	if sm and sm.should_load_on_start:
@@ -189,7 +193,7 @@ func _physics_process(delta: float) -> void:
 	var y_input: float = Input.get_axis("yaw_right", "yaw_left")
 	var p_input: float = Input.get_axis("pitch_up", "pitch_down")
 
-	var cfg = get_node_or_null("/root/ConfigManager")
+	var cfg = get_tree().root.get_node_or_null("ConfigManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
 	var pitch_invert = -1.0 if (cfg and cfg.invert_pitch) else 1.0
 	p_input += -mouse_input.y * mouse_sensitivity * 25.0 * pitch_invert
 	y_input += -mouse_input.x * mouse_sensitivity * 18.0
@@ -202,24 +206,36 @@ func _physics_process(delta: float) -> void:
 	# ----------------------------------------------------
 	# 4. Aerodynamic Lift & Gravity Simulation
 	# ----------------------------------------------------
-	var forward_dir = -global_transform.basis.z.normalized()
+	var current_basis = global_transform.basis if is_inside_tree() else transform.basis
+	var forward_dir = -current_basis.z.normalized()
 	var forward_velocity = forward_dir * current_speed
 
 	if enable_gravity:
-		var lift_ratio = clamp(current_speed / stall_speed, 0.0, 1.0)
-		var uncompensated_gravity = (1.0 - lift_ratio) * gravity
-		downward_velocity += uncompensated_gravity * delta
+		var lift_ratio = clamp(current_speed / max(1.0, stall_speed), 0.0, 1.0)
+		if lift_ratio < 1.0:
+			# Stalling: loss of airflow causes sink rate to build up
+			var uncompensated_gravity = (1.0 - lift_ratio) * gravity
+			downward_velocity += uncompensated_gravity * delta
+		else:
+			# Adequate airspeed: aerodynamic lift cancels gravity and rapidly arrests sink rate
+			downward_velocity = move_toward(downward_velocity, 0.0, 45.0 * delta)
+		
+		# Pulling nose up with positive airspeed assists recovery even faster
+		if forward_dir.y > 0.05 and current_speed > stall_speed:
+			downward_velocity = move_toward(downward_velocity, 0.0, 75.0 * delta)
+		
 		downward_velocity = clamp(downward_velocity, 0.0, 60.0)
 	else:
 		downward_velocity = 0.0
 
 	velocity = forward_velocity + Vector3(0, -downward_velocity, 0)
-	move_and_slide()
+	if is_inside_tree():
+		move_and_slide()
 
 	# ----------------------------------------------------
 	# 5. Smooth 3rd Person Chase Camera
 	# ----------------------------------------------------
-	if camera:
+	if camera and is_inside_tree() and camera.is_inside_tree():
 		var target_cam_pos = global_position + (global_transform.basis.z * camera_distance) + (global_transform.basis.y * camera_height)
 		camera.global_position = camera.global_position.lerp(target_cam_pos, camera_lerp_speed * delta)
 		var look_target = global_position + (forward_dir * 8.0)
@@ -436,7 +452,7 @@ func _process_machine_gun(delta: float) -> void:
 		if gun_flash_right:
 			gun_flash_right.light_energy = 0.0
 
-	var wants_fire = Input.is_action_pressed("fire_gun")
+	var wants_fire = InputMap.has_action("fire_gun") and Input.is_action_pressed("fire_gun")
 	if wants_fire:
 		if not is_firing_gun:
 			is_firing_gun = true
