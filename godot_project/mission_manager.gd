@@ -363,6 +363,7 @@ func _spawn_m01_recon_drones() -> void:
 		d.orbit_radius = cfg["radius"]
 		d.orbit_speed = cfg["speed"]
 		d.altitude = cfg["alt"]
+		d.drone_type = "recon"
 		d.max_health = 100.0
 		d.health = 100.0
 		d.respawn_enabled = false # Single kill per mission objective!
@@ -396,11 +397,12 @@ func _spawn_m02_relays_and_patrols() -> void:
 			relay.destroyed.connect(_on_mission_target_destroyed.bind(relay, "obj_relays"))
 		active_root.add_child(relay)
 	
-	# 4 Canyon Escort Patrol Drones
+	# 4 Canyon Escort Patrol Drones (Stalker-4 Recon)
 	for i in range(4):
 		var d = Node3D.new()
 		d.name = "CanyonPatrol_0" + str(i + 1)
 		d.set_script(drone_script)
+		d.drone_type = "recon"
 		d.center_point = Vector3((i - 1.5) * 140.0, 60.0, -400.0)
 		d.orbit_radius = 160.0
 		d.altitude = 60.0
@@ -473,18 +475,20 @@ func _spawn_m03_transport_and_allies() -> void:
 		wingman.position = Vector3(45, 42, -20)
 		active_root.add_child(wingman)
 	
-	# Spawn 4 saturation wave drones targeting corridor
+	# Spawn 4 saturation wave drones targeting corridor:
+	# Strikefly Dive Bombers (heavy anti-transport) & Razor Skirmishers (fast escorts)
 	var drone_configs = [
-		{ "pos": Vector3(-200, 80, -250), "radius": 150.0, "speed": 0.4 },
-		{ "pos": Vector3(200, 70, -320),  "radius": 180.0, "speed": -0.35 },
-		{ "pos": Vector3(-120, 110, -450), "radius": 200.0, "speed": 0.45 },
-		{ "pos": Vector3(140, 90, -520),  "radius": 160.0, "speed": -0.4 }
+		{ "pos": Vector3(-200, 80, -250), "radius": 150.0, "speed": 0.4, "type": "bomber" },
+		{ "pos": Vector3(200, 70, -320),  "radius": 180.0, "speed": -0.35, "type": "bomber" },
+		{ "pos": Vector3(-120, 110, -450), "radius": 200.0, "speed": 0.45, "type": "skirmisher" },
+		{ "pos": Vector3(140, 90, -520),  "radius": 160.0, "speed": -0.4, "type": "skirmisher" }
 	]
 	for i in range(drone_configs.size()):
 		var cfg = drone_configs[i]
 		var d = Node3D.new()
 		d.name = "StrikeDrone_0" + str(i + 1)
 		d.set_script(drone_script)
+		d.drone_type = cfg.get("type", "skirmisher")
 		d.center_point = cfg["pos"]
 		d.orbit_radius = cfg["radius"]
 		d.orbit_speed = cfg["speed"]
@@ -505,11 +509,12 @@ func _spawn_m04_boss_and_escorts() -> void:
 		boss.destroyed.connect(_on_mission_target_destroyed.bind(boss, "obj_boss"))
 		active_root.add_child(boss)
 	
-	# 4 Elite Escort Drones
+	# 4 Elite Escort Drones (Razor Skirmishers)
 	for i in range(4):
 		var d = Node3D.new()
 		d.name = "EliteGuard_0" + str(i + 1)
 		d.set_script(drone_script)
+		d.drone_type = "skirmisher"
 		d.center_point = Vector3((i - 1.5) * 80.0, 160.0, -550.0)
 		d.orbit_radius = 90.0
 		d.altitude = 160.0
