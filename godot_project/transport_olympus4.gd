@@ -60,7 +60,7 @@ func take_damage(amount: float) -> void:
 	# Trigger "Under Fire" radio distress comms once when shields drop below 50%
 	if not is_under_fire_warned and shield < (max_shield * 0.5):
 		is_under_fire_warned = true
-		var mm = get_node_or_null("/root/MissionManager")
+		var mm = get_tree().root.get_node_or_null("MissionManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
 		if mm and mm.has_method("queue_transmission"):
 			mm.queue_transmission("OLYMPUS_4", "Vanguard Flight, we are taking kinetic hits on starboard shields! Get these gnats off us!", 4.5, "res://audio/comms/m03_olympus_under_fire.mp3")
 	
@@ -83,13 +83,15 @@ func explode_transport() -> void:
 	if explosion_scene:
 		for offset in [Vector3(-8, 0, 0), Vector3(8, 0, 0), Vector3(0, 4, 10), Vector3(0, -4, -10)]:
 			var exp_inst = explosion_scene.instantiate()
-			get_parent().add_child(exp_inst)
-			exp_inst.global_position = global_position + offset
+			var parent = get_parent() if get_parent() else (get_tree().root if is_inside_tree() else null)
+			if parent:
+				parent.add_child(exp_inst)
+				exp_inst.global_position = global_position + offset
 	
 	destroyed.emit()
 	
 	# Notify MissionManager of failure
-	var mm = get_node_or_null("/root/MissionManager")
+	var mm = get_tree().root.get_node_or_null("MissionManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
 	if mm and mm.has_method("fail_mission"):
 		mm.fail_mission("TRANSPORT_LOST", "Catastrophic hull failure on Olympus-4. The orbital payload was destroyed.")
 	

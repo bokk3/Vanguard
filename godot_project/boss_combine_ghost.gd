@@ -33,26 +33,26 @@ var cannon_cooldown: float = 0.0
 var bullet_scene = preload("res://bullet.tscn")
 var explosion_scene = preload("res://explosion_fx.tscn")
 
+var _cached_mesh_instances: Array = []
+var _hit_flash_material: StandardMaterial3D = null
+
 func _ready() -> void:
 	add_to_group("radar_targets")
 	add_to_group("enemies")
-	_apply_crimson_stealth_material()
+	_setup_materials()
 	_acquire_player()
 
-func _apply_crimson_stealth_material() -> void:
-	var crimson_mat = StandardMaterial3D.new()
-	crimson_mat.albedo_color = Color(0.72, 0.06, 0.09) # Stealth Crimson
-	crimson_mat.metallic = 0.92
-	crimson_mat.roughness = 0.22
-	crimson_mat.emission_enabled = true
-	crimson_mat.emission = Color(0.95, 0.12, 0.15)
-	crimson_mat.emission_energy_multiplier = 2.2
+func _setup_materials() -> void:
+	_hit_flash_material = StandardMaterial3D.new()
+	_hit_flash_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_hit_flash_material.albedo_color = Color(1.0, 1.0, 1.0, 1.0)
 	
 	if viper_model:
-		for mesh_inst in viper_model.find_children("*", "MeshInstance3D"):
-			(mesh_inst as MeshInstance3D).material_override = crimson_mat
+		_cached_mesh_instances = viper_model.find_children("*", "MeshInstance3D", true, false)
 
 func _acquire_player() -> void:
+	if not is_inside_tree() or not get_tree():
+		return
 	var scene = get_tree().current_scene
 	if scene:
 		target_player = scene.get_node_or_null("Spaceship")
@@ -151,7 +151,11 @@ func _fire_cannon_burst() -> void:
 	if not bullet_scene:
 		return
 	
-	var parent_scene = get_tree().current_scene if get_tree().current_scene else get_parent()
+	var parent_scene = null
+	if is_inside_tree() and get_tree() and get_tree().current_scene:
+		parent_scene = get_tree().current_scene
+	else:
+		parent_scene = get_parent()
 	if not parent_scene:
 		return
 	
@@ -177,6 +181,7 @@ func take_damage(amount: float) -> void:
 		hull = max(0.0, hull - amount)
 	
 	damaged.emit(hull, max_hull, shield, max_shield)
+	_flash_hit()
 	
 	# Reactive high-G break when taking heavy fire
 	if randf() > 0.6:
@@ -186,6 +191,21 @@ func take_damage(amount: float) -> void:
 	if hull <= 0.0:
 		explode_boss()
 
+func _flash_hit() -> void:
+	if not _hit_flash_material or _cached_mesh_instances.is_empty():
+		return
+	for mesh in _cached_mesh_instances:
+		if is_instance_valid(mesh):
+			(mesh as MeshInstance3D).material_override = _hit_flash_material
+	if is_inside_tree():
+		var tween = create_tween()
+		tween.tween_interval(0.06)
+		tween.tween_callback(func():
+			for mesh in _cached_mesh_instances:
+				if is_instance_valid(mesh):
+					(mesh as MeshInstance3D).material_override = null
+		)
+
 func explode_boss() -> void:
 	if not is_alive:
 		return
@@ -193,12 +213,20 @@ func explode_boss() -> void:
 	
 	# Multi-stage explosion cascade
 	if explosion_scene:
+		var current_pos = global_position if is_inside_tree() else position
 		for offset in [Vector3(0, 0, 0), Vector3(3, 1, -2), Vector3(-3, -1, 2), Vector3(0, 2, 4)]:
 			var exp_inst = explosion_scene.instantiate()
-			var parent = get_tree().current_scene if get_tree().current_scene else get_parent()
+			var parent = null
+			if is_inside_tree() and get_tree() and get_tree().current_scene:
+				parent = get_tree().current_scene
+			else:
+				parent = get_parent()
 			if parent:
 				parent.add_child(exp_inst)
-				exp_inst.global_position = global_position + offset
+				if exp_inst.is_inside_tree():
+					exp_inst.global_position = current_pos + offset
+				else:
+					exp_inst.position = current_pos + offset
 	
 	destroyed.emit()
 	queue_free()
