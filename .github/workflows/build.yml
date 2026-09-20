@@ -6,55 +6,20 @@ on:
     tags:     [ 'v*' ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:          # manual trigger from GitHub UI
+  workflow_dispatch:
 
 env:
   GODOT_VERSION: "4.7.2"
   GODOT_VERSION_STATUS: "stable"
   PROJECT_PATH: godot_project
-  EXPORT_NAME: project_vanguard
 
 jobs:
-  # ─────────────────────────────────────────────
-  # 1. IMPORT — run once, cache .godot/ directory
-  # ─────────────────────────────────────────────
-  import:
-    name: "Import project resources"
-    runs-on: ubuntu-latest
-    container:
-      image: barichello/godot-ci:4.7.2
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          lfs: true
-
-      - name: Cache Godot import cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.PROJECT_PATH }}/.godot
-          key: godot-import-${{ hashFiles('godot_project/**/*.tscn', 'godot_project/**/*.gd', 'godot_project/**/*.tres') }}
-          restore-keys: godot-import-
-
-      - name: Import resources (headless)
-        run: |
-          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_VERSION_STATUS}
-          godot --headless --path $PROJECT_PATH --import --quit-after 300 || true
-
-      - name: Upload import cache
-        uses: actions/upload-artifact@v4
-        with:
-          name: godot-import-cache
-          path: ${{ env.PROJECT_PATH }}/.godot
-          retention-days: 1
-
-  # ─────────────────────────────────────────────
-  # 2. BUILD MATRIX
-  # ─────────────────────────────────────────────
+  # ─────────────────────────────────────────────────────────
+  # BUILD MATRIX — one job per platform, self-contained
+  # ─────────────────────────────────────────────────────────
   build:
     name: "Export — ${{ matrix.name }}"
     runs-on: ubuntu-latest
-    needs: import
     container:
       image: barichello/godot-ci:4.7.2
 
@@ -62,28 +27,25 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Windows
           - name: Windows
             preset: "Windows Desktop"
             artifact_name: project_vanguard_windows
-            artifact_path: builds/windows
-            output_file: builds/windows/project_vanguard.exe
+            build_dir: /builds/windows
+            output_file: /builds/windows/project_vanguard.exe
             zip_name: project_vanguard_windows.zip
 
-          # Linux
           - name: Linux
             preset: "Linux/X11"
             artifact_name: project_vanguard_linux
-            artifact_path: builds/linux
-            output_file: builds/linux/project_vanguard.x86_64
+            build_dir: /builds/linux
+            output_file: /builds/linux/project_vanguard.x86_64
             zip_name: project_vanguard_linux.zip
 
-          # macOS
           - name: macOS
             preset: "macOS"
             artifact_name: project_vanguard_macos
-            artifact_path: builds/macos
-            output_file: builds/macos/project_vanguard.zip
+            build_dir: /builds/macos
+            output_file: /builds/macos/project_vanguard.zip
             zip_name: project_vanguard_macos.zip
 
     steps:
@@ -91,54 +53,52 @@ jobs:
         with:
           lfs: true
 
-      - name: Restore Godot import cache
-        uses: actions/download-artifact@v4
-        with:
-          name: godot-import-cache
-          path: ${{ env.PROJECT_PATH }}/.godot
+      # Export templates come pre-installed in the godot-ci image at:
+      # /root/.local/share/godot/export_templates/<version>.stable/
+      # Godot's headless mode looks for them at the same path, so nothing to copy.
 
-      - name: Setup export templates
+      - name: Create build output directory
+        run: mkdir -p ${{ matrix.build_dir }}
+
+      - name: Import project resources
+        # --editor triggers the full import pipeline; --quit exits afterwards.
+        # Errors during import (missing assets etc.) are non-fatal for export,
+        # so we allow a non-zero exit here.
         run: |
-          mkdir -p ~/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_VERSION_STATUS}
-          cp -r /root/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_VERSION_STATUS}/. \
-            ~/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_VERSION_STATUS}/
-
-      - name: Create output directory
-        run: mkdir -p ${{ matrix.artifact_path }}
+          godot --headless --path $PROJECT_PATH --editor --quit || true
 
       - name: Export — ${{ matrix.name }}
         run: |
           godot --headless \
             --path $PROJECT_PATH \
             --export-release "${{ matrix.preset }}" \
-            "../${{ matrix.output_file }}" \
-            --quit
+            "${{ matrix.output_file }}"
 
-      - name: Verify export output
+      - name: Verify output exists
         run: |
-          ls -lh ${{ matrix.output_file }} || (echo "Export failed — output file missing" && exit 1)
+          ls -lh ${{ matrix.output_file }} \
+            || (echo "::error::Export produced no output file" && exit 1)
 
-      # Zip everything for download (except macOS which is already a zip)
-      - name: Package artifact (non-macOS)
-        if: matrix.name != 'macOS'
+      - name: Package build
         run: |
-          cd ${{ matrix.artifact_path }}
-          zip -r ../../${{ matrix.zip_name }} .
-
-      - name: Package artifact (macOS — already a zip)
-        if: matrix.name == 'macOS'
-        run: cp ${{ matrix.output_file }} ${{ matrix.zip_name }}
+          cd ${{ matrix.build_dir }}
+          # macOS export is already a .zip; others need zipping
+          if [ "${{ matrix.name }}" = "macOS" ]; then
+            cp ${{ matrix.output_file }} /builds/${{ matrix.zip_name }}
+          else
+            zip -r /builds/${{ matrix.zip_name }} .
+          fi
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.zip_name }}
+          path: /builds/${{ matrix.zip_name }}
           retention-days: 30
 
-  # ─────────────────────────────────────────────
-  # 3. RELEASE — only on version tags (v*)
-  # ─────────────────────────────────────────────
+  # ─────────────────────────────────────────────────────────
+  # RELEASE — fires only on v* tags, after all builds pass
+  # ─────────────────────────────────────────────────────────
   release:
     name: "GitHub Release"
     runs-on: ubuntu-latest
@@ -161,14 +121,13 @@ jobs:
           body: |
             ## Project Vanguard ${{ github.ref_name }}
 
-            Automated build from GitHub Actions.
+            Automated build — GitHub Actions.
 
-            ### Downloads
-            | Platform | File |
+            | Platform | Download |
             |---|---|
             | 🪟 Windows x86_64 | `project_vanguard_windows.zip` |
             | 🐧 Linux x86_64 | `project_vanguard_linux.zip` |
-            | 🍎 macOS (Universal) | `project_vanguard_macos.zip` |
+            | 🍎 macOS | `project_vanguard_macos.zip` |
           files: |
             project_vanguard_windows.zip
             project_vanguard_linux.zip
