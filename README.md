@@ -1,8 +1,9 @@
 <div align="center">
 
-<img src="docs/lore/images/vanguard_squadron_patch_cropped.png" alt="404th Vanguard Strike Wing" width="180" />
+<img src="docs/lore/images/vanguard_squadron_patch_cropped.png" alt="404th Vanguard Strike Wing" width="160" />
+<br/>
+<img src="docs/lore/images/project_vanguard_title_cropped.png" alt="Project Vanguard" width="580" />
 
-# Project Vanguard 🚀
 ### Autonomous Sci-Fi 3D Asset Pipeline & Combat Flight Simulator
 **Precision CAD (Fusion 360) ➔ Blender 4.2 LTS (DCC & Shading) ➔ Godot 4 & Unreal Engine 5**
 

@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.0] - 2026-09-20
+
+### Added
+- **Interactive In-Game Key Remapping**:
+  - Dedicated **Controls & Keybindings** tab in `settings_menu.tscn`.
+  - Dynamic remapping table for all 10 avionics and combat flight actions (`throttle_up`, `throttle_down`, `yaw_left`, `yaw_right`, `roll_left`, `roll_right`, `pitch_up`, `pitch_down`, `boost`, `fire_missile`, `toggle_radar`).
+  - Interactive modal key-capture prompt (`[ PRESS ANY KEY... / ESC TO CANCEL ]`) with physical/hardware scancode resolution.
+  - Quick-preset buttons: `[ PRESET: AZERTY (BELGIAN) ]` and `[ PRESET: QWERTY (STANDARD) ]`.
+- **UE5 Porting Guide & Feature Inventory** (`docs/FEATURE_LIST_AND_UE5_PORT_GUIDE.md`):
+  - Comprehensive feature matrix contrasting Godot 4.x implementations with Unreal Engine 5.4/5.5 equivalents.
+  - Technical porting blueprint detailing Pawn & Movement Component architecture, Enhanced Input System (`UInputMappingContext`, `UInputAction`), Slate/UMG material radar shaders, `USaveGame` binary/JSON persistence, and DCC asset pipelines.
+
+### Changed
+- **Flight Control Overhaul**:
+  - `Left / Right Arrow` keys now command turn / yaw (reorienting ship heading horizontally).
+  - `Q / D` keys dedicated to banking / roll (with AZERTY/QWERTY aware defaults).
+  - `Z / S` keys manage throttle forward / reverse brake.
+  - `Up / Down Arrow` keys handle pitch elevation / dive.
+  - **Preserved Mouse Steering**: Mouse X/Y retains full analog yaw and pitch agility with user-configurable sensitivity and pitch inversion.
+  - Refactored `spaceship_controller.gd` to purely consume Godot `InputMap` actions (`Input.get_axis()`, `Input.is_action_pressed()`), paving the way for upcoming Gamepad / HOTAS flight stick controllers.
+
+---
+
 ## [0.5.0] - 2026-09-20
 
 ### Added

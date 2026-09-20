@@ -102,6 +102,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	
 	if event is InputEventKey and event.pressed and event.keycode == KEY_F1:
 		is_azerty = not is_azerty
+		var cfg = get_node_or_null("/root/ConfigManager")
+		if cfg:
+			cfg.reset_keybindings_preset(is_azerty)
 		layout_changed.emit(is_azerty)
 		print("Keyboard layout switched to: ", "AZERTY" if is_azerty else "QWERTY")
 	
@@ -123,42 +126,20 @@ func _unhandled_input(event: InputEvent) -> void:
 			telemetry.apply_damage(25.0)
 			print("Simulated Hull/Shield hit: -25 HP")
 
-	# Fire Missile: Space or Enter
-	if event is InputEventKey and event.pressed and (event.keycode == KEY_SPACE or event.keycode == KEY_ENTER):
+	# Fire Missile: Action fire_missile
+	if event.is_action_pressed("fire_missile"):
 		if telemetry:
 			if telemetry.fire_missile():
 				print("MISSILE LAUNCHED! Remaining: ", telemetry.missiles_remaining)
 
 func _physics_process(delta: float) -> void:
 	# ----------------------------------------------------
-	# 1. Adaptive Input Mapping (AZERTY vs QWERTY)
+	# 1. Action-Based Throttle & Speed Management
 	# ----------------------------------------------------
-	var throttle_up = false
-	var throttle_down = false
-	var roll_left = false
-	var roll_right = false
-	var yaw_left = false
-	var yaw_right = false
+	var throttle_up = Input.is_action_pressed("throttle_up")
+	var throttle_down = Input.is_action_pressed("throttle_down")
 
-	if is_azerty:
-		throttle_up = Input.is_key_pressed(KEY_Z) or Input.is_physical_key_pressed(KEY_W)
-		throttle_down = Input.is_key_pressed(KEY_S)
-		roll_left = Input.is_key_pressed(KEY_Q) or Input.is_physical_key_pressed(KEY_A)
-		roll_right = Input.is_key_pressed(KEY_D)
-		yaw_left = Input.is_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_Q)
-		yaw_right = Input.is_key_pressed(KEY_E)
-	else:
-		throttle_up = Input.is_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_W)
-		throttle_down = Input.is_key_pressed(KEY_S)
-		roll_left = Input.is_key_pressed(KEY_A) or Input.is_physical_key_pressed(KEY_A)
-		roll_right = Input.is_key_pressed(KEY_D)
-		yaw_left = Input.is_key_pressed(KEY_Q) or Input.is_physical_key_pressed(KEY_Q)
-		yaw_right = Input.is_key_pressed(KEY_E)
-
-	# ----------------------------------------------------
-	# 2. Nitro-Limited Throttle & Speed Management
-	# ----------------------------------------------------
-	var wants_boost = Input.is_key_pressed(KEY_SHIFT)
+	var wants_boost = Input.is_action_pressed("boost")
 	var can_boost = false
 	if wants_boost and telemetry:
 		can_boost = telemetry.request_afterburner(delta)
@@ -171,26 +152,12 @@ func _physics_process(delta: float) -> void:
 		current_speed = move_toward(current_speed, min_speed, braking * delta)
 
 	# ----------------------------------------------------
-	# 3. Rotational Steering (Pitch, Roll, Yaw)
+	# 2. Rotational Steering (Pitch, Roll, Yaw)
 	# ----------------------------------------------------
-	var p_input: float = 0.0
-	var r_input: float = 0.0
-	var y_input: float = 0.0
-
-	if roll_left:
-		r_input += 1.0
-	if roll_right:
-		r_input -= 1.0
-
-	if yaw_left:
-		y_input += 1.0
-	if yaw_right:
-		y_input -= 1.0
-
-	if Input.is_key_pressed(KEY_UP):
-		p_input -= 1.0
-	if Input.is_key_pressed(KEY_DOWN):
-		p_input += 1.0
+	# Left/Right arrow keys (or A/E) yaw, Q/D roll, Up/Down pitch
+	var r_input: float = Input.get_axis("roll_right", "roll_left")
+	var y_input: float = Input.get_axis("yaw_right", "yaw_left")
+	var p_input: float = Input.get_axis("pitch_up", "pitch_down")
 
 	var cfg = get_node_or_null("/root/ConfigManager")
 	var pitch_invert = -1.0 if (cfg and cfg.invert_pitch) else 1.0

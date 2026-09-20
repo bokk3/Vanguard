@@ -29,8 +29,8 @@ func _ready() -> void:
 		telemetry = ship.get_node_or_null("CombatTelemetry")
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Press R to toggle circular radar
-	if event is InputEventKey and event.pressed and event.keycode == KEY_R:
+	# Toggle circular radar via customizable action
+	if event.is_action_pressed("toggle_radar"):
 		show_circular_radar = not show_circular_radar
 		queue_redraw()
 

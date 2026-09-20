@@ -1,13 +1,14 @@
 extends Node
 
-## ConfigManager: Centralized settings persistence for Project Vanguard.
-## Handles avionics, controls, audio, and visual preferences stored in user://settings.cfg.
+## ConfigManager: Centralized settings persistence & InputMap manager for Project Vanguard.
+## Handles avionics, customizable keybindings, audio, and display preferences in user://settings.cfg.
 
 signal settings_changed
+signal keybindings_updated
 
 const CONFIG_PATH = "user://settings.cfg"
 
-# Config Properties with sensible defaults
+# Config Properties
 var is_azerty: bool = false
 var mouse_sensitivity: float = 1.0
 var invert_pitch: bool = false
@@ -18,17 +19,97 @@ var master_volume: float = 1.0
 var sfx_volume: float = 0.85
 var window_mode: int = 0  # 0: Windowed, 1: Fullscreen, 2: Borderless
 
+# Action metadata
+const ACTIONS = [
+	"throttle_up",
+	"throttle_down",
+	"yaw_left",
+	"yaw_right",
+	"roll_left",
+	"roll_right",
+	"pitch_up",
+	"pitch_down",
+	"boost",
+	"fire_missile",
+	"toggle_radar"
+]
+
+const ACTION_LABELS = {
+	"throttle_up": "Throttle Forward",
+	"throttle_down": "Brake / Reverse",
+	"yaw_left": "Turn Left (Yaw)",
+	"yaw_right": "Turn Right (Yaw)",
+	"roll_left": "Roll Left (Bank)",
+	"roll_right": "Roll Right (Bank)",
+	"pitch_up": "Pitch Up (Elevator)",
+	"pitch_down": "Pitch Down (Elevator)",
+	"boost": "Afterburner Nitro",
+	"fire_missile": "Launch Strike Missile",
+	"toggle_radar": "Toggle Radar Display"
+}
+
+# Runtime keybinding dictionary: action -> primary keycode (int)
+var keybindings: Dictionary = {}
+
 var _config: ConfigFile = ConfigFile.new()
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	load_settings()
 
+func get_default_keybindings(azerty: bool) -> Dictionary:
+	if azerty:
+		return {
+			"throttle_up": KEY_Z,
+			"throttle_down": KEY_S,
+			"yaw_left": KEY_LEFT,
+			"yaw_right": KEY_RIGHT,
+			"roll_left": KEY_Q,
+			"roll_right": KEY_D,
+			"pitch_up": KEY_DOWN,
+			"pitch_down": KEY_UP,
+			"boost": KEY_SHIFT,
+			"fire_missile": KEY_SPACE,
+			"toggle_radar": KEY_R
+		}
+	else:
+		return {
+			"throttle_up": KEY_W,
+			"throttle_down": KEY_S,
+			"yaw_left": KEY_LEFT,
+			"yaw_right": KEY_RIGHT,
+			"roll_left": KEY_A,
+			"roll_right": KEY_D,
+			"pitch_up": KEY_DOWN,
+			"pitch_down": KEY_UP,
+			"boost": KEY_SHIFT,
+			"fire_missile": KEY_SPACE,
+			"toggle_radar": KEY_R
+		}
+
+# Additional secondary/alternate keys always bound for convenience
+func get_alternate_keys(action: String, azerty: bool) -> Array:
+	match action:
+		"throttle_up":
+			return [KEY_UP]
+		"throttle_down":
+			return [KEY_DOWN]
+		"yaw_left":
+			return [KEY_A if azerty else KEY_Q]
+		"yaw_right":
+			return [KEY_E]
+		"fire_missile":
+			return [KEY_ENTER]
+		_:
+			return []
+
 func load_settings() -> void:
 	var err = _config.load(CONFIG_PATH)
 	if err != OK:
 		# First launch: auto-detect keyboard layout based on OS
 		is_azerty = detect_system_azerty()
+		keybindings = get_default_keybindings(is_azerty)
+		apply_input_mappings()
 		save_settings()
 		return
 	
@@ -38,6 +119,13 @@ func load_settings() -> void:
 	invert_pitch = _config.get_value("controls", "invert_pitch", false)
 	enable_gravity = _config.get_value("flight", "enable_gravity", true)
 	
+	# Keybindings
+	var defaults = get_default_keybindings(is_azerty)
+	keybindings.clear()
+	for action in ACTIONS:
+		var saved_code = _config.get_value("keybindings", action, defaults[action])
+		keybindings[action] = int(saved_code)
+	
 	# Display & HUD
 	radar_circular_default = _config.get_value("display", "radar_circular_default", true)
 	window_mode = _config.get_value("display", "window_mode", 0)
@@ -46,6 +134,7 @@ func load_settings() -> void:
 	master_volume = _config.get_value("audio", "master_volume", 1.0)
 	sfx_volume = _config.get_value("audio", "sfx_volume", 0.85)
 	
+	apply_input_mappings()
 	apply_display_and_audio()
 
 func save_settings() -> void:
@@ -54,6 +143,10 @@ func save_settings() -> void:
 	_config.set_value("controls", "invert_pitch", invert_pitch)
 	_config.set_value("flight", "enable_gravity", enable_gravity)
 	
+	# Save Keybindings
+	for action in keybindings.keys():
+		_config.set_value("keybindings", action, keybindings[action])
+	
 	_config.set_value("display", "radar_circular_default", radar_circular_default)
 	_config.set_value("display", "window_mode", window_mode)
 	
@@ -61,8 +154,53 @@ func save_settings() -> void:
 	_config.set_value("audio", "sfx_volume", sfx_volume)
 	
 	_config.save(CONFIG_PATH)
+	apply_input_mappings()
 	apply_display_and_audio()
 	settings_changed.emit()
+	keybindings_updated.emit()
+
+func apply_input_mappings() -> void:
+	for action in ACTIONS:
+		if not InputMap.has_action(action):
+			InputMap.add_action(action)
+		else:
+			InputMap.action_erase_events(action)
+		
+		# Bind Primary Key
+		var primary_code = keybindings.get(action, KEY_NONE)
+		if primary_code != KEY_NONE:
+			var ev = InputEventKey.new()
+			ev.physical_keycode = primary_code
+			ev.keycode = primary_code
+			InputMap.action_add_event(action, ev)
+		
+		# Bind Alternate/Secondary Keys for high accessibility
+		var alternates = get_alternate_keys(action, is_azerty)
+		for alt_code in alternates:
+			if alt_code != primary_code:
+				var ev_alt = InputEventKey.new()
+				ev_alt.physical_keycode = alt_code
+				ev_alt.keycode = alt_code
+				InputMap.action_add_event(action, ev_alt)
+
+func rebind_action(action: String, new_keycode: int) -> void:
+	if not ACTIONS.has(action):
+		return
+	keybindings[action] = new_keycode
+	apply_input_mappings()
+
+func reset_keybindings_preset(azerty: bool) -> void:
+	is_azerty = azerty
+	keybindings = get_default_keybindings(azerty)
+	apply_input_mappings()
+	save_settings()
+
+func get_key_string_for_action(action: String) -> String:
+	var code = keybindings.get(action, KEY_NONE)
+	if code == KEY_NONE:
+		return "UNBOUND"
+	var s = OS.get_keycode_string(code)
+	return s if s != "" else str(code)
 
 func apply_display_and_audio() -> void:
 	# Apply Window Mode
