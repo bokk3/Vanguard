@@ -5,7 +5,7 @@ extends Node3D
 ## vertical sky-beam, pulsing crimson warning strobe, and hit detection.
 
 signal damaged(cur_hp: float, max_hp: float)
-signal destroyed(relay_node: Node3D)
+signal destroyed()
 
 @export var max_health: float = 150.0
 @export var health: float = 150.0
@@ -70,21 +70,32 @@ func explode_and_destroy() -> void:
 		return
 	is_alive = false
 	
+	# Emit signal first so mission tracking and statistics update immediately
+	destroyed.emit()
+	
 	# Spawn primary explosion at mid-mast
 	if explosion_scene:
 		var exp_inst = explosion_scene.instantiate()
-		var parent_node = get_tree().current_scene if get_tree().current_scene else get_parent()
+		var parent_node: Node = null
+		if is_inside_tree() and get_tree() and get_tree().current_scene:
+			parent_node = get_tree().current_scene
+		elif get_parent():
+			parent_node = get_parent()
+		elif is_inside_tree() and get_tree() and get_tree().root:
+			parent_node = get_tree().root
+		
 		if parent_node:
 			parent_node.add_child(exp_inst)
-			exp_inst.global_position = global_position + Vector3(0, 22, 0)
+			var base_pos: Vector3 = global_position if is_inside_tree() else position
+			exp_inst.global_position = base_pos + Vector3(0, 22, 0)
 			
 			# Secondary explosion near base after 0.2s
-			get_tree().create_timer(0.2).timeout.connect(func():
-				if is_instance_valid(parent_node):
-					var exp2 = explosion_scene.instantiate()
-					parent_node.add_child(exp2)
-					exp2.global_position = global_position + Vector3(randf_range(-3, 3), 6, randf_range(-3, 3))
-			)
+			if is_inside_tree() and get_tree():
+				get_tree().create_timer(0.2).timeout.connect(func():
+					if is_instance_valid(parent_node):
+						var exp2 = explosion_scene.instantiate()
+						parent_node.add_child(exp2)
+						exp2.global_position = base_pos + Vector3(randf_range(-3, 3), 6, randf_range(-3, 3))
+				)
 	
-	destroyed.emit(self)
 	queue_free()

@@ -470,7 +470,18 @@ func _set_objective_status(obj_id: String, status: String, cur: Variant = 0, tar
 				objective_updated.emit(obj_id, status, obj["text"], cur, target)
 			break
 
-func _on_mission_target_destroyed(target_node: Node, obj_id: String) -> void:
+func _on_mission_target_destroyed(a = null, b = null, c = null) -> void:
+	var obj_id = ""
+	var target_node: Node = null
+	if typeof(a) == TYPE_STRING:
+		obj_id = a
+	elif typeof(b) == TYPE_STRING:
+		obj_id = b
+		target_node = a as Node
+	elif typeof(c) == TYPE_STRING:
+		obj_id = c
+		target_node = b as Node
+	
 	targets_destroyed += 1
 	for obj in active_objectives:
 		if obj["id"] == obj_id:
