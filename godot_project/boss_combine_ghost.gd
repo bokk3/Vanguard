@@ -51,11 +51,18 @@ func _setup_materials() -> void:
 		_cached_mesh_instances = viper_model.find_children("*", "MeshInstance3D", true, false)
 
 func _acquire_player() -> void:
-	if not is_inside_tree() or not get_tree():
-		return
-	var scene = get_tree().current_scene
-	if scene:
-		target_player = scene.get_node_or_null("Spaceship")
+	if is_inside_tree() and get_tree():
+		var candidate = get_tree().get_first_node_in_group("player")
+		if candidate and candidate is Node3D:
+			target_player = candidate
+			return
+		var scene = get_tree().current_scene
+		if scene:
+			target_player = scene.get_node_or_null("Spaceship")
+			if target_player:
+				return
+	if get_parent():
+		target_player = get_parent().get_node_or_null("Spaceship")
 
 func _physics_process(delta: float) -> void:
 	if not is_alive:
@@ -78,20 +85,31 @@ func _physics_process(delta: float) -> void:
 func _update_ai_state(delta: float) -> void:
 	if state_timer <= 0.0:
 		if not is_instance_valid(target_player):
-			current_state = State.PATROL
-			state_timer = 4.0
-			return
+			_acquire_player()
+			if not is_instance_valid(target_player):
+				current_state = State.PATROL
+				state_timer = 2.0
+				return
 		
 		var dist = global_position.distance_to(target_player.global_position)
-		if dist > 600.0:
-			current_state = State.ZOOM_CLIMB
+		if dist > 400.0:
+			# Distant: aggressively pursue and close distance to engage!
+			current_state = State.PURSUE
 			state_timer = randf_range(3.0, 5.0)
-		elif dist < 120.0:
+		elif dist < 110.0:
+			# Overshoot/merged: evasive break roll
 			current_state = State.EVASIVE_BREAK
-			state_timer = randf_range(2.0, 3.5)
+			state_timer = randf_range(1.5, 2.5)
 		else:
-			current_state = State.ATTACK_RUN if randf() > 0.4 else State.PURSUE
-			state_timer = randf_range(4.0, 6.0)
+			# Combat envelope (110m - 400m):
+			var roll = randf()
+			if roll < 0.45:
+				current_state = State.ATTACK_RUN
+			elif roll < 0.75:
+				current_state = State.PURSUE
+			else:
+				current_state = State.ZOOM_CLIMB
+			state_timer = randf_range(2.5, 4.5)
 
 func _execute_maneuvers(delta: float) -> void:
 	var forward_dir = -global_transform.basis.z.normalized()
@@ -103,19 +121,20 @@ func _execute_maneuvers(delta: float) -> void:
 		match current_state:
 			State.PURSUE:
 				target_dir = to_player
-				target_speed = cruise_speed * 1.2
+				target_speed = cruise_speed * 1.15
 			State.ATTACK_RUN:
 				target_dir = to_player
-				target_speed = max_boost_speed
+				target_speed = max_boost_speed * 0.95
 			State.EVASIVE_BREAK:
-				# Sharp high-G barrel roll away from player
+				# Sharp high-G barrel roll away from player's line of fire
 				var away = -to_player
-				target_dir = (away + global_transform.basis.x * 0.8 + global_transform.basis.y * 0.4).normalized()
+				target_dir = (away + global_transform.basis.x * 0.7 + global_transform.basis.y * 0.5).normalized()
 				target_speed = max_boost_speed
 				rotate_object_local(Vector3.FORWARD, delta * 3.5)
 			State.ZOOM_CLIMB:
-				# High-apogee energy climb
-				target_dir = (Vector3.UP * 0.7 - global_transform.basis.z * 0.7).normalized()
+				# High-apogee energy climb: pitch up while angling towards player
+				var climb_vec = (to_player * 0.6 + Vector3.UP * 0.8).normalized()
+				target_dir = climb_vec
 				target_speed = max_boost_speed
 			State.PATROL:
 				target_dir = forward_dir
@@ -134,7 +153,9 @@ func _execute_maneuvers(delta: float) -> void:
 	move_and_slide()
 
 func _evaluate_weapons_fire(delta: float) -> void:
-	if not is_instance_valid(target_player) or current_state != State.ATTACK_RUN:
+	if not is_instance_valid(target_player):
+		return
+	if current_state != State.ATTACK_RUN and current_state != State.PURSUE:
 		return
 	
 	var forward_dir = -global_transform.basis.z.normalized()
@@ -142,9 +163,13 @@ func _evaluate_weapons_fire(delta: float) -> void:
 	var angle = rad_to_deg(forward_dir.angle_to(to_player))
 	var dist = global_position.distance_to(target_player.global_position)
 	
-	# Fire twin rotary cannon bursts if player is within 30-degree nose cone and under 400m
-	if angle < 30.0 and dist < 420.0 and cannon_cooldown <= 0.0:
-		cannon_cooldown = 0.12
+	# Fire twin rotary cannon bursts if player is within 35-degree nose cone and under 420m
+	if angle < 35.0 and dist < 420.0 and cannon_cooldown <= 0.0:
+		var cd_base = 0.22
+		var cfg = get_node_or_null("/root/ConfigManager")
+		if cfg:
+			cd_base = cfg.get_difficulty_drone_cooldown() * 0.6
+		cannon_cooldown = cd_base
 		_fire_cannon_burst()
 
 func _fire_cannon_burst() -> void:
@@ -160,12 +185,18 @@ func _fire_cannon_burst() -> void:
 		return
 	
 	var forward = -global_transform.basis.z.normalized()
+	var spread = 0.04
+	var cfg = get_node_or_null("/root/ConfigManager")
+	if cfg:
+		spread = cfg.get_difficulty_drone_spread() * 0.4
+	
 	for muzzle in [muzzle_left, muzzle_right]:
 		if muzzle:
 			var bullet = bullet_scene.instantiate()
 			parent_scene.add_child(bullet)
 			bullet.global_position = muzzle.global_position
-			bullet.setup(self, forward, current_speed)
+			var aim_dir = (forward + Vector3(randf_range(-spread, spread), randf_range(-spread, spread), randf_range(-spread, spread))).normalized()
+			bullet.setup(self, aim_dir, current_speed)
 
 func take_damage(amount: float) -> void:
 	if not is_alive:

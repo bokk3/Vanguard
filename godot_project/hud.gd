@@ -35,6 +35,7 @@ var mission_objectives: Array[Dictionary] = []
 # Flight Telemetry & G-Force Avionics
 var current_g_force: float = 1.0
 var previous_speed: float = 0.0
+var previous_forward: Vector3 = Vector3.FORWARD
 var high_g_audio_player: AudioStreamPlayer = null
 var high_g_cooldown: float = 0.0
 
@@ -101,22 +102,24 @@ func _process(delta: float) -> void:
 	# Dynamic Aerospace G-Force Calculation & High-G Woosh SFX
 	if ship:
 		var speed = ship.current_speed
+		var current_forward = -ship.global_transform.basis.z.normalized() if ship.is_inside_tree() else -ship.transform.basis.z.normalized()
+		
+		# Compute physical turn rate (rad/s) from orientation change
+		var turn_angle = previous_forward.angle_to(current_forward)
+		var turn_rate = turn_angle / max(0.001, delta)
+		previous_forward = current_forward
+		
+		# Centripetal acceleration: a_c = v * omega, in G's (divided by 9.81 m/s^2)
+		var centripetal_g = (speed * turn_rate) / 9.81
+		
+		# Linear acceleration along forward axis
 		var accel = (speed - previous_speed) / max(0.001, delta)
 		previous_speed = speed
+		var linear_g = accel / 9.81
 		
-		# Centripetal turn rate G load
-		var angular_rate = 0.0
-		if "mouse_input" in ship and ship.mouse_input != null:
-			angular_rate = (ship.mouse_input as Vector2).length() * 32.0
-		if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_S):
-			angular_rate = max(angular_rate, 45.0)
-		if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_D):
-			angular_rate = max(angular_rate, 35.0)
-		
-		var centripetal_g = (angular_rate * speed) / 120.0
-		var linear_g = accel / 35.0
-		var target_g = clamp(1.0 + abs(centripetal_g) + abs(linear_g), 1.0, 9.9)
-		current_g_force = lerp(current_g_force, target_g, 8.0 * delta)
+		# Total apparent G-load: 1.0 (baseline gravity) + centripetal + linear G
+		var target_g = clamp(1.0 + centripetal_g + abs(linear_g) * 0.4, 1.0, 9.9)
+		current_g_force = lerp(current_g_force, target_g, 10.0 * delta)
 		
 		high_g_cooldown -= delta
 		if current_g_force > 6.0 and high_g_cooldown <= 0.0:
@@ -317,10 +320,15 @@ func _draw_circular_radar(vp: Vector2) -> void:
 		# 0 deg azimuth is straight up (-Y in 2D canvas)
 		var target_offset = Vector2(sin(az_rad), -cos(az_rad)) * (dist_ratio * radius)
 		var pip_pos = radar_center + target_offset
-		var col = COLOR_RED if t["is_hostile"] else COLOR_GOLD
-		draw_circle(pip_pos, 3.5, col)
-		if t["is_hostile"]:
-			draw_arc(pip_pos, 5.0, 0, TAU, 12, COLOR_RED * 0.6, 1.0)
+		var is_boss = (t["node"] != null and (t["node"].name.begins_with("Boss") or "hull" in t["node"]))
+		if is_boss:
+			draw_circle(pip_pos, 5.5, Color(1.0, 0.15, 0.2))
+			draw_arc(pip_pos, 8.0, 0, TAU, 16, Color(1.0, 0.85, 0.1), 1.8)
+		else:
+			var col = COLOR_RED if t["is_hostile"] else COLOR_GOLD
+			draw_circle(pip_pos, 3.5, col)
+			if t["is_hostile"]:
+				draw_arc(pip_pos, 5.0, 0, TAU, 12, COLOR_RED * 0.6, 1.0)
 
 	# Header label
 	draw_string(ThemeDB.fallback_font, Vector2(radar_center.x - 45, radar_center.y + radius + 16), "RADAR [R: TOGGLE]", HORIZONTAL_ALIGNMENT_CENTER, -1, 11, COLOR_CYAN_DIM)
@@ -464,30 +472,58 @@ func _draw_target_tracking(vp: Vector2, center: Vector2) -> void:
 			var target_node = t["node"]
 			var display_name = t["name"]
 			var is_relay = false
+			var is_boss = false
 			if is_instance_valid(target_node):
 				if "callsign_name" in target_node:
 					display_name = target_node.callsign_name
+				elif target_node.name.begins_with("Boss") or "hull" in target_node:
+					display_name = "ACE COMBINE GHOST"
+					is_boss = true
 				elif target_node.name.begins_with("JammingRelay"):
 					display_name = "JAMMER TOWER"
 				if display_name.contains("JAMMER") or display_name.contains("RELAY"):
 					is_relay = true
 			
 			var b_size = clamp(3600.0 / max(dist_m, 10.0), 22.0, 64.0)
-			if is_relay:
+			if is_boss:
+				b_size = max(b_size, 38.0)
+				_draw_diamond_box(s_pos, b_size * 1.25, Color(1.0, 0.2, 0.2))
+				_draw_bracket_box(s_pos, b_size, Color(1.0, 0.85, 0.1))
+			elif is_relay:
 				_draw_diamond_box(s_pos, b_size * 1.3, Color(1.0, 0.25, 0.3, 1.0))
 			else:
 				_draw_bracket_box(s_pos, b_size, box_col)
 
-			# Target Health Gauge (for damageable entities)
+			# Target Health & Shield Gauge (for damageable entities & boss)
 			if is_instance_valid(target_node):
 				var cur_hp = target_node.get("health")
 				var max_hp = target_node.get("max_health")
+				if cur_hp == null:
+					cur_hp = target_node.get("hull")
+					max_hp = target_node.get("max_hull")
+				
+				var cur_sh = target_node.get("shield")
+				var max_sh = target_node.get("max_shield")
+				
 				if cur_hp != null and max_hp != null and max_hp > 0.0:
 					var hp_ratio = clamp(float(cur_hp) / float(max_hp), 0.0, 1.0)
-					var bar_w = max(b_size * 1.5, 46.0)
+					var bar_w = max(b_size * 1.6, 54.0)
 					var bar_h = 5.0
 					var bar_x = s_pos.x - (bar_w * 0.5)
-					var bar_y = s_pos.y - (b_size * 0.5) - 10.0
+					var bar_y = s_pos.y - (b_size * 0.5) - 12.0
+					
+					# Shield bar (if present, stacked above hull bar)
+					if cur_sh != null and max_sh != null and max_sh > 0.0:
+						var sh_ratio = clamp(float(cur_sh) / float(max_sh), 0.0, 1.0)
+						var sh_y = bar_y - 7.0
+						draw_rect(Rect2(bar_x, sh_y, bar_w, 4.0), COLOR_PANEL_BG, true)
+						draw_rect(Rect2(bar_x, sh_y, bar_w, 4.0), COLOR_CYAN_DIM, false, 1.0)
+						if sh_ratio > 0.0:
+							draw_rect(Rect2(bar_x + 1, sh_y + 1, (bar_w - 2) * sh_ratio, 2.0), COLOR_CYAN, true)
+						var sh_txt = "SHD %d%%" % int(sh_ratio * 100.0)
+						draw_string(ThemeDB.fallback_font, Vector2(bar_x + bar_w + 4, sh_y + 4), sh_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 9, COLOR_CYAN)
+					
+					# Hull bar
 					draw_rect(Rect2(bar_x, bar_y, bar_w, bar_h), COLOR_PANEL_BG, true)
 					draw_rect(Rect2(bar_x, bar_y, bar_w, bar_h), box_col * 0.7, false, 1.0)
 					
@@ -498,11 +534,16 @@ func _draw_target_tracking(vp: Vector2, center: Vector2) -> void:
 						draw_rect(Rect2(bar_x + 1, bar_y + 1, (bar_w - 2) * hp_ratio, bar_h - 2), fill_col, true)
 					
 					var hp_txt = "%d%%" % int(hp_ratio * 100.0)
+					if is_boss:
+						hp_txt = "HULL %d%%" % int(hp_ratio * 100.0)
 					draw_string(ThemeDB.fallback_font, Vector2(bar_x + bar_w + 4, bar_y + 5), hp_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, fill_col)
 			
 			# Range label
 			var info_txt = "%s [%dm]" % [display_name, dist_m]
-			if is_relay:
+			if is_boss:
+				info_txt = "◈◈ %s [%dm] ◈◈" % [display_name, dist_m]
+				draw_string(ThemeDB.fallback_font, Vector2(s_pos.x - 70, s_pos.y + b_size + 16), info_txt, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color(1.0, 0.85, 0.1))
+			elif is_relay:
 				info_txt = "◈ %s [%dm]" % [display_name, dist_m]
 				draw_string(ThemeDB.fallback_font, Vector2(s_pos.x - 55, s_pos.y + b_size + 16), info_txt, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color(1.0, 0.3, 0.35, 1.0))
 			else:
@@ -528,8 +569,12 @@ func _draw_target_tracking(vp: Vector2, center: Vector2) -> void:
 				dir_2d = -dir_2d # Invert for behind camera
 			var edge_pos = screen_center + dir_2d * (min(vp.x, vp.y) * 0.44)
 			var arrow_col = COLOR_RED if t["is_hostile"] else COLOR_GOLD
+			var is_offscreen_boss = t["name"].begins_with("Boss") or (t["node"] != null and "hull" in t["node"])
 			var is_offscreen_relay = t["name"].begins_with("JammingRelay")
-			if is_offscreen_relay:
+			if is_offscreen_boss:
+				draw_circle(edge_pos, 9.0, Color(1.0, 0.15, 0.2, 0.95))
+				draw_arc(edge_pos, 12.0, 0, TAU, 16, Color(1.0, 0.85, 0.1, 0.95), 2.0)
+			elif is_offscreen_relay:
 				draw_circle(edge_pos, 8.0, Color(1.0, 0.2, 0.25, 0.95))
 				draw_circle(edge_pos, 3.5, Color(1.0, 0.9, 0.9, 1.0))
 			else:

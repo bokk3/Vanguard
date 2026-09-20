@@ -28,10 +28,11 @@ var manifest_data: Dictionary = {}
 var missions_dict: Dictionary = {}
 var mission_ids: Array[String] = []
 
-# Persistent Campaign Progression
+# Persistent Campaign Progression (Chapter 1: The Ascension War)
 var unlocked_missions: Array[String] = ["M01"]
 var completed_missions: Dictionary = {} # mission_id -> { "best_time": float, "hit_rate": float, "stars": int }
 var current_mission_id: String = "M01"
+var pending_interlude_id: String = ""
 
 # Active Sortie State
 var is_sortie_active: bool = false
@@ -588,19 +589,20 @@ func _spawn_m04_boss_and_escorts() -> void:
 	if boss_scene:
 		var boss = boss_scene.instantiate()
 		boss.name = "Boss_CombineGhost"
-		boss.position = Vector3(0, 180, -600)
+		boss.position = Vector3(0, 85, -360)
+		boss.rotation = Vector3(0, PI, 0)
 		boss.destroyed.connect(_on_mission_target_destroyed.bind(boss, "obj_boss"))
 		active_root.add_child(boss)
 	
-	# 4 Elite Escort Drones (Razor Skirmishers)
+	# 4 Elite Escort Drones (Razor Skirmishers) in tactical escort formation
 	for i in range(4):
 		var d = Node3D.new()
 		d.name = "EliteGuard_0" + str(i + 1)
 		d.set_script(drone_script)
 		d.drone_type = "skirmisher"
-		d.center_point = Vector3((i - 1.5) * 80.0, 160.0, -550.0)
-		d.orbit_radius = 90.0
-		d.altitude = 160.0
+		d.center_point = Vector3((i - 1.5) * 60.0, 95.0, -320.0)
+		d.orbit_radius = 50.0
+		d.altitude = 95.0
 		d.respawn_enabled = false
 		d.destroyed.connect(_on_mission_target_destroyed.bind(d, "obj_escorts"))
 		active_root.add_child(d)
@@ -634,12 +636,19 @@ func _evaluate_continuous_objectives(delta: float) -> void:
 			altitude_warning_timer = max(0.0, altitude_warning_timer - delta * 2.0)
 			_set_objective_status("obj_canyon", "COMPLETED", 1, 1)
 	
-	# M04: Near-vacuum altitude monitoring & thin air advisory
+	# M04: Near-vacuum altitude monitoring & thin air advisory + boss intercept tracking
 	if current_mission_id == "M04":
 		var alt = active_ship.global_position.y
 		if alt > 150.0 and altitude_warning_timer == 0.0:
 			altitude_warning_timer = 1.0
 			queue_transmission("AEGIS_7", "Atmospheric density below 5%. Aero-surfaces stalling. Switch to reaction thrusters.", 4.0, "res://audio/comms/m04_aegis_thin_air.mp3")
+		
+		# Intercept objective evaluation
+		var boss = active_root.get_node_or_null("Boss_CombineGhost")
+		if is_instance_valid(boss):
+			var d_boss = active_ship.global_position.distance_to(boss.global_position)
+			if d_boss < 480.0:
+				_set_objective_status("obj_intercept", "COMPLETED", 1, 1)
 
 func _set_objective_status(obj_id: String, status: String, cur: Variant = 0, target: Variant = 1) -> void:
 	for obj in active_objectives:
@@ -664,6 +673,9 @@ func _on_mission_target_destroyed(a = null, b = null, c = null) -> void:
 		target_node = b as Node
 	
 	targets_destroyed += 1
+	if obj_id == "obj_boss":
+		_set_objective_status("obj_intercept", "COMPLETED", 1, 1)
+	
 	for obj in active_objectives:
 		if obj["id"] == obj_id:
 			obj["current_val"] = min(obj["target_val"], obj["current_val"] + 1)

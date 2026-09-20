@@ -48,11 +48,12 @@ func _physics_process(delta: float) -> void:
 	query.collide_with_bodies = true
 	
 	if shooter:
-		query.exclude = [shooter.get_rid()]
-		# Also exclude shooter's immediate children if applicable
-		for child in shooter.get_children():
-			if child is CollisionObject3D:
-				query.exclude.append(child.get_rid())
+		var excludes: Array[RID] = []
+		if shooter is CollisionObject3D:
+			excludes.append(shooter.get_rid())
+		for child in shooter.find_children("*", "CollisionObject3D", true, false):
+			excludes.append((child as CollisionObject3D).get_rid())
+		query.exclude = excludes
 	
 	var hit = space_state.intersect_ray(query)
 	if not hit.is_empty():
@@ -81,7 +82,9 @@ func _handle_hit(collider: Object, hit_pos: Vector3, hit_normal: Vector3) -> voi
 	queue_free()
 
 func _trigger_player_hitmarker() -> void:
-	var hud = get_tree().current_scene.find_child("TacticalOverlay", true, false) if get_tree().current_scene else null
+	if not shooter or (not shooter.is_in_group("player") and shooter.name != "Spaceship"):
+		return
+	var hud = get_tree().current_scene.find_child("TacticalOverlay", true, false) if (is_inside_tree() and get_tree() and get_tree().current_scene) else null
 	if hud and hud.has_method("trigger_hitmarker"):
 		hud.trigger_hitmarker()
 

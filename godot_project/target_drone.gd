@@ -26,6 +26,10 @@ var stalker_scene = preload("res://assets/meshes/vehicles/drone_stalker4_recon.g
 var razor_scene = preload("res://assets/meshes/vehicles/drone_razor_skirmisher.glb")
 var bomber_scene = preload("res://assets/meshes/vehicles/drone_strikefly_bomber.glb")
 var explosion_scene = preload("res://explosion_fx.tscn")
+var bullet_scene = preload("res://bullet.tscn")
+
+var gun_cooldown: float = 2.0
+var target_player: Node3D = null
 
 func _ready() -> void:
 	add_to_group("radar_targets")
@@ -71,6 +75,8 @@ func _ready() -> void:
 	col.shape = shape
 	hit_box.add_child(col)
 	add_child(hit_box)
+	
+	gun_cooldown = randf_range(1.5, 3.5)
 
 func _cache_drone_materials(node: Node) -> void:
 	if node is MeshInstance3D and node.mesh:
@@ -95,6 +101,67 @@ func _process(delta: float) -> void:
 	var new_pos = Vector3(target_x, target_y, target_z)
 	look_at(new_pos + Vector3(-sin(angle), 0, cos(angle)), Vector3.UP)
 	global_position = new_pos
+	
+	# Drone weapons fire evaluation
+	gun_cooldown -= delta
+	if gun_cooldown <= 0.0:
+		_evaluate_weapons_fire()
+
+func _acquire_player() -> void:
+	if is_instance_valid(target_player):
+		return
+	if is_inside_tree() and get_tree():
+		target_player = get_tree().get_first_node_in_group("player")
+	if not target_player and get_parent():
+		target_player = get_parent().get_node_or_null("Spaceship")
+	if not target_player and is_inside_tree() and get_tree() and get_tree().root:
+		target_player = get_tree().root.find_child("Spaceship", true, false)
+
+func _evaluate_weapons_fire() -> void:
+	if not bullet_scene:
+		return
+	
+	if not is_instance_valid(target_player):
+		_acquire_player()
+	
+	if not is_instance_valid(target_player):
+		gun_cooldown = 2.0
+		return
+	
+	var cur_pos = global_position if is_inside_tree() else position
+	var to_player = target_player.global_position - cur_pos
+	var dist = to_player.length()
+	
+	# Only fire within 450m
+	if dist > 450.0 or dist < 25.0:
+		gun_cooldown = 1.5
+		return
+	
+	var forward = -global_transform.basis.z.normalized() if is_inside_tree() else -transform.basis.z.normalized()
+	var angle_to_player = rad_to_deg(forward.angle_to(to_player.normalized()))
+	
+	# Only fire if player is within forward 40-degree cone
+	if angle_to_player > 40.0:
+		gun_cooldown = 1.0
+		return
+	
+	# Fetch difficulty parameters
+	var cfg = get_tree().root.get_node_or_null("ConfigManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
+	var base_cooldown = cfg.get_difficulty_drone_cooldown() if (cfg and cfg.has_method("get_difficulty_drone_cooldown")) else 3.0
+	var spread = cfg.get_difficulty_drone_spread() if (cfg and cfg.has_method("get_difficulty_drone_spread")) else 0.08
+	
+	gun_cooldown = base_cooldown + randf_range(-0.5, 0.5)
+	
+	# Aim with deliberate inaccuracy (less accurate than player tracking)
+	var aim_dir = (to_player.normalized() + Vector3(randf_range(-spread, spread), randf_range(-spread, spread), randf_range(-spread, spread))).normalized()
+	
+	var parent_scene = get_tree().current_scene if (is_inside_tree() and get_tree() and get_tree().current_scene) else get_parent()
+	if parent_scene:
+		var bullet = bullet_scene.instantiate()
+		parent_scene.add_child(bullet)
+		bullet.global_position = cur_pos + forward * 3.0
+		bullet.damage = 4.0
+		bullet.setup(self, aim_dir, 30.0)
 
 func take_damage(amount: float) -> void:
 	if not is_alive:

@@ -12,6 +12,7 @@ signal closed
 @onready var sens_val_label: Label = %SensValLabel
 @onready var invert_check: CheckBox = %InvertCheck
 @onready var gravity_check: CheckBox = %GravityCheck
+@onready var difficulty_option: OptionButton = %DifficultyOption
 
 # Keybindings UI
 @onready var keybinds_list: VBoxContainer = %KeybindsList
@@ -38,6 +39,13 @@ var key_buttons_map: Dictionary = {}
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	# Populate difficulty options
+	if difficulty_option:
+		difficulty_option.clear()
+		difficulty_option.add_item("Cadet (EASY)", 0)
+		difficulty_option.add_item("Veteran (NORMAL)", 1)
+		difficulty_option.add_item("Top Gun (ACE)", 2)
 	
 	# Populate window options
 	window_option.clear()
@@ -107,6 +115,15 @@ func refresh_from_config() -> void:
 	invert_check.button_pressed = cfg.invert_pitch
 	gravity_check.button_pressed = cfg.enable_gravity
 	
+	if difficulty_option:
+		match cfg.difficulty.to_upper():
+			"EASY":
+				difficulty_option.select(0)
+			"ACE":
+				difficulty_option.select(2)
+			_:
+				difficulty_option.select(1)
+	
 	radar_check.button_pressed = cfg.radar_circular_default
 	window_option.select(cfg.window_mode)
 	
@@ -146,7 +163,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
 		get_viewport().set_input_as_handled()
 		
-		var keycode = event.physical_keycode if event.physical_keycode != KEY_NONE else event.keycode
+		var keycode = event.keycode if event.keycode != KEY_NONE else event.physical_keycode
 		
 		# Cancel if Escape pressed
 		if event.keycode == KEY_ESCAPE:
@@ -192,6 +209,15 @@ func _on_apply_pressed() -> void:
 		cfg.mouse_sensitivity = sens_slider.value
 		cfg.invert_pitch = invert_check.button_pressed
 		cfg.enable_gravity = gravity_check.button_pressed
+		
+		if difficulty_option:
+			match difficulty_option.selected:
+				0:
+					cfg.difficulty = "EASY"
+				2:
+					cfg.difficulty = "ACE"
+				_:
+					cfg.difficulty = "NORMAL"
 		
 		cfg.radar_circular_default = radar_check.button_pressed
 		cfg.window_mode = window_option.selected

@@ -62,6 +62,7 @@ const GUN_MUZZLE_OFFSETS: Array[Vector3] = [
 @onready var telemetry: Node = $CombatTelemetry
 
 func _ready() -> void:
+	add_to_group("player")
 	current_speed = cruise_speed
 	downward_velocity = 0.0
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -188,14 +189,14 @@ func _physics_process(delta: float) -> void:
 	# ----------------------------------------------------
 	# 2. Rotational Steering (Pitch, Roll, Yaw)
 	# ----------------------------------------------------
-	# Left/Right arrow keys (or A/E) yaw, Q/D roll, Up/Down pitch
-	var r_input: float = Input.get_axis("roll_right", "roll_left")
+	# A/D or Q/D roll, Left/Right arrow yaw, Up/Down arrow pitch
+	var r_input: float = Input.get_axis("roll_left", "roll_right")
 	var y_input: float = Input.get_axis("yaw_right", "yaw_left")
-	var p_input: float = Input.get_axis("pitch_up", "pitch_down")
+	var p_input: float = Input.get_axis("pitch_down", "pitch_up")
 
 	var cfg = get_tree().root.get_node_or_null("ConfigManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
 	var pitch_invert = -1.0 if (cfg and cfg.invert_pitch) else 1.0
-	p_input += -mouse_input.y * mouse_sensitivity * 25.0 * pitch_invert
+	p_input += mouse_input.y * mouse_sensitivity * 25.0 * pitch_invert
 	y_input += -mouse_input.x * mouse_sensitivity * 18.0
 	mouse_input = Vector2.ZERO
 
@@ -521,4 +522,10 @@ func _fire_machine_gun_round() -> void:
 	# Telemetry / ammo tracking
 	if telemetry:
 		telemetry.fire_cannon_round()
+
+func take_damage(amount: float) -> void:
+	var cfg = get_tree().root.get_node_or_null("ConfigManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
+	var mult = cfg.get_difficulty_damage_multiplier() if (cfg and cfg.has_method("get_difficulty_damage_multiplier")) else 1.0
+	if telemetry:
+		telemetry.apply_damage(amount * mult)
 

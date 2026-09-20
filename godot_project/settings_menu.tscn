@@ -202,6 +202,22 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = " Atmospheric Gravity & Stall Compensation"
 
+[node name="DifficultyRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Controls & Keybindings/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="DiffLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Controls & Keybindings/VBox/DifficultyRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "Combat Difficulty"
+
+[node name="DifficultyOption" type="OptionButton" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Controls & Keybindings/VBox/DifficultyRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 28)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+
 [node name="HSep" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Controls & Keybindings/VBox"]
 layout_mode = 2
 
