@@ -461,11 +461,24 @@ func _draw_target_tracking(vp: Vector2, center: Vector2) -> void:
 			var box_col = COLOR_RED if t["is_hostile"] else COLOR_GOLD
 			
 			# Target Corner Brackets
+			var target_node = t["node"]
+			var display_name = t["name"]
+			var is_relay = false
+			if is_instance_valid(target_node):
+				if "callsign_name" in target_node:
+					display_name = target_node.callsign_name
+				elif target_node.name.begins_with("JammingRelay"):
+					display_name = "JAMMER TOWER"
+				if display_name.contains("JAMMER") or display_name.contains("RELAY"):
+					is_relay = true
+			
 			var b_size = clamp(3600.0 / max(dist_m, 10.0), 22.0, 64.0)
-			_draw_bracket_box(s_pos, b_size, box_col)
+			if is_relay:
+				_draw_diamond_box(s_pos, b_size * 1.3, Color(1.0, 0.25, 0.3, 1.0))
+			else:
+				_draw_bracket_box(s_pos, b_size, box_col)
 
 			# Target Health Gauge (for damageable entities)
-			var target_node = t["node"]
 			if is_instance_valid(target_node):
 				var cur_hp = target_node.get("health")
 				var max_hp = target_node.get("max_health")
@@ -488,8 +501,12 @@ func _draw_target_tracking(vp: Vector2, center: Vector2) -> void:
 					draw_string(ThemeDB.fallback_font, Vector2(bar_x + bar_w + 4, bar_y + 5), hp_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, fill_col)
 			
 			# Range label
-			var info_txt = "%s [%dm]" % [t["name"], dist_m]
-			draw_string(ThemeDB.fallback_font, Vector2(s_pos.x - 40, s_pos.y + b_size + 14), info_txt, HORIZONTAL_ALIGNMENT_CENTER, -1, 11, box_col)
+			var info_txt = "%s [%dm]" % [display_name, dist_m]
+			if is_relay:
+				info_txt = "◈ %s [%dm]" % [display_name, dist_m]
+				draw_string(ThemeDB.fallback_font, Vector2(s_pos.x - 55, s_pos.y + b_size + 16), info_txt, HORIZONTAL_ALIGNMENT_CENTER, -1, 12, Color(1.0, 0.3, 0.35, 1.0))
+			else:
+				draw_string(ThemeDB.fallback_font, Vector2(s_pos.x - 40, s_pos.y + b_size + 14), info_txt, HORIZONTAL_ALIGNMENT_CENTER, -1, 11, box_col)
 			
 			# Missile Lock Reticle
 			if is_current_locked_candidate and telemetry.lock_progress > 0.0:
@@ -511,7 +528,23 @@ func _draw_target_tracking(vp: Vector2, center: Vector2) -> void:
 				dir_2d = -dir_2d # Invert for behind camera
 			var edge_pos = screen_center + dir_2d * (min(vp.x, vp.y) * 0.44)
 			var arrow_col = COLOR_RED if t["is_hostile"] else COLOR_GOLD
-			draw_circle(edge_pos, 5.0, arrow_col)
+			var is_offscreen_relay = t["name"].begins_with("JammingRelay")
+			if is_offscreen_relay:
+				draw_circle(edge_pos, 8.0, Color(1.0, 0.2, 0.25, 0.95))
+				draw_circle(edge_pos, 3.5, Color(1.0, 0.9, 0.9, 1.0))
+			else:
+				draw_circle(edge_pos, 5.0, arrow_col)
+
+func _draw_diamond_box(pos: Vector2, size: float, col: Color) -> void:
+	var r = size * 0.6
+	var pts = PackedVector2Array([
+		Vector2(pos.x, pos.y - r),
+		Vector2(pos.x + r, pos.y),
+		Vector2(pos.x, pos.y + r),
+		Vector2(pos.x - r, pos.y),
+		Vector2(pos.x, pos.y - r)
+	])
+	draw_polyline(pts, col, 2.2)
 
 func _draw_bracket_box(pos: Vector2, size: float, col: Color) -> void:
 	var h = size * 0.5

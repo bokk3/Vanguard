@@ -325,21 +325,24 @@ func _spawn_m02_relays_and_patrols() -> void:
 	var relay_scene = load("res://jamming_relay.tscn")
 	var drone_script = load("res://target_drone.gd")
 	
-	# 3 Jamming Relays along canyon floor
-	var relay_positions = [
-		Vector3(-80, 10, -280),
-		Vector3(120, 10, -480),
-		Vector3(-40, 10, -720)
+	# 3 Jamming Relays along canyon floor with distinct callsigns
+	var relay_configs = [
+		{ "name": "JammingRelay_01", "callsign": "JAMMER ALPHA", "pos": Vector3(-80, 0, -280) },
+		{ "name": "JammingRelay_02", "callsign": "JAMMER BRAVO", "pos": Vector3(120, 0, -480) },
+		{ "name": "JammingRelay_03", "callsign": "JAMMER CHARLIE", "pos": Vector3(-40, 0, -720) }
 	]
 	
-	for i in range(relay_positions.size()):
+	for i in range(relay_configs.size()):
+		var cfg = relay_configs[i]
 		var relay: Node3D = null
 		if relay_scene:
 			relay = relay_scene.instantiate()
 		else:
 			relay = Node3D.new()
-		relay.name = "JammingRelay_0" + str(i + 1)
-		relay.position = relay_positions[i]
+		relay.name = cfg["name"]
+		if "callsign_name" in relay:
+			relay.callsign_name = cfg["callsign"]
+		relay.position = cfg["pos"]
 		if relay.has_signal("destroyed"):
 			relay.destroyed.connect(_on_mission_target_destroyed.bind(relay, "obj_relays"))
 		active_root.add_child(relay)
