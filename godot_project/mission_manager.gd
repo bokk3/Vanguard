@@ -107,9 +107,13 @@ func _load_campaign_manifest() -> void:
 	print("[MissionManager] Loaded ", missions_dict.size(), " missions from manifest.")
 
 func get_mission(id: String) -> Dictionary:
+	if missions_dict.is_empty():
+		_load_campaign_manifest()
 	return missions_dict.get(id, {})
 
 func get_all_missions() -> Array:
+	if missions_dict.is_empty():
+		_load_campaign_manifest()
 	return manifest_data.get("missions", [])
 
 func is_mission_unlocked(id: String) -> bool:
@@ -143,7 +147,7 @@ func initialize_level(root_node: Node3D) -> void:
 	_apply_skybox_preset(m_data.get("sky_preset", "overcast_storm"))
 	
 	# 2. Apply Aircraft Overrides
-	if active_ship:
+	if active_ship and "stall_speed" in active_ship:
 		var stall = float(m_data.get("stall_speed_ms", 25.0))
 		active_ship.stall_speed = stall
 		print("[MissionManager] Aircraft stall speed configured to: ", stall, " m/s")
@@ -318,7 +322,7 @@ func _spawn_m01_recon_drones() -> void:
 		d.position = cfg["pos"]
 
 func _spawn_m02_relays_and_patrols() -> void:
-	var wall_mesh = load("res://assets/meshes/environment/Modular_SciFi_Wall_01_game_ready.fbx")
+	var relay_scene = load("res://jamming_relay.tscn")
 	var drone_script = load("res://target_drone.gd")
 	
 	# 3 Jamming Relays along canyon floor
@@ -329,43 +333,15 @@ func _spawn_m02_relays_and_patrols() -> void:
 	]
 	
 	for i in range(relay_positions.size()):
-		var relay = Node3D.new()
+		var relay: Node3D = null
+		if relay_scene:
+			relay = relay_scene.instantiate()
+		else:
+			relay = Node3D.new()
 		relay.name = "JammingRelay_0" + str(i + 1)
 		relay.position = relay_positions[i]
-		
-		# Tower Visual using SciFi Wall Mesh
-		if wall_mesh:
-			var w_inst = wall_mesh.instantiate()
-			w_inst.scale = Vector3(2.0, 2.0, 2.0)
-			relay.add_child(w_inst)
-		else:
-			var box = MeshInstance3D.new()
-			var bm = BoxMesh.new()
-			bm.size = Vector3(6, 25, 6)
-			box.mesh = bm
-			relay.add_child(box)
-		
-		# Pulsing Jamming Beacon on Top
-		var beacon_light = OmniLight3D.new()
-		beacon_light.light_color = Color(1.0, 0.15, 0.2)
-		beacon_light.light_energy = 3.5
-		beacon_light.position = Vector3(0, 16, 0)
-		relay.add_child(beacon_light)
-		
-		# Hitbox Area3D
-		var area = Area3D.new()
-		var col = CollisionShape3D.new()
-		var box_shape = BoxShape3D.new()
-		box_shape.size = Vector3(12, 30, 12)
-		col.shape = box_shape
-		area.add_child(col)
-		relay.add_child(area)
-		
-		# Scripting Relay health and destruction
-		relay.set_meta("health", 150.0)
-		relay.add_to_group("radar_targets")
-		relay.add_to_group("enemies")
-		
+		if relay.has_signal("destroyed"):
+			relay.destroyed.connect(_on_mission_target_destroyed.bind(relay, "obj_relays"))
 		active_root.add_child(relay)
 	
 	# 4 Canyon Escort Patrol Drones
@@ -382,6 +358,15 @@ func _spawn_m02_relays_and_patrols() -> void:
 
 func _spawn_m03_transport_and_allies() -> void:
 	var viper_mesh = load("res://assets/meshes/vehicles/Spaceship_Viper_Supreme_HD.fbx")
+	var transport_scene = load("res://transport_olympus4.tscn")
+	var drone_script = load("res://target_drone.gd")
+	
+	# Allied Heavy Transport Olympus-4
+	if transport_scene:
+		var transport = transport_scene.instantiate()
+		transport.name = "TransportOlympus4"
+		transport.position = Vector3(0, 30, -100)
+		active_root.add_child(transport)
 	
 	# Allied Wingman Viper 2
 	if viper_mesh:
@@ -392,36 +377,36 @@ func _spawn_m03_transport_and_allies() -> void:
 		wingman.position = Vector3(45, 42, -20)
 		active_root.add_child(wingman)
 	
-	# Spawn initial drone wave
-	_spawn_m01_recon_drones()
+	# Spawn 4 saturation wave drones targeting corridor
+	var drone_configs = [
+		{ "pos": Vector3(-200, 80, -250), "radius": 150.0, "speed": 0.4 },
+		{ "pos": Vector3(200, 70, -320),  "radius": 180.0, "speed": -0.35 },
+		{ "pos": Vector3(-120, 110, -450), "radius": 200.0, "speed": 0.45 },
+		{ "pos": Vector3(140, 90, -520),  "radius": 160.0, "speed": -0.4 }
+	]
+	for i in range(drone_configs.size()):
+		var cfg = drone_configs[i]
+		var d = Node3D.new()
+		d.name = "StrikeDrone_0" + str(i + 1)
+		d.set_script(drone_script)
+		d.center_point = cfg["pos"]
+		d.orbit_radius = cfg["radius"]
+		d.orbit_speed = cfg["speed"]
+		d.altitude = cfg["pos"].y
+		d.respawn_enabled = false
+		d.destroyed.connect(_on_mission_target_destroyed.bind(d, "obj_destroy_all"))
+		active_root.add_child(d)
 
 func _spawn_m04_boss_and_escorts() -> void:
-	var viper_mesh = load("res://assets/meshes/vehicles/Spaceship_Viper_Supreme_HD.fbx")
+	var boss_scene = load("res://boss_combine_ghost.tscn")
 	var drone_script = load("res://target_drone.gd")
 	
-	# Helion Ace Boss "Combine Ghost"
-	if viper_mesh:
-		var boss = Node3D.new()
+	# Helion Ace Boss "Combine Ghost" (F-82 Viper Stealth Crimson)
+	if boss_scene:
+		var boss = boss_scene.instantiate()
 		boss.name = "Boss_CombineGhost"
-		var b_inst = viper_mesh.instantiate()
-		
-		# Crimson PBR Material Override
-		var crimson_mat = StandardMaterial3D.new()
-		crimson_mat.albedo_color = Color(0.7, 0.05, 0.08)
-		crimson_mat.metallic = 0.9
-		crimson_mat.roughness = 0.2
-		crimson_mat.emission_enabled = true
-		crimson_mat.emission = Color(0.9, 0.1, 0.15)
-		crimson_mat.emission_energy_multiplier = 2.0
-		
-		# Apply override to all mesh instances inside
-		for child in b_inst.find_children("*", "MeshInstance3D"):
-			(child as MeshInstance3D).material_override = crimson_mat
-		
-		boss.add_child(b_inst)
 		boss.position = Vector3(0, 180, -600)
-		boss.add_to_group("radar_targets")
-		boss.add_to_group("enemies")
+		boss.destroyed.connect(_on_mission_target_destroyed.bind(boss, "obj_boss"))
 		active_root.add_child(boss)
 	
 	# 4 Elite Escort Drones
@@ -445,7 +430,9 @@ func _evaluate_continuous_objectives(delta: float) -> void:
 	
 	# M01: Airspeed above stall threshold
 	if current_mission_id == "M01":
-		if active_ship.current_speed > active_ship.stall_speed:
+		var spd = active_ship.current_speed if "current_speed" in active_ship else 0.0
+		var stall = active_ship.stall_speed if "stall_speed" in active_ship else 25.0
+		if spd > stall:
 			_set_objective_status("obj_fly", "COMPLETED", 1, 1)
 		else:
 			_set_objective_status("obj_fly", "IN_PROGRESS", 0, 1)
@@ -456,12 +443,19 @@ func _evaluate_continuous_objectives(delta: float) -> void:
 		if alt > 120.0:
 			altitude_warning_timer += delta
 			if altitude_warning_timer > 1.5 and altitude_warning_timer - delta <= 1.5:
-				queue_transmission("AEGIS_7", "CAUTION: Altitude exceeding 120m. Enemy radar paint detected. Dive immediately!", 3.0)
+				queue_transmission("AEGIS_7", "CAUTION: Altitude exceeding 120m. Enemy radar paint detected. Dive immediately!", 3.0, "res://audio/comms/m02_aegis_altitude_warning.mp3")
 			if alt > 180.0 and altitude_warning_timer > 5.0:
 				fail_mission("SAM_BARRAGE", "Altitude ceiling breached! Surface-to-air missile barrage intercepted airframe.")
 		else:
 			altitude_warning_timer = max(0.0, altitude_warning_timer - delta * 2.0)
 			_set_objective_status("obj_canyon", "COMPLETED", 1, 1)
+	
+	# M04: Near-vacuum altitude monitoring & thin air advisory
+	if current_mission_id == "M04":
+		var alt = active_ship.global_position.y
+		if alt > 150.0 and altitude_warning_timer == 0.0:
+			altitude_warning_timer = 1.0
+			queue_transmission("AEGIS_7", "Atmospheric density below 5%. Aero-surfaces stalling. Switch to reaction thrusters.", 4.0, "res://audio/comms/m04_aegis_thin_air.mp3")
 
 func _set_objective_status(obj_id: String, status: String, cur: Variant = 0, target: Variant = 1) -> void:
 	for obj in active_objectives:
@@ -480,6 +474,11 @@ func _on_mission_target_destroyed(target_node: Node, obj_id: String) -> void:
 			obj["current_val"] = min(obj["target_val"], obj["current_val"] + 1)
 			if obj["current_val"] >= obj["target_val"]:
 				obj["status"] = "COMPLETED"
+				# Special mission audio triggers upon objective completion
+				if current_mission_id == "M02" and obj_id == "obj_relays":
+					queue_transmission("APEX_CMD", "Jamming network collapsed! Radar uplink re-established. Sweep remaining patrols.", 4.5, "res://audio/comms/m02_apex_relays_down.mp3")
+				elif current_mission_id == "M03" and obj_id == "obj_destroy_all":
+					queue_transmission("APEX_CMD", "Air corridor sanitized. Olympus-4, fire your booster stage!", 4.0, "res://audio/comms/m03_apex_wave_cleared.mp3")
 			objective_updated.emit(obj_id, obj["status"], obj["text"], obj["current_val"], obj["target_val"])
 			break
 	
@@ -622,14 +621,14 @@ func _trigger_intro_comms(mission_id: String) -> void:
 			queue_transmission("AEGIS_7", "Catapult release confirmed. Main thrusters engaged. Flight telemetry online.", 3.5, "res://audio/comms/m01_aegis_launch.mp3")
 			queue_transmission("APEX_CMD", "Hostiles confirmed autonomous Marauder drones. Weapons free, Vanguard 1. Sanitize the corridor.", 4.5, "res://audio/comms/m01_apex_weapons_free.mp3")
 		"M02":
-			queue_transmission("APEX_CMD", "Vanguard 1, you're dropping into the Red Sinks. Keep your belly to the rock under 120 meters.", 4.5)
-			queue_transmission("AEGIS_7", "Terrain proximity active. Scanning canyon floor for jamming repeaters.", 3.5)
+			queue_transmission("APEX_CMD", "Vanguard 1, you're dropping into the Red Sinks. Keep your belly to the rock under 120 meters.", 4.5, "res://audio/comms/m02_apex_briefing.mp3")
+			queue_transmission("AEGIS_7", "Terrain proximity active. Scanning canyon floor for jamming repeaters.", 3.5, "res://audio/comms/m02_aegis_terrain.mp3")
 		"M03":
-			queue_transmission("VIPER_2", "Miller on your wing, Vanguard 1. Look at that bird... Olympus-4 is charging capacitors. Let's make sure she makes orbit.", 4.5)
-			queue_transmission("APEX_CMD", "Threat grid lit up! Wave one incoming bearing one-eight-zero, angels four. Intercept!", 4.0)
+			queue_transmission("VIPER_2", "Miller on your wing, Vanguard 1. Look at that bird... Olympus-4 is charging capacitors. Let's make sure she makes orbit.", 4.5, "res://audio/comms/m03_viper_wingman.mp3")
+			queue_transmission("APEX_CMD", "Threat grid lit up! Wave one incoming bearing one-eight-zero, angels four. Intercept!", 4.0, "res://audio/comms/m03_apex_swarm_warning.mp3")
 		"M04":
-			queue_transmission("APEX_CMD", "Vanguard 1, crossing forty thousand meters. Skies are turning black. You are on vectoring thrusters.", 4.5)
-			queue_transmission("GHOST", "So the Directorate sent their prized pilot to freeze in the vacuum. Let's see how your V-hull handles true zero-G!", 5.0)
+			queue_transmission("APEX_CMD", "Vanguard 1, crossing forty thousand meters. Skies are turning black. You are on vectoring thrusters.", 4.5, "res://audio/comms/m04_apex_vacuum_entry.mp3")
+			queue_transmission("GHOST", "So the Directorate sent their prized pilot to freeze in the vacuum. Let's see how your V-hull handles true zero-G!", 5.0, "res://audio/comms/m04_ghost_challenge.mp3")
 
 func _trigger_victory_comms(mission_id: String) -> void:
 	match mission_id:
@@ -637,12 +636,12 @@ func _trigger_victory_comms(mission_id: String) -> void:
 			queue_transmission("AEGIS_7", "All four target signatures purged from polar radar disc.", 3.5)
 			queue_transmission("APEX_CMD", "Good splashes, Vanguard 1! The corridor is clear. Form up and RTB for debrief.", 4.5, "res://audio/comms/m01_apex_mission_complete.mp3")
 		"M02":
-			queue_transmission("APEX_CMD", "All jamming relays eliminated. Early-warning radar grid restored across the Red Sinks. Great flying, Ace.", 4.5)
+			queue_transmission("APEX_CMD", "All jamming relays eliminated. Early-warning radar grid restored across the Red Sinks. Great flying, Ace.", 4.5, "res://audio/comms/m02_apex_victory.mp3")
 		"M03":
-			queue_transmission("OLYMPUS_4", "Main rocket ignition confirmed! Passing Mach 5 and climbing through fifty thousand feet. Thanks for the escort, Vanguard!", 5.0)
+			queue_transmission("OLYMPUS_4", "Main rocket ignition confirmed! Passing Mach 5 and climbing through fifty thousand feet. Thanks for the escort, Vanguard!", 5.0, "res://audio/comms/m03_olympus_liftoff.mp3")
 		"M04":
-			queue_transmission("AEGIS_7", "Catastrophic core rupture on target. Threat destroyed.", 3.5)
-			queue_transmission("APEX_CMD", "Combine Ghost is down! The entire drone network is offline. Outstanding work, Vanguard 1... You saved Ascension!", 5.5)
+			queue_transmission("AEGIS_7", "Catastrophic core rupture on target. Threat destroyed.", 3.5, "res://audio/comms/m04_aegis_target_rupture.mp3")
+			queue_transmission("APEX_CMD", "Combine Ghost is down! The entire drone network is offline. Outstanding work, Vanguard 1... You saved Ascension!", 5.5, "res://audio/comms/m04_apex_ace_victory.mp3")
 
 # -----------------------------------------------------------------------------
 # 7. Persistence Integration

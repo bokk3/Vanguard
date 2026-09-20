@@ -22,6 +22,8 @@ signal selector_closed()
 @onready var threat_label: Label = find_child("ThreatLabel", true, false)
 @onready var status_badge_label: Label = find_child("StatusBadgeLabel", true, false)
 
+@onready var recon_card_rect: TextureRect = find_child("ReconCardRect", true, false)
+
 # Faction crests
 @onready var crest_sol: TextureRect = find_child("CrestSol", true, false)
 @onready var crest_combine: TextureRect = find_child("CrestCombine", true, false)
@@ -112,6 +114,8 @@ func _ensure_node_references() -> void:
 		crest_sol = find_child("CrestSol", true, false)
 	if not crest_combine:
 		crest_combine = find_child("CrestCombine", true, false)
+	if not recon_card_rect:
+		recon_card_rect = find_child("ReconCardRect", true, false)
 
 func open_selector() -> void:
 	_ensure_node_references()
@@ -230,6 +234,15 @@ func select_mission(mission_id: String) -> void:
 		flight_specs_label.text = dossier.get("flight_specs", "")
 	if threat_label:
 		threat_label.text = dossier.get("threat_assessment", "")
+	
+	# Update Tactical Reconnaissance Card
+	if recon_card_rect:
+		var card_path = "res://ui/mission_card_" + mission_id.to_lower() + ".png"
+		if ResourceLoader.exists(card_path):
+			recon_card_rect.texture = load(card_path)
+			recon_card_rect.visible = true
+		else:
+			recon_card_rect.visible = false
 	
 	# Status Badge
 	if status_badge_label:

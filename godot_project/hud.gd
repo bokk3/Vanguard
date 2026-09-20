@@ -32,17 +32,32 @@ var radio_banner_active: bool = false
 var mission_title: String = ""
 var mission_objectives: Array[Dictionary] = []
 
+# Flight Telemetry & G-Force Avionics
+var current_g_force: float = 1.0
+var previous_speed: float = 0.0
+var high_g_audio_player: AudioStreamPlayer = null
+var high_g_cooldown: float = 0.0
+
 func _ready() -> void:
 	var cfg = get_node_or_null("/root/ConfigManager")
 	if cfg:
 		show_circular_radar = cfg.radar_circular_default
 		cfg.settings_changed.connect(func(): show_circular_radar = cfg.radar_circular_default)
-	var root = get_tree().current_scene
-	if root:
+	if get_tree() and get_tree().current_scene:
+		var root = get_tree().current_scene
 		ship = root.get_node_or_null("Spaceship") as CharacterBody3D
 		camera = root.get_node_or_null("Camera3D") as Camera3D
 	if ship:
 		telemetry = ship.get_node_or_null("CombatTelemetry")
+	
+	# Setup High-G Cockpit Audio
+	high_g_audio_player = AudioStreamPlayer.new()
+	high_g_audio_player.name = "HighGAudioPlayer"
+	high_g_audio_player.bus = "Master"
+	var g_stream = load("res://audio/sfx/sfx_flight_high_g_whoosh.wav")
+	if g_stream:
+		high_g_audio_player.stream = g_stream
+	add_child(high_g_audio_player)
 	
 	# Connect to MissionManager
 	var mm = get_node_or_null("/root/MissionManager")
@@ -82,6 +97,33 @@ func _process(delta: float) -> void:
 		current_radio_timer = max(0.0, current_radio_timer - delta)
 		if current_radio_timer <= 0.0:
 			radio_banner_active = false
+	
+	# Dynamic Aerospace G-Force Calculation & High-G Woosh SFX
+	if ship:
+		var speed = ship.current_speed
+		var accel = (speed - previous_speed) / max(0.001, delta)
+		previous_speed = speed
+		
+		# Centripetal turn rate G load
+		var angular_rate = 0.0
+		if "mouse_input" in ship and ship.mouse_input != null:
+			angular_rate = (ship.mouse_input as Vector2).length() * 32.0
+		if Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_S):
+			angular_rate = max(angular_rate, 45.0)
+		if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_D):
+			angular_rate = max(angular_rate, 35.0)
+		
+		var centripetal_g = (angular_rate * speed) / 120.0
+		var linear_g = accel / 35.0
+		var target_g = clamp(1.0 + abs(centripetal_g) + abs(linear_g), 1.0, 9.9)
+		current_g_force = lerp(current_g_force, target_g, 8.0 * delta)
+		
+		high_g_cooldown -= delta
+		if current_g_force > 6.0 and high_g_cooldown <= 0.0:
+			high_g_cooldown = 3.2
+			if high_g_audio_player and not high_g_audio_player.playing:
+				high_g_audio_player.play()
+	
 	queue_redraw()
 
 func _on_radio_started(speaker: String, callsign: String, text: String, color: Color, duration: float) -> void:
@@ -139,8 +181,10 @@ func _draw() -> void:
 	if show_circular_radar:
 		_draw_circular_radar(viewport_size)
 
-	# 3. Center Crosshair & Pitch Reticle
+	# 3. Center Pitch Ladder, Crosshair & Flight Path Marker
+	_draw_pitch_ladder(center)
 	_draw_center_crosshair(center)
+	_draw_flight_path_marker(viewport_size)
 
 	# 4. Target Acquisition & Missile Lock-On Reticle
 	_draw_target_tracking(viewport_size, center)
@@ -282,7 +326,102 @@ func _draw_circular_radar(vp: Vector2) -> void:
 	draw_string(ThemeDB.fallback_font, Vector2(radar_center.x - 45, radar_center.y + radius + 16), "RADAR [R: TOGGLE]", HORIZONTAL_ALIGNMENT_CENTER, -1, 11, COLOR_CYAN_DIM)
 
 # -----------------------------------------------------------------
-# 3. Center Crosshair Reticle
+# 3. Dynamic Pitch Ladder & Flight Path Marker
+# -----------------------------------------------------------------
+func _draw_pitch_ladder(center: Vector2) -> void:
+	if not ship:
+		return
+	
+	var fwd = -ship.global_transform.basis.z.normalized()
+	var right = ship.global_transform.basis.x.normalized()
+	var up = ship.global_transform.basis.y.normalized()
+	
+	var pitch_rad = asin(clamp(fwd.y, -1.0, 1.0))
+	var pitch_deg = rad_to_deg(pitch_rad)
+	var roll_rad = atan2(right.y, up.y)
+	
+	var px_per_deg = 4.2
+	var ladder_w = 96.0
+	var rung_spacing_deg = 10
+	
+	for p in range(-30, 31, rung_spacing_deg):
+		var diff = (pitch_deg - p) * px_per_deg
+		if abs(diff) > 135.0:
+			continue
+		
+		var rung_col = COLOR_CYAN_DIM if p != 0 else COLOR_CYAN
+		var line_dir = Vector2(cos(roll_rad), sin(roll_rad))
+		var perp_dir = Vector2(-sin(roll_rad), cos(roll_rad))
+		var rung_center = center + perp_dir * diff
+		
+		var half_w = ladder_w * 0.5 if p != 0 else ladder_w * 0.85
+		var gap = 24.0
+		
+		var p1_l = rung_center - line_dir * half_w
+		var p2_l = rung_center - line_dir * gap
+		var p1_r = rung_center + line_dir * gap
+		var p2_r = rung_center + line_dir * half_w
+		
+		if p == 0:
+			# Horizon line: long solid bar with center reticle gap
+			draw_line(p1_l, p2_l, COLOR_CYAN, 2.0)
+			draw_line(p1_r, p2_r, COLOR_CYAN, 2.0)
+			draw_line(p1_l, p1_l + perp_dir * 8.0, COLOR_CYAN, 1.5)
+			draw_line(p2_r, p2_r + perp_dir * 8.0, COLOR_CYAN, 1.5)
+		elif p > 0:
+			# Positive pitch: solid lines with downward pointing ends toward horizon
+			draw_line(p1_l, p2_l, rung_col, 1.5)
+			draw_line(p1_r, p2_r, rung_col, 1.5)
+			draw_line(p1_l, p1_l + perp_dir * 6.0, rung_col, 1.5)
+			draw_line(p2_r, p2_r + perp_dir * 6.0, rung_col, 1.5)
+			var num_pos = p2_r + line_dir * 4.0 - perp_dir * 3.0
+			draw_string(ThemeDB.fallback_font, num_pos, str(p), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, rung_col)
+		else:
+			# Negative pitch: dashed lines with upward pointing ends toward horizon
+			_draw_dashed_line_2d(p1_l, p2_l, rung_col, 1.5, 6.0, 4.0)
+			_draw_dashed_line_2d(p1_r, p2_r, rung_col, 1.5, 6.0, 4.0)
+			draw_line(p1_l, p1_l - perp_dir * 6.0, rung_col, 1.5)
+			draw_line(p2_r, p2_r - perp_dir * 6.0, rung_col, 1.5)
+			var num_pos = p2_r + line_dir * 4.0 + perp_dir * 5.0
+			draw_string(ThemeDB.fallback_font, num_pos, str(p), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, rung_col)
+
+func _draw_flight_path_marker(vp_size: Vector2) -> void:
+	if not ship or not camera:
+		return
+	var speed = ship.velocity.length()
+	if speed < 4.0:
+		return
+	
+	var fpm_world = ship.global_position + ship.velocity.normalized() * 50.0
+	if camera.is_position_behind(fpm_world):
+		return
+	var s_pos = camera.unproject_position(fpm_world)
+	if not Rect2(Vector2.ZERO, vp_size).has_point(s_pos):
+		return
+	
+	var r = 6.5
+	var col = COLOR_GREEN
+	draw_arc(s_pos, r, 0, TAU, 24, col, 1.5)
+	# Left stabilizer wing
+	draw_line(s_pos - Vector2(r + 9.0, 0), s_pos - Vector2(r, 0), col, 1.5)
+	# Right stabilizer wing
+	draw_line(s_pos + Vector2(r, 0), s_pos + Vector2(r + 9.0, 0), col, 1.5)
+	# Vertical rudder fin
+	draw_line(s_pos - Vector2(0, r), s_pos - Vector2(0, r + 6.0), col, 1.5)
+
+func _draw_dashed_line_2d(p1: Vector2, p2: Vector2, col: Color, width: float, dash_len: float, gap_len: float) -> void:
+	var total_dist = p1.distance_to(p2)
+	if total_dist <= 0.001:
+		return
+	var dir = (p2 - p1).normalized()
+	var cur_dist = 0.0
+	while cur_dist < total_dist:
+		var d_end = min(cur_dist + dash_len, total_dist)
+		draw_line(p1 + dir * cur_dist, p1 + dir * d_end, col, width)
+		cur_dist += dash_len + gap_len
+
+# -----------------------------------------------------------------
+# 3b. Center Crosshair Reticle
 # -----------------------------------------------------------------
 func _draw_center_crosshair(center: Vector2) -> void:
 	var r = 16.0
@@ -391,13 +530,13 @@ func _draw_bracket_box(pos: Vector2, size: float, col: Color) -> void:
 	draw_line(Vector2(pos.x + h, pos.y + h), Vector2(pos.x + h, pos.y + h - arm), col, 2.0)
 
 # -----------------------------------------------------------------
-# 5. Left Panel: Vital Systems (Shield, Hull, Speed, Altitude)
+# 5. Left Panel: Vital Systems & Flight Telemetry
 # -----------------------------------------------------------------
 func _draw_vital_systems(vp: Vector2) -> void:
+	var panel_w = 275.0
+	var panel_h = 196.0
 	var px = 24.0
-	var py = vp.y - 190.0
-	var panel_w = 260.0
-	var panel_h = 166.0
+	var py = vp.y - 220.0
 
 	draw_rect(Rect2(Vector2(px, py), Vector2(panel_w, panel_h)), COLOR_PANEL_BG, true)
 	draw_rect(Rect2(Vector2(px, py), Vector2(panel_w, panel_h)), COLOR_CYAN_DIM, false, 1.5)
@@ -415,25 +554,35 @@ func _draw_vital_systems(vp: Vector2) -> void:
 	# Hull Armor Bar
 	var h_pct = telemetry.current_hull / telemetry.max_hull
 	var hull_col = COLOR_GREEN if h_pct > 0.65 else (COLOR_GOLD if h_pct > 0.3 else COLOR_RED)
-	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 76), "HULL ARMOR %d%%" % round(h_pct * 100), HORIZONTAL_ALIGNMENT_LEFT, -1, 12, hull_col)
-	draw_rect(Rect2(Vector2(px + 12, py + 82), Vector2(panel_w - 24, 10)), COLOR_CYAN_DIM * 0.4, true)
-	draw_rect(Rect2(Vector2(px + 12, py + 82), Vector2((panel_w - 24) * h_pct, 10)), hull_col, true)
+	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 74), "HULL ARMOR %d%%" % round(h_pct * 100), HORIZONTAL_ALIGNMENT_LEFT, -1, 12, hull_col)
+	draw_rect(Rect2(Vector2(px + 12, py + 80), Vector2(panel_w - 24, 10)), COLOR_CYAN_DIM * 0.4, true)
+	draw_rect(Rect2(Vector2(px + 12, py + 80), Vector2((panel_w - 24) * h_pct, 10)), hull_col, true)
 
-	# Speed & Altitude
+	# Aerospace Flight Telemetry
 	var speed_kmh = round(ship.current_speed * 3.6)
+	var mach = ship.current_speed / 340.0
 	var alt_m = round(ship.global_position.y)
-	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 115), "AIRSPEED:  %d km/h" % speed_kmh, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, COLOR_CYAN)
-	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 135), "ALTITUDE:  %d m" % alt_m, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, COLOR_CYAN)
-	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 155), "[F1: Layout | H: Test Damage]", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, COLOR_CYAN_DIM)
+	var vs = round(ship.velocity.y)
+	var vs_sign = "+" if vs >= 0 else ""
+	var g_val = current_g_force
+	var g_col = COLOR_RED if g_val > 7.0 else (COLOR_GOLD if g_val > 5.0 else COLOR_CYAN)
+	
+	var thrust_pct = round(clamp((ship.current_speed / max(1.0, ship.cruise_speed)) * 100.0, 0.0, 100.0))
+	var thrust_tag = "A/B" if Input.is_key_pressed(KEY_SHIFT) else "MIL"
+
+	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 112), "SPD: %4d km/h  |  M %.2f" % [speed_kmh, mach], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, COLOR_CYAN)
+	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 132), "ALT: %4d m     |  V/S %s%d m/s" % [alt_m, vs_sign, vs], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, COLOR_CYAN)
+	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 152), "G-LOAD: %+4.1f G  |  THR %d%% [%s]" % [g_val, thrust_pct, thrust_tag], HORIZONTAL_ALIGNMENT_LEFT, -1, 12, g_col)
+	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 178), "[F1: Layout | H: Test Damage]", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, COLOR_CYAN_DIM)
 
 # -----------------------------------------------------------------
 # 6. Right Panel: Nitro & Ordnance Bays
 # -----------------------------------------------------------------
 func _draw_nitro_and_ordnance(vp: Vector2) -> void:
-	var panel_w = 260.0
-	var panel_h = 166.0
+	var panel_w = 275.0
+	var panel_h = 196.0
 	var px = vp.x - panel_w - 24.0
-	var py = vp.y - 190.0
+	var py = vp.y - 220.0
 
 	draw_rect(Rect2(Vector2(px, py), Vector2(panel_w, panel_h)), COLOR_PANEL_BG, true)
 	draw_rect(Rect2(Vector2(px, py), Vector2(panel_w, panel_h)), COLOR_CYAN_DIM, false, 1.5)

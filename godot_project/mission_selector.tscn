@@ -90,7 +90,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="MainPanel" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(980, 640)
+custom_minimum_size = Vector2(1040, 680)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
 
@@ -221,6 +221,13 @@ horizontal_scroll_mode = 0
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
+
+[node name="ReconCardRect" type="TextureRect" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane/DossierScroll/DossierContent"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 160)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
 
 [node name="NarrativeHeader" type="Label" parent="CenterContainer/MainPanel/Margin/MainVBox/ContentHBox/RightPane/DossierScroll/DossierContent"]
 layout_mode = 2

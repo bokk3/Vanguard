@@ -50,6 +50,8 @@ Subtle, high-frequency haptic sounds for menu navigation and switch flipping.
 | :--- | :--- | :--- |
 | **UI Button Hover** | [`sfx_ui_button_hover.wav`](audio/sfx/sfx_ui_button_hover.wav) | 1800 Hz micro-second tick with rapid decay for crisp menu navigation. |
 | **UI Button Click** | [`sfx_ui_button_click.wav`](audio/sfx/sfx_ui_button_click.wav) | Dual 1200 Hz / 2400 Hz confirmation click for selecting sorties or toggling settings. |
+| **Debrief Tally Tick** | [`sfx_debrief_tally_tick.wav`](audio/sfx/sfx_debrief_tally_tick.wav) | 1650 Hz high-speed mechanical counter chirp for rapid score decryption rollup. |
+| **Debrief Rank Slam** | [`sfx_debrief_rank_slam.wav`](audio/sfx/sfx_debrief_rank_slam.wav) | Sub-bass 65 Hz->25 Hz drop layered with 480 Hz metallic hydraulic stamp impact for pilot rank evaluation. |
 
 ---
 

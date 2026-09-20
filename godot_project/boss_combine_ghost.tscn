@@ -1,0 +1,37 @@
+[gd_scene load_steps=5 format=3 uid="uid://d9bosscombineghost"]
+
+[ext_resource type="Script" path="res://boss_combine_ghost.gd" id="1_ghost"]
+[ext_resource type="PackedScene" path="res://assets/meshes/vehicles/Spaceship_Viper_Supreme_HD.fbx" id="2_viper"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_body"]
+size = Vector3(9.8, 2.5, 10.6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hitbox"]
+size = Vector3(11.0, 3.5, 12.0)
+
+[node name="BossCombineGhost" type="CharacterBody3D" groups=["enemies", "radar_targets"]]
+script = ExtResource("1_ghost")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_body")
+
+[node name="ViperModelRoot" type="Node3D" parent="."]
+
+[node name="ViperModel" parent="ViperModelRoot" instance=ExtResource("2_viper")]
+
+[node name="HitBox" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HitBox"]
+shape = SubResource("BoxShape3D_hitbox")
+
+[node name="MuzzleL" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0.2, -4.5)
+
+[node name="MuzzleR" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.2, -4.5)
+
+[node name="EngineLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5.2)
+light_color = Color(1, 0.1, 0.15, 1)
+light_energy = 4.0
+omni_range = 25.0

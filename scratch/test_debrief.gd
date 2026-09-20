@@ -57,6 +57,7 @@ func test_victory_scorecard_presentation() -> void:
 	
 	inst.current_mission_id = "M01"
 	inst.show_victory_debrief(mock_stats)
+	inst.skip_animation()
 	
 	assert(inst.visible == true, "Debrief screen must be visible")
 	assert(inst.is_victory == true, "is_victory must be true")

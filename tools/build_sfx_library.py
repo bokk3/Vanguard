@@ -235,6 +235,27 @@ def gen_ui_button_click():
     sound = (np.sin(2 * np.pi * 1200.0 * t) + np.sin(2 * np.pi * 2400.0 * t) * 0.5) * np.exp(-t * 80.0) * 0.6
     save_wav("sfx_ui_button_click.wav", sound)
 
+def gen_debrief_tally_tick():
+    """Tactile score tally tick: Crisp fast mechanical counter chirp."""
+    duration = 0.025
+    t = np.linspace(0, duration, int(SAMPLE_RATE * duration), False)
+    sound = np.sin(2 * np.pi * 1650.0 * t) * np.exp(-t * 180.0) * 0.5
+    save_wav("sfx_debrief_tally_tick.wav", sound)
+
+def gen_debrief_rank_slam():
+    """Cinematic rank stamp slam: Heavy sub-bass boom layered with metallic hydraulic impact."""
+    duration = 0.55
+    t = np.linspace(0, duration, int(SAMPLE_RATE * duration), False)
+    # Sub-bass pitch drop (65 Hz down to 25 Hz)
+    f_drop = 65.0 * np.exp(-t * 4.0) + 25.0
+    phase = 2 * np.pi * np.cumsum(f_drop) / SAMPLE_RATE
+    bass = np.sin(phase) * np.exp(-t * 5.0) * 0.8
+    # Metallic clack impact (480 Hz + noise transient)
+    clack = np.sin(2 * np.pi * 480.0 * t) * np.exp(-t * 45.0) * 0.6
+    noise = np.random.uniform(-1, 1, len(t)) * np.exp(-t * 70.0) * 0.4
+    sound = bass + clack + noise
+    save_wav("sfx_debrief_rank_slam.wav", sound)
+
 if __name__ == "__main__":
     print("Synthesizing Project Vanguard Sound Effects Suite...")
     gen_hud_target_locking()
@@ -250,4 +271,6 @@ if __name__ == "__main__":
     gen_impact_shield_hit()
     gen_ui_button_hover()
     gen_ui_button_click()
+    gen_debrief_tally_tick()
+    gen_debrief_rank_slam()
     print("All SFX generated successfully.")
