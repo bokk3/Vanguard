@@ -38,6 +38,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Segmented tactical health bar displayed above target tracking brackets with dynamic color-coding.
   - Tactical crosshair hitmarker `X` flash upon confirmed hit.
   - On-screen combat event notifications (`// MISSILE AWAY //`, `// DIRECT HIT: -50 HP //`, `// TARGET DESTROYED //`).
+- **Missile Cooldown Auto-Reload & Beacon Resupply**:
+  - Automatic progressive ordnance restock cycle ($6.5\text{s}$ cooldown per missile) restocking empty wing racks sequentially.
+  - Interactive HUD ordnance bay charging bar displaying real-time reload percentage (`ARMING 65%`).
+  - Proximity-based full ordnance refill: flying within $75\text{m}$ of `NavBeaconAlpha` triggers an instant $4/4$ resupply with tactical HUD audio/visual confirmation (`// NAV BEACON RESUPPLY // ALL ORDNANCE RESTOCKED //`).
+  - Wing hardpoint models physically reappear in sequence as missiles restock.
 
 ---
 

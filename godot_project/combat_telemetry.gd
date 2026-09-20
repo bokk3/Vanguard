@@ -6,6 +6,7 @@ signal hull_changed(current: float, max_val: float)
 signal nitro_changed(current: float, max_val: float, overheated: bool)
 signal lock_state_changed(target: Node3D, progress: float, is_locked: bool)
 signal missile_fired(remaining: int)
+signal missile_replenished(remaining: int)
 
 # 1. Health & Shields
 @export_group("Vital Systems")
@@ -33,7 +34,9 @@ var overheat_timer: float = 0.0
 @export_group("Ammunition")
 @export var max_missiles: int = 4
 @export var cannon_rounds: int = 600
+@export var missile_reload_cooldown: float = 6.5  ## Seconds to automatically restock 1 missile
 var missiles_remaining: int = 4
+var missile_reload_timer: float = 0.0
 
 # 4. Target Acquisition & Radar
 @export_group("Target Tracking")
@@ -58,6 +61,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_process_shield_recharge(delta)
 	_process_nitro_recovery(delta)
+	_process_missile_reload(delta)
 	_scan_radar_targets()
 	_update_target_lock(delta)
 
@@ -123,6 +127,24 @@ func fire_missile() -> bool:
 		missile_fired.emit(missiles_remaining)
 		return true
 	return false
+
+func _process_missile_reload(delta: float) -> void:
+	if missiles_remaining < max_missiles:
+		missile_reload_timer += delta
+		if missile_reload_timer >= missile_reload_cooldown:
+			missile_reload_timer = 0.0
+			missiles_remaining += 1
+			missile_replenished.emit(missiles_remaining)
+			print(">>> MISSILE REPLENISHED! Current stock: ", missiles_remaining, "/", max_missiles)
+	else:
+		missile_reload_timer = 0.0
+
+func refill_all_missiles() -> void:
+	if missiles_remaining < max_missiles:
+		missiles_remaining = max_missiles
+		missile_reload_timer = 0.0
+		missile_replenished.emit(missiles_remaining)
+		print(">>> ALL MISSILES REPLENISHED! Full stock: 4/4")
 
 func fire_cannon() -> bool:
 	if cannon_rounds > 0:
@@ -203,7 +225,8 @@ func get_save_data() -> Dictionary:
 		"current_nitro": current_nitro,
 		"is_overheated": is_overheated,
 		"overheat_timer": overheat_timer,
-		"missiles_remaining": missiles_remaining
+		"missiles_remaining": missiles_remaining,
+		"missile_reload_timer": missile_reload_timer
 	}
 
 func restore_save_data(data: Dictionary) -> void:
@@ -219,6 +242,8 @@ func restore_save_data(data: Dictionary) -> void:
 		overheat_timer = float(data["overheat_timer"])
 	if data.has("missiles_remaining"):
 		missiles_remaining = int(data["missiles_remaining"])
+	if data.has("missile_reload_timer"):
+		missile_reload_timer = float(data["missile_reload_timer"])
 	
 	shield_changed.emit(current_shield, max_shield)
 	hull_changed.emit(current_hull, max_hull)

@@ -53,6 +53,7 @@ func _ready() -> void:
 	_setup_weapon_hardpoints()
 	if telemetry:
 		telemetry.missile_fired.connect(_on_missile_fired_sync)
+		telemetry.missile_replenished.connect(_on_missile_replenished_sync)
 	
 	var sm = get_node_or_null("/root/SaveManager")
 	if sm and sm.should_load_on_start:
@@ -201,6 +202,17 @@ func _physics_process(delta: float) -> void:
 		var look_target = global_position + (forward_dir * 8.0)
 		camera.look_at(look_target, global_transform.basis.y)
 
+	# ----------------------------------------------------
+	# 6. Beacon Proximity Resupply
+	# ----------------------------------------------------
+	if telemetry and telemetry.missiles_remaining < telemetry.max_missiles:
+		var beacon = get_tree().current_scene.find_child("NavBeaconAlpha", true, false) if get_tree().current_scene else null
+		if beacon and global_position.distance_to(beacon.global_position) < 75.0:
+			telemetry.refill_all_missiles()
+			var hud = get_node_or_null("../HUD/TacticalOverlay")
+			if hud and hud.has_method("notify_combat_event"):
+				hud.notify_combat_event("// NAV BEACON RESUPPLY // ALL ORDNANCE RESTOCKED //", Color(1.0, 0.84, 0.0))
+
 # -----------------------------------------------------------------------------
 # Weapon Hardpoints & Missile Launch System
 # -----------------------------------------------------------------------------
@@ -268,6 +280,12 @@ func update_missile_racks(remaining: int) -> void:
 
 func _on_missile_fired_sync(remaining: int) -> void:
 	update_missile_racks(remaining)
+
+func _on_missile_replenished_sync(remaining: int) -> void:
+	update_missile_racks(remaining)
+	var hud = get_node_or_null("../HUD/TacticalOverlay")
+	if hud and hud.has_method("notify_combat_event"):
+		hud.notify_combat_event("// ORDNANCE ARMED: MISSILE RESTOCKED //", Color(0.1, 0.95, 0.4))
 
 func _fire_missile() -> void:
 	if not telemetry or telemetry.missiles_remaining <= 0:

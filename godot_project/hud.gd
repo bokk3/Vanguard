@@ -387,17 +387,26 @@ func _draw_nitro_and_ordnance(vp: Vector2) -> void:
 	for i in range(telemetry.max_missiles):
 		var bx = start_x + (i * (bay_w + bay_gap))
 		var is_loaded = (i < telemetry.missiles_remaining)
-		var b_col = COLOR_GOLD if is_loaded else COLOR_CYAN_DIM * 0.4
+		var is_reloading_this = (not is_loaded and i == telemetry.missiles_remaining)
+		var b_col = COLOR_GOLD if is_loaded else (Color(0.2, 0.85, 1.0) if is_reloading_this else COLOR_CYAN_DIM * 0.4)
 		
 		draw_rect(Rect2(Vector2(bx, bay_y), Vector2(bay_w, bay_h)), COLOR_PANEL_BG, true)
 		draw_rect(Rect2(Vector2(bx, bay_y), Vector2(bay_w, bay_h)), b_col, false, 1.5)
 		
-		var m_label = "HP 0%d" % (i + 1)
-		draw_string(ThemeDB.fallback_font, Vector2(bx + 6, bay_y + 16), m_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, b_col)
+		if is_loaded:
+			var m_label = "HP 0%d" % (i + 1)
+			draw_string(ThemeDB.fallback_font, Vector2(bx + 6, bay_y + 16), m_label, HORIZONTAL_ALIGNMENT_LEFT, -1, 10, b_col)
+		elif is_reloading_this:
+			var r_pct = clamp(telemetry.missile_reload_timer / max(telemetry.missile_reload_cooldown, 0.1), 0.0, 1.0)
+			draw_rect(Rect2(Vector2(bx + 2, bay_y + 2), Vector2((bay_w - 4) * r_pct, bay_h - 4)), Color(0.0, 0.8, 1.0, 0.35), true)
+			draw_string(ThemeDB.fallback_font, Vector2(bx + 2, bay_y + 16), "%d%%" % int(r_pct * 100), HORIZONTAL_ALIGNMENT_CENTER, bay_w - 4, 9, Color(0.2, 0.9, 1.0))
+		else:
+			draw_string(ThemeDB.fallback_font, Vector2(bx + 2, bay_y + 16), "EMPTY", HORIZONTAL_ALIGNMENT_CENTER, bay_w - 4, 8, COLOR_CYAN_DIM * 0.5)
 
 	# Weapon Trigger Guide
-	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 135), "CANNON: 20mm GAU-22 [READY]", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, COLOR_CYAN)
-	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 155), "[SPACE: Fire Missile | SHIFT: Boost]", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, COLOR_CYAN_DIM)
+	var reload_hint = " [AUTO-RELOAD ACTIVE]" if telemetry.missiles_remaining < telemetry.max_missiles else ""
+	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 135), "CANNON: 20mm GAU-22 [READY]" + reload_hint, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, COLOR_CYAN)
+	draw_string(ThemeDB.fallback_font, Vector2(px + 12, py + 155), "[SPACE: Fire | NAV BEACON: Full Resupply]", HORIZONTAL_ALIGNMENT_LEFT, -1, 10, COLOR_CYAN_DIM)
 
 # -----------------------------------------------------------------
 # 7. Stall Warning Banner
