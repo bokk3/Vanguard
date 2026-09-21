@@ -41,6 +41,8 @@ var high_g_cooldown: float = 0.0
 var lock_audio_player: AudioStreamPlayer = null
 var locked_audio_player: AudioStreamPlayer = null
 var lock_chirp_timer: float = 0.0
+var shield_alarm_player: AudioStreamPlayer = null
+var shield_alarm_cooldown: float = 0.0
 
 func _ready() -> void:
 	var cfg = get_node_or_null("/root/ConfigManager")
@@ -79,6 +81,15 @@ func _ready() -> void:
 	if locked_stream:
 		locked_audio_player.stream = locked_stream
 	add_child(locked_audio_player)
+
+	# Setup Shield Critical Warning Audio
+	shield_alarm_player = AudioStreamPlayer.new()
+	shield_alarm_player.name = "ShieldAlarmPlayer"
+	shield_alarm_player.bus = "SFX"
+	var sh_stream = load("res://audio/sfx/sfx_hud_shield_critical.wav")
+	if sh_stream:
+		shield_alarm_player.stream = sh_stream
+	add_child(shield_alarm_player)
 
 	if telemetry:
 		telemetry.lock_state_changed.connect(_on_lock_state_changed)
@@ -152,6 +163,14 @@ func _process(delta: float) -> void:
 			if high_g_audio_player and not high_g_audio_player.playing:
 				high_g_audio_player.play()
 	
+	# Shield Critical Warning Alarm
+	if shield_alarm_cooldown > 0.0:
+		shield_alarm_cooldown = max(0.0, shield_alarm_cooldown - delta)
+	elif telemetry and telemetry.current_shield > 0.0 and telemetry.current_shield <= 20.0:
+		shield_alarm_cooldown = 3.5
+		if shield_alarm_player and not shield_alarm_player.playing:
+			shield_alarm_player.play()
+
 	queue_redraw()
 
 func _on_lock_state_changed(_target: Node3D, progress: float, is_locked: bool) -> void:

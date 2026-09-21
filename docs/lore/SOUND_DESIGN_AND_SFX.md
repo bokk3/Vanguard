@@ -39,15 +39,18 @@ Real fighter jets (F-22, F-35, Rafale) use pure electronic frequency modulation 
 | **Stall Warning Klaxon**| `sfx_hud_stall_warning.wav` | 240 Hz sawtooth wave pulsed at 4 Hz repetition rate. | Fires when airspeed decays below $25\text{ m/s}$ in atmosphere. |
 | **Low Altitude Warning**| `sfx_hud_low_altitude.wav` | Dual descending electronic chime (960 Hz $\to$ 640 Hz). | Triggered when altitude exceeds canyon masking threshold ($>120\text{ m}$). |
 | **Capacitor Depleted** | `sfx_hud_capacitor_empty.wav` | Descending FM sweep from 900 Hz down to 160 Hz + 120 Hz buzz. | Triggered when Nitro afterburner capacitor hits 0% (thermal lockout). |
+| **Shield Critical Alarm**| `sfx_hud_shield_critical.wav` | Urgent pulsing dual-tone alarm (880 Hz / 1174 Hz) with fast 8 Hz amplitude modulation. | Triggered periodically when shields fall to $\le 20\%$. |
 | **Heavy Torpedo Klaxon**| `sfx_torpedo_alarm_loop.wav` | Deep sub-bass oscillating siren (380 Hz / 520 Hz) with seamless crossfade. | Sounds aboard carrier/cockpit during heavy torpedo approach. |
 
 ---
 
-### 2. Aerodynamics, High-G Maneuvers & Flybys
-Simulates the physical roar of air over composite wings and relativistic Doppler-shifted supersonic passes.
+### 2. Aerodynamics, Engines & Flybys
+Simulates the physical roar of air over composite wings, continuous plasma engine hums, and relativistic Doppler-shifted supersonic passes.
 
 | Sound Effect | File Name | Synthesis Method | In-Game Trigger |
 | :--- | :--- | :--- | :--- |
+| **Engine Exhaust Loop** | `sfx_engine_exhaust_loop.wav` | Continuous low-frequency turbine rumble (58 Hz base + 116 Hz harmonic + filtered pink noise air hiss) with seamless zero-crossing loop seams. | Continuous loop in cockpit modulated by flight speed and afterburner throttle. |
+| **Boost Ignition** | `sfx_engine_boost_ignite.wav` | 42 Hz combustion detonation transient + rapid 95 Hz $\to$ 240 Hz thermal spool-up burst. | Triggered upon engaging nitro afterburner boost. |
 | **High-G Whoosh** | `sfx_flight_high_g_whoosh.wav` | Bandpass filtered pink noise with dynamic volume swell and 55Hz–90Hz sub-bass rumble. | Swells during aggressive pitch pulls ($>6\text{ G}$) and high-speed banking turns. |
 | **Enemy Doppler Flyby** | `sfx_flyby_enemy_doppler.wav` | Relativistic radial Doppler shift equation ($f_{obs} = \frac{f_0}{1 + v_r/c}$) with jet turbine whine. | Plays when an enemy drone or fighter screams past camera within 50m. |
 | **Near-Miss Bullet Whiz**| `sfx_near_miss_bullet_whiz.wav` | Microsecond supersonic shockwave snap followed by rapid 3400Hz $\to$ 700Hz whiz and crackle. | Plays when enemy projectiles pass within meters of the cockpit. |
@@ -71,11 +74,13 @@ Grounded kinetic impacts, rapid rotary cannons, and rocket motors.
 
 ---
 
-### 4. UI & Tactile Cockpit Controls
-Subtle, high-frequency haptic sounds for menu navigation, scorecard tallying, and rank evaluation.
+### 4. UI, Comms Squelch & Tactile Cockpit Controls
+Subtle, high-frequency haptic sounds for menu navigation, tactical radio mic keying, and scorecard tallying.
 
 | Sound Effect | File Name | Description |
 | :--- | :--- | :--- |
+| **Radio Squelch In** | `sfx_radio_squelch_in.wav` | 1850 Hz tactical PTT (Push-To-Talk) RF relay key-down click with 45ms noise burst. |
+| **Radio Squelch Out** | `sfx_radio_squelch_out.wav` | RF receiver unkey noise gate pop with high-frequency static burst (3200 Hz). |
 | **UI Button Hover** | `sfx_ui_button_hover.wav` | 1800 Hz micro-second tick with rapid decay for crisp menu navigation. |
 | **UI Button Click** | `sfx_ui_button_click.wav` | Dual 1200 Hz / 2400 Hz confirmation click for selecting sorties or toggling settings. |
 | **Debrief Tally Tick** | `sfx_debrief_tally_tick.wav` | 1650 Hz high-speed mechanical counter chirp for rapid score decryption rollup. |
@@ -106,14 +111,19 @@ The project employs a dedicated 5-bus hierarchy defined in [`default_bus_layout.
 graph TD
     M[Master Bus: 0.0 dB]
     SFX[SFX Bus: Limiter Ceiling -0.1 dB] --> M
-    VOICE[Voice Bus: Compressor & Highpass Filter] --> M
+    VOICE[Voice Bus: HighPass + LowPass + Delay + Reverb + Compressor] --> M
     UI[UI Bus: Clean Direct] --> M
     MUSIC[Music Bus: Clean Direct] --> M
 ```
 
 1. **Master Bus**: Global attenuation controlled via `config_manager.gd` and settings menu.
 2. **SFX Bus**: Equipped with an `AudioEffectLimiter` (Ceiling $-0.1\text{ dB}$, Threshold $0.0\text{ dB}$) preventing digital clipping when multiple cannons, explosions, and alarms fire concurrently.
-3. **Voice Bus**: Equipped with an `AudioEffectCompressor` (Threshold $-14.0\text{ dB}$, Ratio $4.0:1$, Attack $15\text{ ms}$, Release $150\text{ ms}$, Gain $+1.5\text{ dB}$) and `AudioEffectHighPassFilter` (Cutoff $150\text{ Hz}$). This ensures pilot and tactical command dialogue cleanly cuts through explosions and cannon barrages.
+3. **Voice Bus**: Designed specifically for tactical cockpit radio comms:
+   - **High-Pass Filter** (`AudioEffectHighPassFilter`): Cutoff at $350\text{ Hz}$ removing chest resonance and sub-bass clutter.
+   - **Low-Pass Filter** (`AudioEffectLowPassFilter`): Cutoff at $3400\text{ Hz}$ simulating authentic narrow VHF/UHF tactical radio bandwidth (300 Hz–3.4 kHz speech spectrum).
+   - **Tactical Delay** (`AudioEffectDelay`): $35\text{ ms}$ slapback reflection (14% feedback) for cockpit interior audio bouncing.
+   - **Cockpit Reverb** (`AudioEffectReverb`): Tight enclosed acoustics (room size 0.18, wet 0.12, damping 0.6) simulating the enclosed titanium/composite pilot canopy.
+   - **Dynamics Compressor** (`AudioEffectCompressor`): Threshold $-14.0\text{ dB}$, Ratio $4.0:1$, Attack $15\text{ ms}$, Release $150\text{ ms}$, Gain $+1.5\text{ dB}$ to punch cleanly through explosions.
 4. **UI Bus**: Routes menu clicks, button hovers, and debrief tallies directly to Master without dynamic compression.
 5. **Music Bus**: Reserved for soundtrack and cinematic ambience.
 
@@ -128,3 +138,4 @@ For external in-world sound sources (`missile.gd`, `explosion_fx.gd`), `AudioStr
 - **Unit Size & Max Distance**:
   - Missiles: `unit_size = 18.0`, `max_distance = 600.0`
   - Explosions: `unit_size = 25.0`, `max_distance = 1200.0`
+

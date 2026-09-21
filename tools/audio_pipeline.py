@@ -67,7 +67,8 @@ NARRATOR_DOCS_DIR = os.path.join(WORKSPACE_ROOT, "docs", "lore", "audio", "narra
 
 LOOPING_SFX = {
     "sfx_torpedo_alarm_loop.wav",
-    "sfx_autocannon_brr_loop.wav"
+    "sfx_autocannon_brr_loop.wav",
+    "sfx_engine_exhaust_loop.wav"
 }
 
 # -----------------------------------------------------------------------------
@@ -518,6 +519,76 @@ def gen_debrief_rank_slam():
     save_sfx_wav("sfx_debrief_rank_slam.wav", sound, is_loop=False)
 
 
+def gen_engine_exhaust_loop():
+    """Continuous aerodynamic thruster hum & jet turbine exhaust roar (seamless zero-crossing loop)."""
+    duration = 1.0
+    n_samples = int(SAMPLE_RATE * duration)
+    t = np.linspace(0, duration, n_samples, False)
+    # Deep fundamental sub-bass (58Hz) + 2nd harmonic (116Hz) + 4th harmonic (232Hz)
+    sub = np.sin(2 * np.pi * 58.0 * t) * 0.55
+    mid = np.sin(2 * np.pi * 116.0 * t) * 0.35
+    harm = np.sin(2 * np.pi * 232.0 * t) * 0.20
+    # High-tech turbine core whine (420Hz + 840Hz)
+    whine = (np.sin(2 * np.pi * 420.0 * t) * 0.15) + (np.sin(2 * np.pi * 840.0 * t) * 0.08)
+    # Filtered airflow noise
+    white = np.random.randn(n_samples)
+    noise_rush = np.cumsum(white)
+    noise_rush = noise_rush / np.max(np.abs(noise_rush)) * 0.4
+    sound = sub + mid + harm + whine + noise_rush
+    save_sfx_wav("sfx_engine_exhaust_loop.wav", sound, is_loop=True)
+
+
+def gen_engine_boost_ignite():
+    """Punchy afterburner ignition pop & combustion surge."""
+    duration = 0.45
+    n_samples = int(SAMPLE_RATE * duration)
+    t = np.linspace(0, duration, n_samples)
+    # Low-end ignition thump (80Hz dropping to 40Hz)
+    f_drop = 80.0 * np.exp(-t * 12.0) + 40.0
+    phase = 2 * np.pi * np.cumsum(f_drop) / SAMPLE_RATE
+    thump = np.sin(phase) * np.exp(-t * 15.0) * 0.8
+    # Fiery plasma rush
+    noise = np.random.randn(n_samples) * np.exp(-t * 6.0) * 0.6
+    # Resonant burn tone
+    flare = np.sin(2 * np.pi * 160.0 * t) * np.exp(-t * 8.0) * 0.4
+    sound = thump + noise + flare
+    save_sfx_wav("sfx_engine_boost_ignite.wav", sound, is_loop=False)
+
+
+def gen_radio_squelch_in():
+    """Military tactical radio mic click & opening squelch burst (50ms)."""
+    duration = 0.05
+    n_samples = int(SAMPLE_RATE * duration)
+    t = np.linspace(0, duration, n_samples, False)
+    burst = np.random.uniform(-1, 1, n_samples) * np.exp(-t * 60.0) * 0.5
+    chirp = np.sin(2 * np.pi * 2600.0 * t) * np.exp(-t * 100.0) * 0.7
+    sound = burst + chirp
+    save_sfx_wav("sfx_radio_squelch_in.wav", sound, is_loop=False)
+
+
+def gen_radio_squelch_out():
+    """Tactical radio unkey mic release click & static drop (70ms)."""
+    duration = 0.07
+    n_samples = int(SAMPLE_RATE * duration)
+    t = np.linspace(0, duration, n_samples, False)
+    click = np.sin(2 * np.pi * 1200.0 * t) * np.exp(-t * 80.0) * 0.8
+    hiss = np.random.uniform(-1, 1, n_samples) * np.exp(-t * 40.0) * 0.35
+    sound = click + hiss
+    save_sfx_wav("sfx_radio_squelch_out.wav", sound, is_loop=False)
+
+
+def gen_hud_shield_critical():
+    """Urgent shield critical alarm: Rapid dual-tone warning chime (1100Hz / 880Hz)."""
+    duration = 0.35
+    n_samples = int(SAMPLE_RATE * duration)
+    t = np.linspace(0, duration, n_samples, False)
+    t_mod = (np.sin(2 * np.pi * 12.0 * t) > 0.0).astype(float)
+    tone = np.where(t_mod > 0, np.sin(2 * np.pi * 1100.0 * t), np.sin(2 * np.pi * 880.0 * t))
+    env = np.exp(-t * 3.5)
+    sound = tone * env
+    save_sfx_wav("sfx_hud_shield_critical.wav", sound, is_loop=False)
+
+
 def generate_all_sfx():
     """Synthesizes the complete procedural SFX library."""
     print("=== [AUDIO PIPELINE] GENERATING PROCEDURAL SFX LIBRARY (44.1kHz / 16-bit WAV) ===")
@@ -527,9 +598,14 @@ def generate_all_sfx():
     gen_hud_stall_warning()
     gen_hud_low_altitude()
     gen_hud_capacitor_empty()
+    gen_hud_shield_critical()
     gen_torpedo_alarm_loop()
     gen_flight_high_g_whoosh()
     gen_flyby_enemy_doppler()
+    gen_engine_exhaust_loop()
+    gen_engine_boost_ignite()
+    gen_radio_squelch_in()
+    gen_radio_squelch_out()
     gen_weapon_cannon_burst()
     gen_autocannon_brr_loop()
     gen_autocannon_shot()
@@ -557,42 +633,42 @@ CHARACTER_PROFILES = {
         "voice": "en-US-ChristopherNeural",
         "pitch": "-2Hz",
         "rate": "+2%",
-        # Military air traffic radio filter: bandpass 300Hz-3.5kHz + squelch/compressor
-        "dsp_filter": "highpass=f=300,lowpass=f=3500,volume=1.25,acompressor=threshold=-18dB:ratio=4:attack=5:release=50"
+        # Military air traffic radio filter: narrow bandpass 350Hz-3.2kHz, subtle radio link delay, compressor
+        "dsp_filter": "highpass=f=350,lowpass=f=3200,aecho=0.8:0.65:30:0.2,volume=1.25,acompressor=threshold=-18dB:ratio=4.5:attack=5:release=50"
     },
     "aegis_ai": {
         "voice": "en-GB-SoniaNeural",
         "pitch": "+0Hz",
         "rate": "+1%",
-        # Pristine stereo synthetic voice with crisp high-end clarity
-        "dsp_filter": "treble=g=2:f=6000,volume=1.05"
+        # Pristine stereo synthetic voice with crisp high-end presence & subtle cockpit speaker acoustic
+        "dsp_filter": "treble=g=2:f=6000,aecho=0.8:0.4:22:0.12,volume=1.05"
     },
     "wingman_miller": {
         "voice": "en-US-GuyNeural",
         "pitch": "+1Hz",
         "rate": "+3%",
-        # Energetic wingman cockpit radio
-        "dsp_filter": "highpass=f=350,lowpass=f=4000,volume=1.15,acompressor=threshold=-16dB:ratio=3.5:attack=5:release=50"
+        # Energetic wingman cockpit radio: narrow bandpass 380Hz-3.5kHz, radio link delay, compression
+        "dsp_filter": "highpass=f=380,lowpass=f=3500,aecho=0.8:0.6:26:0.18,volume=1.2,acompressor=threshold=-16dB:ratio=4:attack=5:release=50"
     },
     "olympus_captain": {
         "voice": "en-US-AndrewNeural",
         "pitch": "-2Hz",
         "rate": "+2%",
-        # Authoritative command deck echo & PA resonance
-        "dsp_filter": "highpass=f=220,lowpass=f=4800,aecho=0.8:0.6:35:0.25,volume=1.2"
+        # Authoritative command deck echo & bridge PA resonance
+        "dsp_filter": "highpass=f=250,lowpass=f=4200,aecho=0.85:0.7:45:0.35,volume=1.25"
     },
     "ghost_boss": {
         "voice": "en-US-EricNeural",
         "pitch": "-4Hz",
         "rate": "-1%",
-        # Aggressive adversary broadcaster with overdrive and harsh compression
-        "dsp_filter": "highpass=f=180,lowpass=f=4200,volume=1.35,acompressor=threshold=-14dB:ratio=5:attack=3:release=40"
+        # Aggressive adversary broadcaster with radio saturation, delay and heavy compression
+        "dsp_filter": "highpass=f=200,lowpass=f=3800,aecho=0.8:0.7:35:0.25,volume=1.3,acompressor=threshold=-14dB:ratio=5:attack=3:release=40"
     },
     "narrator": {
         "voice": "en-US-BrianNeural",
         "pitch": "-3Hz",
         "rate": "-4%",
-        # Warm 21:9 cinematic documentary delivery with subtle warmth EQ and compression
+        # Warm 21:9 cinematic documentary delivery with gentle broadcast EQ and dynamics control
         "dsp_filter": "bass=g=2:f=110,treble=g=1:f=7500,acompressor=threshold=-15dB:ratio=2.5:attack=10:release=100,volume=1.1"
     }
 }
@@ -754,9 +830,14 @@ def audit_audio_suite():
         "sfx_hud_stall_warning.wav",
         "sfx_hud_low_altitude.wav",
         "sfx_hud_capacitor_empty.wav",
+        "sfx_hud_shield_critical.wav",
         "sfx_torpedo_alarm_loop.wav",
         "sfx_flight_high_g_whoosh.wav",
         "sfx_flyby_enemy_doppler.wav",
+        "sfx_engine_exhaust_loop.wav",
+        "sfx_engine_boost_ignite.wav",
+        "sfx_radio_squelch_in.wav",
+        "sfx_radio_squelch_out.wav",
         "sfx_weapon_cannon_burst.wav",
         "sfx_autocannon_brr_loop.wav",
         "sfx_autocannon_shot.wav",

@@ -149,7 +149,7 @@ func _ready() -> void:
 		tween.tween_property(fade_overlay, "color:a", 0.0, 1.2)
 	
 	# Play Narrator Track
-	if narrator_audio and narrator_audio.stream:
+	if narrator_audio and narrator_audio.is_inside_tree() and narrator_audio.stream:
 		narrator_audio.play()
 
 func _input(event: InputEvent) -> void:
@@ -398,7 +398,12 @@ func _finish_cutscene() -> void:
 		_on_transition_finished()
 
 func _on_transition_finished() -> void:
-	get_tree().change_scene_to_file("res://home_menu.tscn")
+	var mm = get_node_or_null("/root/MissionManager")
+	if mm and mm.is_prologue_preview_only:
+		mm.is_prologue_preview_only = false
+		get_tree().change_scene_to_file("res://home_menu.tscn")
+	else:
+		get_tree().change_scene_to_file("res://main.tscn")
 
 func _setup_ship_hardpoints() -> void:
 	if not ship_model:

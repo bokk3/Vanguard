@@ -35,6 +35,7 @@ var unlocked_missions: Array[String] = ["M01"]
 var completed_missions: Dictionary = {} # mission_id -> { "best_time": float, "hit_rate": float, "stars": int }
 var current_mission_id: String = "M01"
 var pending_interlude_id: String = ""
+var is_prologue_preview_only: bool = false
 
 # Active Sortie State
 var is_sortie_active: bool = false
@@ -66,6 +67,7 @@ var active_env: WorldEnvironment = null
 var active_sun: DirectionalLight3D = null
 var active_hud: Control = null
 var comms_audio_player: AudioStreamPlayer = null
+var squelch_audio_player: AudioStreamPlayer = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -73,6 +75,13 @@ func _ready() -> void:
 	comms_audio_player.name = "CommsAudioPlayer"
 	comms_audio_player.bus = "Voice"
 	add_child(comms_audio_player)
+	
+	squelch_audio_player = AudioStreamPlayer.new()
+	squelch_audio_player.name = "SquelchAudioPlayer"
+	squelch_audio_player.bus = "Voice"
+	squelch_audio_player.volume_db = -5.0
+	add_child(squelch_audio_player)
+	
 	_load_campaign_manifest()
 
 func _process(delta: float) -> void:
@@ -1122,6 +1131,11 @@ func _process_comms_queue(delta: float) -> void:
 		if transmission_timer <= 0.0:
 			current_transmission.clear()
 			radio_transmission_ended.emit()
+			if squelch_audio_player:
+				var sq_out = load("res://audio/sfx/sfx_radio_squelch_out.wav")
+				if sq_out:
+					squelch_audio_player.stream = sq_out
+					squelch_audio_player.play()
 			comms_cooldown = 0.4
 			return
 	
@@ -1133,6 +1147,13 @@ func _process_comms_queue(delta: float) -> void:
 	if transmission_timer <= 0.0 and comms_queue.size() > 0:
 		current_transmission = comms_queue.pop_front()
 		transmission_timer = current_transmission["duration"]
+		
+		# Play tactical mic squelch click
+		if squelch_audio_player:
+			var sq_in = load("res://audio/sfx/sfx_radio_squelch_in.wav")
+			if sq_in:
+				squelch_audio_player.stream = sq_in
+				squelch_audio_player.play()
 		
 		# Play vocal audio track if attached
 		var a_path = current_transmission.get("audio_path", "")

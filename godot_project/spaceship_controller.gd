@@ -40,6 +40,9 @@ var is_airframe_destroyed: bool = false
 var camera_shake_trauma: float = 0.0
 var scrape_audio_player: AudioStreamPlayer = null
 var crash_audio_player: AudioStreamPlayer = null
+var engine_audio_player: AudioStreamPlayer = null
+var boost_ignite_player: AudioStreamPlayer = null
+var was_boosting: bool = false
 
 var hardpoint_nodes: Array[Node3D] = []
 var hardpoint_missiles: Array[Node3D] = []
@@ -89,6 +92,7 @@ func _ready() -> void:
 	_setup_weapon_hardpoints()
 	_setup_machine_gun()
 	_setup_collision_audio()
+	_setup_engine_audio()
 	
 	if telemetry:
 		if not telemetry.missile_fired.is_connected(_on_missile_fired_sync):
@@ -233,6 +237,25 @@ func _physics_process(delta: float) -> void:
 		current_speed = move_toward(current_speed, target_top_speed, acceleration * delta)
 	elif throttle_down:
 		current_speed = move_toward(current_speed, min_speed, braking * delta)
+
+	# Dynamic Engine Thruster Exhaust Pitch & Volume Modulation
+	if engine_audio_player and not is_airframe_destroyed:
+		var speed_ratio = clamp(current_speed / max(1.0, boost_speed), 0.0, 1.0)
+		var base_vol = lerp(-18.0, -6.0, speed_ratio)
+		if can_boost:
+			base_vol += 3.5
+		engine_audio_player.volume_db = lerp(engine_audio_player.volume_db, base_vol, 8.0 * delta)
+		
+		var target_pitch = lerp(0.85, 1.35, speed_ratio)
+		if can_boost:
+			target_pitch += 0.18
+		engine_audio_player.pitch_scale = lerp(engine_audio_player.pitch_scale, target_pitch, 8.0 * delta)
+
+	# Trigger Afterburner Boost Ignition Transient
+	if can_boost and not was_boosting:
+		if boost_ignite_player:
+			boost_ignite_player.play()
+	was_boosting = can_boost
 
 	# ----------------------------------------------------
 	# 2. Rotational Steering (Pitch, Roll, Yaw)
@@ -622,6 +645,31 @@ func _setup_collision_audio() -> void:
 	crash_audio_player.bus = "SFX"
 	add_child(crash_audio_player)
 
+func _setup_engine_audio() -> void:
+	engine_audio_player = AudioStreamPlayer.new()
+	engine_audio_player.name = "EngineExhaustAudio"
+	engine_audio_player.bus = "SFX"
+	var eng_stream = load("res://audio/sfx/sfx_engine_exhaust_loop.wav")
+	if eng_stream:
+		engine_audio_player.stream = eng_stream
+	engine_audio_player.volume_db = -12.0
+	engine_audio_player.pitch_scale = 1.0
+	engine_audio_player.finished.connect(func():
+		if not is_airframe_destroyed and engine_audio_player:
+			engine_audio_player.play()
+	)
+	add_child(engine_audio_player)
+	engine_audio_player.play()
+
+	boost_ignite_player = AudioStreamPlayer.new()
+	boost_ignite_player.name = "EngineBoostIgniteAudio"
+	boost_ignite_player.bus = "SFX"
+	var b_stream = load("res://audio/sfx/sfx_engine_boost_ignite.wav")
+	if b_stream:
+		boost_ignite_player.stream = b_stream
+	boost_ignite_player.volume_db = -3.0
+	add_child(boost_ignite_player)
+
 func _on_telemetry_destroyed() -> void:
 	if is_airframe_destroyed:
 		return
@@ -731,6 +779,9 @@ func _trigger_catastrophic_crash(impact_pos: Vector3, normal: Vector3, reason_co
 	current_speed = 0.0
 	downward_velocity = 0.0
 	velocity = Vector3.ZERO
+	
+	if engine_audio_player:
+		engine_audio_player.stop()
 	
 	# 1. Play Explosion Audio
 	if crash_audio_player:

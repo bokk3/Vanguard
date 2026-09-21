@@ -3,6 +3,7 @@ extends Node3D
 ## HomeMenu: Main Menu controller for Project Vanguard.
 ## Handles eerie white hangar presentation, turntable ship, repair FX, and left-aligned menu.
 
+@onready var camera_3d: Camera3D = $Camera3D
 @onready var ship_pivot: Node3D = $HangarScene/ShipTurntable
 @onready var scan_ring: Node3D = $HangarScene/ShipTurntable/ScanRing
 @onready var repair_sparks: CPUParticles3D = $HangarScene/ShipTurntable/RepairSparks
@@ -21,6 +22,9 @@ extends Node3D
 @onready var mission_selector: Control = %MissionSelector
 @onready var update_badge_btn: Button = %UpdateBadgeBtn
 @onready var update_dialog: Control = %UpdateDialog
+@onready var fade_overlay: ColorRect = %FadeOverlay
+@onready var warp_audio: AudioStreamPlayer = %WarpAudio
+@onready var sidebar: PanelContainer = $UI/Sidebar
 
 @onready var repair_progress_bar: ProgressBar = %RepairProgressBar
 @onready var repair_status_label: Label = %RepairStatusLabel
@@ -31,6 +35,7 @@ extends Node3D
 var anim_time: float = 0.0
 var repair_percent: float = 84.0
 var initial_title_y: float = 28.0
+var is_launching: bool = false
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -41,17 +46,24 @@ func _ready() -> void:
 		footer_label.text = "PROJECT VANGUARD v%s\nSYSTEMS INITIALIZED // READY" % ver
 	
 	# Connect buttons
-	continue_btn.pressed.connect(_on_continue_pressed)
-	deploy_btn.pressed.connect(_on_deploy_pressed)
-	if prologue_btn:
+	if not continue_btn.pressed.is_connected(_on_continue_pressed):
+		continue_btn.pressed.connect(_on_continue_pressed)
+	if not deploy_btn.pressed.is_connected(_on_deploy_pressed):
+		deploy_btn.pressed.connect(_on_deploy_pressed)
+	if prologue_btn and not prologue_btn.pressed.is_connected(_on_prologue_pressed):
 		prologue_btn.pressed.connect(_on_prologue_pressed)
-	config_btn.pressed.connect(_on_config_pressed)
-	specs_btn.pressed.connect(_on_specs_pressed)
-	quit_btn.pressed.connect(_on_quit_pressed)
-	close_specs_btn.pressed.connect(func(): specs_panel.hide())
+	if not config_btn.pressed.is_connected(_on_config_pressed):
+		config_btn.pressed.connect(_on_config_pressed)
+	if not specs_btn.pressed.is_connected(_on_specs_pressed):
+		specs_btn.pressed.connect(_on_specs_pressed)
+	if not quit_btn.pressed.is_connected(_on_quit_pressed):
+		quit_btn.pressed.connect(_on_quit_pressed)
+	if close_specs_btn and not close_specs_btn.pressed.is_connected(func(): specs_panel.hide()):
+		close_specs_btn.pressed.connect(func(): specs_panel.hide())
 	
 	if update_badge_btn:
-		update_badge_btn.pressed.connect(_on_update_badge_pressed)
+		if not update_badge_btn.pressed.is_connected(_on_update_badge_pressed):
+			update_badge_btn.pressed.connect(_on_update_badge_pressed)
 		update_badge_btn.hide()
 	
 	if update_dialog:
@@ -59,15 +71,19 @@ func _ready() -> void:
 	
 	var updater = get_node_or_null("/root/Updater")
 	if updater:
-		updater.update_available.connect(_on_update_available)
+		if not updater.update_available.is_connected(_on_update_available):
+			updater.update_available.connect(_on_update_available)
 		if not updater.available_version.is_empty():
 			_show_update_notification(updater.available_version)
 	
-	settings_modal.closed.connect(_on_settings_closed)
+	if not settings_modal.closed.is_connected(_on_settings_closed):
+		settings_modal.closed.connect(_on_settings_closed)
 	specs_panel.hide()
 	settings_modal.hide()
 	if mission_selector:
 		mission_selector.hide()
+		if not mission_selector.mission_scrambled.is_connected(_on_mission_selector_scrambled):
+			mission_selector.mission_scrambled.connect(_on_mission_selector_scrambled)
 	
 	if title_box_right:
 		initial_title_y = title_box_right.position.y
@@ -168,26 +184,108 @@ func _process(delta: float) -> void:
 		repair_status_label.text = "DIAGNOSTIC CYCLE: %d%% NOMINAL" % int(repair_percent)
 	
 	# Title overlay subtle floating hover
-	if title_box_right:
+	if title_box_right and not is_launching:
 		title_box_right.position.y = initial_title_y + sin(anim_time * 1.4) * 4.0
 
 func _on_continue_pressed() -> void:
+	var target_mid = "M01"
 	var sm = get_node_or_null("/root/SaveManager")
-	if sm:
-		sm.should_load_on_start = true
-	get_tree().change_scene_to_file("res://main.tscn")
+	if sm and sm.has_save():
+		var info = sm.get_save_info()
+		target_mid = info.get("mission_id", "M01")
+	var mm = get_node_or_null("/root/MissionManager")
+	if mm and mm.current_mission_id:
+		target_mid = mm.current_mission_id
+	_launch_game_animation(target_mid, true)
 
 func _on_deploy_pressed() -> void:
 	if mission_selector:
 		mission_selector.open_selector()
 	else:
-		var sm = get_node_or_null("/root/SaveManager")
-		if sm:
-			sm.should_load_on_start = false
-		get_tree().change_scene_to_file("res://main.tscn")
+		_launch_game_animation("M01", false)
+
+func _on_mission_selector_scrambled(mission_id: String) -> void:
+	_launch_game_animation(mission_id, false)
 
 func _on_prologue_pressed() -> void:
-	get_tree().change_scene_to_file("res://prologue_cutscene.tscn")
+	var mm = get_node_or_null("/root/MissionManager")
+	if mm:
+		mm.is_prologue_preview_only = true
+	_launch_game_animation("M01", false)
+
+func _launch_game_animation(mission_id: String, is_resume: bool) -> void:
+	if is_launching:
+		return
+	is_launching = true
+	
+	# Disable UI buttons to prevent double activation
+	continue_btn.disabled = true
+	deploy_btn.disabled = true
+	if prologue_btn:
+		prologue_btn.disabled = true
+	config_btn.disabled = true
+	specs_btn.disabled = true
+	quit_btn.disabled = true
+	if mission_selector:
+		mission_selector.hide()
+	if specs_panel:
+		specs_panel.hide()
+	
+	# Play launch whoosh/warp audio
+	if warp_audio and warp_audio.is_inside_tree():
+		var sfx_stream = load("res://audio/sfx/sfx_flight_high_g_whoosh.wav")
+		if sfx_stream:
+			warp_audio.stream = sfx_stream
+			warp_audio.pitch_scale = 0.85
+			warp_audio.play()
+	
+	var duration: float = 1.35
+	var tween_ui = create_tween().set_parallel(true)
+	
+	# Slide sidebar off-screen to the left
+	if sidebar:
+		tween_ui.tween_property(sidebar, "position:x", -460.0, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	
+	# Camera rushes toward and through the right side of the hangar
+	var cam_tween = create_tween().set_parallel(true)
+	if camera_3d:
+		var target_cam_pos = camera_3d.position + Vector3(3.5, -0.4, -14.0)
+		cam_tween.tween_property(camera_3d, "position", target_cam_pos, duration).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+		cam_tween.tween_property(camera_3d, "fov", 110.0, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	
+	# Vanguard logo zoom & fly-through: scales up 22x centered so letters rush past camera edges
+	if title_box_right:
+		title_box_right.pivot_offset = title_box_right.size * 0.5
+		var vp_rect = get_viewport().get_visible_rect() if is_inside_tree() and get_viewport() else Rect2(0, 0, 1920, 1080)
+		var center_dest = (vp_rect.size - title_box_right.size) * 0.5
+		cam_tween.tween_property(title_box_right, "global_position", center_dest, duration * 0.85).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+		cam_tween.tween_property(title_box_right, "scale", Vector2(22.0, 22.0), duration).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+		cam_tween.tween_property(title_box_right, "modulate:a", 0.0, 0.25).set_delay(duration * 0.80)
+	
+	# Cut/Fade to pure black as camera pierces the letters
+	if fade_overlay:
+		fade_overlay.visible = true
+		fade_overlay.color = Color(0, 0, 0, 0)
+		cam_tween.tween_property(fade_overlay, "color:a", 1.0, 0.50).set_delay(duration * 0.60)
+	
+	cam_tween.finished.connect(func():
+		_on_launch_animation_finished(mission_id, is_resume)
+	)
+
+func _on_launch_animation_finished(mission_id: String, is_resume: bool) -> void:
+	var mm = get_node_or_null("/root/MissionManager")
+	if mm:
+		mm.current_mission_id = mission_id
+	
+	var sm = get_node_or_null("/root/SaveManager")
+	if sm:
+		sm.should_load_on_start = is_resume
+	
+	# Always show the intro when starting the first mission!
+	if mission_id == "M01" or (mm and mm.is_prologue_preview_only):
+		get_tree().change_scene_to_file("res://prologue_cutscene.tscn")
+	else:
+		get_tree().change_scene_to_file("res://main.tscn")
 
 func _on_config_pressed() -> void:
 	settings_modal.open_menu()

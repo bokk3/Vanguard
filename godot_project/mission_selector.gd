@@ -68,6 +68,42 @@ const DOSSIERS = {
 		"narrative": "Telemetry traces reveal the Helion swarm's control nexus: a high-apogee command fighter nicknamed the 'Combine Ghost' cruising in the mesosphere. Vanguard 1 executes a maximum-thrust zoom climb into the upper stratosphere to eliminate the enemy flight commander in single combat and shatter the drone network.",
 		"flight_specs": "• Stall Speed: 45.0 m/s (-85% Wing Lift in Thin Air / Vacuum)\n• Flight Physics: Post-stall energy vectoring & zoom-and-dive maneuvers\n• Environmental Hazard: Near-zero aerodynamic authority",
 		"threat_assessment": "• Adversary Ace: Helion Strike Commander ('Combine Ghost' in Crimson Viper)\n• 4x Elite Guard Escort Drones (Diamond Formation)\n• Threat Level: CRITICAL // Apex Air Superiority Dogfight"
+	},
+	"M05": {
+		"codename": "OPERATION SILENT ORBIT",
+		"classification": "// CLASSIFIED: SECRET // ORBITAL RECON CORPS //",
+		"theater": "Gordian Asteroid Belt Rim (Sector 24)",
+		"weather": "0000 HRS // Deep Space Vacuum (Zero-G, High Density Debris Field)",
+		"narrative": "Having breached the Karman Line, Vanguard 1 reaches the Gordian Asteroid Belt where the Combine has seeded high-explosive proximity tether-mines. The pilot must navigate narrow orbital gaps, neutralize the mine clusters, and splash cloaked stealth skirmishers probing our perimeter.",
+		"flight_specs": "• Stall Speed: 0.0 m/s (Zero-G Vacuum RCS Drift Active)\n• Flight Physics: 6-DOF Inertial Flight // Decoupled RCS Thrusters\n• Environmental Hazard: High-velocity asteroid collisions (Ricochet / Lethal)",
+		"threat_assessment": "• 4x Helion Tether-Mine Clusters (Explosive Hazard)\n• 4x Cloaked Stealth Skirmishers\n• Threat Level: SEVERE // Zero-G Inertial Combat"
+	},
+	"M06": {
+		"codename": "OPERATION GHOST REEF",
+		"classification": "// CLASSIFIED: TOP SECRET // DEEP PENETRATION //",
+		"theater": "The Iron Hollow (Asteroid 433-Eros Subsurface Complex)",
+		"weather": "INTERIOR // Magma-Lit Excavation Fissures, Heavy Thermal Radiation",
+		"narrative": "Intel detects a subterranean Combine power refinery deep inside hollow asteroid 433-Eros. Vanguard 1 must dive into the claustrophobic mining shafts, weave past laser sentry turrets, shatter the three geothermal generators, and execute an emergency afterburner sprint out the thermal exhaust fissure.",
+		"flight_specs": "• Stall Speed: 0.0 m/s | Trench Clearance Limit: <140m Spatial Enclosure\n• Flight Physics: Precision RCS maneuvering in enclosed rocky caverns\n• Warning: Scraping tunnel walls causes hull damage and kinetic bounce",
+		"threat_assessment": "• 6x Automated Laser Sentry Turrets (High DPS Beam Grid)\n• 3x Geothermal Extraction Core Generators\n• Threat Level: CRITICAL // Claustrophobic Spatial Hazard"
+	},
+	"M07": {
+		"codename": "OPERATION DAUNTLESS DEFENDER",
+		"classification": "// CLASSIFIED: PRIORITY ALPHA // FLEET DEFENSE //",
+		"theater": "5th Fleet Perimeter, Dauntless Staging Sector",
+		"weather": "ORBITAL // Deep Blue Ion Flare, Fleet Tactical Grid Active",
+		"narrative": "The 5th Fleet flagship, SOC Dauntless, is ambushed by heavy Combine bomber wings unleashing thermonuclear anti-ship fusion torpedoes. Vanguard 1 and wingman Viper 2 are tasked with fleet intercept air patrol to shoot down incoming torpedoes before the carrier's shields collapse.",
+		"flight_specs": "• Allied Flagship: SOC Dauntless (Carrier Hull: 1,000 HP / Shield: 600 HP)\n• Target Priority: Heavy Anti-Ship Fusion Torpedoes (Must destroy before impact)\n• Wingman Support: Lt. Vance Miller providing covering fire",
+		"threat_assessment": "• 3 Heavy Bomber Assault Waves (Gunboats & Torpedo Bombers)\n• 8x Heavy Fusion Torpedoes (Lethal to Capital Ships)\n• Threat Level: EXTREME // High-Value Escort"
+	},
+	"M08": {
+		"codename": "OPERATION NEXUS CRUCIBLE",
+		"classification": "// CLASSIFIED: EYES ONLY // STRIKE COMMAND CLIMAX //",
+		"theater": "The Celestial Forge (Combine Command Shipyard)",
+		"weather": "SPACE FORGE // Solar Furnace Corona, Plasma Arcs, Capital Shipyard",
+		"narrative": "The decisive strike of Chapter 2. Vanguard 1 enters the Celestial Forge to face the Helion Combine's supreme flagship: Dreadnought Nemesis-9, commanded by Warlord Vane. In a multi-phase assault, dismantle the dreadnought's rotary flak pods, shatter its ventral shield generators, and fly into the trench to detonate the exposed reactor core.",
+		"flight_specs": "• Capital Target: Dreadnought Nemesis-9 (Length: 260m, Hull: 1,200 HP)\n• Phase 1: Neutralize 4x Heavy Flak Turrets\n• Phase 2: Destroy Dual Ventral Shield Generators\n• Phase 3: Trench Run & Torpedo Reactor Core Detonation",
+		"threat_assessment": "• Warlord Vane in Dreadnought Nemesis-9\n• 4x Heavy Rotary Flak Pods & Twin Shield Domes\n• 4x Elite Echelon Escorts\n• Threat Level: APOCALYPTIC // Final Fleet Climax"
 	}
 }
 
@@ -295,4 +331,8 @@ func _on_scramble_pressed() -> void:
 		sm.should_load_on_start = false
 	
 	mission_scrambled.emit(selected_mission_id)
-	get_tree().change_scene_to_file("res://main.tscn")
+	if mission_scrambled.get_connections().is_empty():
+		if selected_mission_id == "M01":
+			get_tree().change_scene_to_file("res://prologue_cutscene.tscn")
+		else:
+			get_tree().change_scene_to_file("res://main.tscn")
