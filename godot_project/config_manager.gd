@@ -413,11 +413,19 @@ func apply_display_and_audio() -> void:
 			DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
 			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_BORDERLESS, true)
 	
-	# Apply Audio Bus Volumes if master bus exists
+	# Apply Audio Bus Volumes if buses exist
 	var master_idx = AudioServer.get_bus_index("Master")
 	if master_idx >= 0:
 		var db = linear_to_db(clamp(master_volume, 0.0001, 1.0))
 		AudioServer.set_bus_volume_db(master_idx, db)
+	var sfx_idx = AudioServer.get_bus_index("SFX")
+	if sfx_idx >= 0:
+		var sfx_db = linear_to_db(clamp(sfx_volume, 0.0001, 1.0))
+		AudioServer.set_bus_volume_db(sfx_idx, sfx_db)
+	var ui_idx = AudioServer.get_bus_index("UI")
+	if ui_idx >= 0:
+		var ui_db = linear_to_db(clamp(sfx_volume, 0.0001, 1.0))
+		AudioServer.set_bus_volume_db(ui_idx, ui_db)
 
 func detect_system_azerty() -> bool:
 	if OS.get_name() == "Windows":

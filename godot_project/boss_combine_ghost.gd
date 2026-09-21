@@ -7,15 +7,15 @@ extends CharacterBody3D
 signal damaged(cur_hull: float, max_hull: float, cur_shield: float, max_shield: float)
 signal destroyed()
 
-@export var max_hull: float = 350.0
-@export var hull: float = 350.0
-@export var max_shield: float = 250.0
-@export var shield: float = 250.0
-@export var cruise_speed: float = 140.0
-@export var max_boost_speed: float = 220.0
-@export var turn_speed: float = 2.4
+@export var max_hull: float = 180.0
+@export var hull: float = 180.0
+@export var max_shield: float = 100.0
+@export var shield: float = 100.0
+@export var cruise_speed: float = 105.0
+@export var max_boost_speed: float = 165.0
+@export var turn_speed: float = 1.6
 
-var current_speed: float = 140.0
+var current_speed: float = 105.0
 var is_alive: bool = true
 var target_player: Node3D = null
 
@@ -24,6 +24,8 @@ enum State { PATROL, PURSUE, ATTACK_RUN, EVASIVE_BREAK, ZOOM_CLIMB }
 var current_state: State = State.PURSUE
 var state_timer: float = 0.0
 var cannon_cooldown: float = 0.0
+var shield_recharge_delay: float = 0.0
+var evasive_cooldown: float = 0.0
 
 @onready var hit_box: Area3D = $HitBox
 @onready var viper_model: Node3D = $ViperModelRoot
@@ -39,8 +41,38 @@ var _hit_flash_material: StandardMaterial3D = null
 func _ready() -> void:
 	add_to_group("radar_targets")
 	add_to_group("enemies")
+	_apply_difficulty_settings()
 	_setup_materials()
 	_acquire_player()
+
+func _apply_difficulty_settings() -> void:
+	var cfg = get_node_or_null("/root/ConfigManager")
+	if cfg and cfg.has_method("get_difficulty_damage_multiplier"):
+		var mult = cfg.get_difficulty_damage_multiplier()
+		if mult < 0.8: # Casual
+			max_hull = 130.0
+			hull = 130.0
+			max_shield = 60.0
+			shield = 60.0
+			turn_speed = 1.3
+			cruise_speed = 90.0
+			max_boost_speed = 145.0
+		elif mult > 1.2: # Ace
+			max_hull = 220.0
+			hull = 220.0
+			max_shield = 130.0
+			shield = 130.0
+			turn_speed = 1.8
+			cruise_speed = 115.0
+			max_boost_speed = 180.0
+		else: # Normal
+			max_hull = 180.0
+			hull = 180.0
+			max_shield = 100.0
+			shield = 100.0
+			turn_speed = 1.6
+			cruise_speed = 105.0
+			max_boost_speed = 165.0
 
 func _setup_materials() -> void:
 	_hit_flash_material = StandardMaterial3D.new()
@@ -70,6 +102,8 @@ func _physics_process(delta: float) -> void:
 	
 	state_timer -= delta
 	cannon_cooldown -= delta
+	if evasive_cooldown > 0.0:
+		evasive_cooldown -= delta
 	
 	if not is_instance_valid(target_player):
 		_acquire_player()
@@ -78,9 +112,11 @@ func _physics_process(delta: float) -> void:
 	_execute_maneuvers(delta)
 	_evaluate_weapons_fire(delta)
 	
-	# Shield passive recharge
-	if shield < max_shield:
-		shield = min(max_shield, shield + delta * 15.0)
+	# Shield passive recharge only after taking-damage delay has expired
+	if shield_recharge_delay > 0.0:
+		shield_recharge_delay -= delta
+	elif shield < max_shield:
+		shield = min(max_shield, shield + delta * 8.0)
 
 func _update_ai_state(delta: float) -> void:
 	if state_timer <= 0.0:
@@ -202,7 +238,10 @@ func take_damage(amount: float) -> void:
 	if not is_alive:
 		return
 	
-	# 1. Shields absorb damage first
+	# 1. Reset shield recharge delay on every hit (6.0s penalty)
+	shield_recharge_delay = 6.0
+	
+	# 2. Shields absorb damage first
 	if shield > 0.0:
 		shield -= amount
 		if shield < 0.0:
@@ -214,10 +253,11 @@ func take_damage(amount: float) -> void:
 	damaged.emit(hull, max_hull, shield, max_shield)
 	_flash_hit()
 	
-	# Reactive high-G break when taking heavy fire
-	if randf() > 0.6:
+	# Controlled evasive break with internal cooldown (8.0s)
+	if evasive_cooldown <= 0.0 and randf() < 0.25:
 		current_state = State.EVASIVE_BREAK
-		state_timer = 2.5
+		state_timer = 2.0
+		evasive_cooldown = 8.0
 	
 	if hull <= 0.0:
 		explode_boss()

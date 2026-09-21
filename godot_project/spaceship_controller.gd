@@ -472,6 +472,7 @@ func _setup_machine_gun() -> void:
 	# 1. Autocannon "BRRR" Sustained Burst Audio Player
 	gun_audio_player = AudioStreamPlayer.new()
 	gun_audio_player.name = "AutocannonBrrPlayer"
+	gun_audio_player.bus = "SFX"
 	var brr_stream = load("res://audio/sfx/sfx_autocannon_brr_loop.wav")
 	if brr_stream:
 		gun_audio_player.stream = brr_stream
@@ -485,6 +486,7 @@ func _setup_machine_gun() -> void:
 	# 2. Wind-down rotor deceleration clack
 	gun_winddown_player = AudioStreamPlayer.new()
 	gun_winddown_player.name = "AutocannonWinddownPlayer"
+	gun_winddown_player.bus = "SFX"
 	var winddown_stream = load("res://audio/sfx/sfx_autocannon_winddown.wav")
 	if winddown_stream:
 		gun_winddown_player.stream = winddown_stream
@@ -609,7 +611,7 @@ func _setup_collision_audio() -> void:
 	var scrape_stream = load("res://audio/sfx/sfx_asteroid_scrape_impact.wav")
 	if scrape_stream:
 		scrape_audio_player.stream = scrape_stream
-	scrape_audio_player.bus = "Master"
+	scrape_audio_player.bus = "SFX"
 	add_child(scrape_audio_player)
 	
 	crash_audio_player = AudioStreamPlayer.new()
@@ -617,7 +619,7 @@ func _setup_collision_audio() -> void:
 	var crash_stream = load("res://audio/sfx/sfx_capital_ship_core_explosion.wav")
 	if crash_stream:
 		crash_audio_player.stream = crash_stream
-	crash_audio_player.bus = "Master"
+	crash_audio_player.bus = "SFX"
 	add_child(crash_audio_player)
 
 func _on_telemetry_destroyed() -> void:

@@ -47,7 +47,7 @@ func _ready() -> void:
 	# Audio Players for Procedural SFX
 	tally_audio_player = AudioStreamPlayer.new()
 	tally_audio_player.name = "TallyAudioPlayer"
-	tally_audio_player.bus = "Master"
+	tally_audio_player.bus = "UI"
 	var t_sfx = load("res://audio/sfx/sfx_debrief_tally_tick.wav")
 	if t_sfx:
 		tally_audio_player.stream = t_sfx
@@ -55,7 +55,7 @@ func _ready() -> void:
 	
 	slam_audio_player = AudioStreamPlayer.new()
 	slam_audio_player.name = "SlamAudioPlayer"
-	slam_audio_player.bus = "Master"
+	slam_audio_player.bus = "UI"
 	var s_sfx = load("res://audio/sfx/sfx_debrief_rank_slam.wav")
 	if s_sfx:
 		slam_audio_player.stream = s_sfx

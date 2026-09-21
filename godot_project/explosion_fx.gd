@@ -40,28 +40,13 @@ func _play_explosion_sound() -> void:
 	if not audio_player:
 		return
 	
-	# Synthesize a gritty low-frequency explosion rumble
-	var sample_rate = 22050
-	var duration = 0.8
-	var num_samples = int(sample_rate * duration)
-	var data = PackedByteArray()
-	data.resize(num_samples)
-	
-	for i in range(num_samples):
-		var t = float(i) / float(sample_rate)
-		var env = exp(-t * 5.0) # Fast decay
-		var noise = randf_range(-1.0, 1.0)
-		var low_rumble = sin(t * 120.0 * TAU) * 0.6
-		var sample = (noise * 0.4 + low_rumble * 0.6) * env
-		var val = int(clamp(sample, -1.0, 1.0) * 127.0 + 128.0)
-		data[i] = val
-	
-	var wav = AudioStreamWAV.new()
-	wav.format = AudioStreamWAV.FORMAT_8_BITS
-	wav.mix_rate = sample_rate
-	wav.data = data
-	
-	audio_player.stream = wav
+	audio_player.bus = "SFX"
+	audio_player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_PHYSICS_STEP
 	audio_player.unit_size = 25.0
-	audio_player.max_distance = 600.0
+	audio_player.max_distance = 1200.0
+	audio_player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+	
+	var boom_sfx = load("res://audio/sfx/sfx_capital_ship_core_explosion.wav")
+	if boom_sfx:
+		audio_player.stream = boom_sfx
 	audio_player.play()

@@ -22,7 +22,12 @@ MissionManager="*res://mission_manager.gd"
 
 project/assembly_name="Project Vanguard"
 
+[audio]
+
+busses/default_bus_layout="res://default_bus_layout.tres"
+
 [rendering]
 
 renderer/rendering_method="forward_plus"
 textures/vram_compression/import_etc2_astc=true
+

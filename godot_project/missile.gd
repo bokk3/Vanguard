@@ -105,28 +105,13 @@ func _play_launch_sound() -> void:
 	if not audio_player:
 		return
 	
-	# Procedural whoosh sound for rocket launch
-	var sample_rate = 22050
-	var duration = 0.5
-	var num_samples = int(sample_rate * duration)
-	var data = PackedByteArray()
-	data.resize(num_samples)
-	
-	for i in range(num_samples):
-		var t = float(i) / float(sample_rate)
-		var env = sin(clamp(t / duration, 0.0, 1.0) * PI)
-		var noise = randf_range(-1.0, 1.0)
-		var whoosh = sin(t * 260.0 * TAU) * 0.4
-		var sample = (noise * 0.6 + whoosh * 0.4) * env
-		var val = int(clamp(sample, -1.0, 1.0) * 127.0 + 128.0)
-		data[i] = val
-	
-	var wav = AudioStreamWAV.new()
-	wav.format = AudioStreamWAV.FORMAT_8_BITS
-	wav.mix_rate = sample_rate
-	wav.data = data
-	
-	audio_player.stream = wav
+	audio_player.bus = "SFX"
+	audio_player.doppler_tracking = AudioStreamPlayer3D.DOPPLER_TRACKING_PHYSICS_STEP
 	audio_player.unit_size = 18.0
-	audio_player.max_distance = 450.0
+	audio_player.max_distance = 600.0
+	audio_player.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+	
+	var launch_sfx = load("res://audio/sfx/sfx_weapon_missile_launch.wav")
+	if launch_sfx:
+		audio_player.stream = launch_sfx
 	audio_player.play()

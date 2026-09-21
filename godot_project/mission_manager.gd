@@ -71,7 +71,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	comms_audio_player = AudioStreamPlayer.new()
 	comms_audio_player.name = "CommsAudioPlayer"
-	comms_audio_player.bus = "Master"
+	comms_audio_player.bus = "Voice"
 	add_child(comms_audio_player)
 	_load_campaign_manifest()
 

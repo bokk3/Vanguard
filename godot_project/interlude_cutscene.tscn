@@ -110,7 +110,7 @@ visible = false
 [node name="TransportModel" parent="TransportRig" instance=ExtResource("4_transport")]
 
 [node name="AudioNarrator" type="AudioStreamPlayer" parent="."]
-bus = &"Master"
+bus = &"Voice"
 
 [node name="UI" type="CanvasLayer" parent="."]
 

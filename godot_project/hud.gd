@@ -38,6 +38,9 @@ var previous_speed: float = 0.0
 var previous_forward: Vector3 = Vector3.FORWARD
 var high_g_audio_player: AudioStreamPlayer = null
 var high_g_cooldown: float = 0.0
+var lock_audio_player: AudioStreamPlayer = null
+var locked_audio_player: AudioStreamPlayer = null
+var lock_chirp_timer: float = 0.0
 
 func _ready() -> void:
 	var cfg = get_node_or_null("/root/ConfigManager")
@@ -54,11 +57,31 @@ func _ready() -> void:
 	# Setup High-G Cockpit Audio
 	high_g_audio_player = AudioStreamPlayer.new()
 	high_g_audio_player.name = "HighGAudioPlayer"
-	high_g_audio_player.bus = "Master"
+	high_g_audio_player.bus = "SFX"
 	var g_stream = load("res://audio/sfx/sfx_flight_high_g_whoosh.wav")
 	if g_stream:
 		high_g_audio_player.stream = g_stream
 	add_child(high_g_audio_player)
+
+	# Setup Missile Lock-On Audio Players
+	lock_audio_player = AudioStreamPlayer.new()
+	lock_audio_player.name = "LockChirpAudioPlayer"
+	lock_audio_player.bus = "SFX"
+	var lock_stream = load("res://audio/sfx/sfx_hud_target_locking.wav")
+	if lock_stream:
+		lock_audio_player.stream = lock_stream
+	add_child(lock_audio_player)
+
+	locked_audio_player = AudioStreamPlayer.new()
+	locked_audio_player.name = "LockedToneAudioPlayer"
+	locked_audio_player.bus = "SFX"
+	var locked_stream = load("res://audio/sfx/sfx_hud_target_locked.wav")
+	if locked_stream:
+		locked_audio_player.stream = locked_stream
+	add_child(locked_audio_player)
+
+	if telemetry:
+		telemetry.lock_state_changed.connect(_on_lock_state_changed)
 	
 	# Connect to MissionManager
 	var mm = get_node_or_null("/root/MissionManager")
@@ -94,6 +117,8 @@ func _process(delta: float) -> void:
 		hitmarker_timer = max(0.0, hitmarker_timer - delta)
 	if combat_event_timer > 0.0:
 		combat_event_timer = max(0.0, combat_event_timer - delta)
+	if lock_chirp_timer > 0.0:
+		lock_chirp_timer = max(0.0, lock_chirp_timer - delta)
 	if current_radio_timer > 0.0:
 		current_radio_timer = max(0.0, current_radio_timer - delta)
 		if current_radio_timer <= 0.0:
@@ -128,6 +153,18 @@ func _process(delta: float) -> void:
 				high_g_audio_player.play()
 	
 	queue_redraw()
+
+func _on_lock_state_changed(_target: Node3D, progress: float, is_locked: bool) -> void:
+	if is_locked:
+		if locked_audio_player and not locked_audio_player.playing:
+			locked_audio_player.play()
+	else:
+		if locked_audio_player and locked_audio_player.playing:
+			locked_audio_player.stop()
+		if progress > 0.1 and lock_audio_player:
+			if lock_chirp_timer <= 0.0:
+				lock_audio_player.play()
+				lock_chirp_timer = 0.22
 
 func _on_radio_started(speaker: String, callsign: String, text: String, color: Color, duration: float) -> void:
 	current_radio_speaker = speaker
