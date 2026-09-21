@@ -139,8 +139,14 @@ var current_shake: float = 0.0
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	
+	# Immediately cut off any remaining mission comms
+	var mm = get_node_or_null("/root/MissionManager")
+	if mm and mm.has_method("stop_all_comms"):
+		mm.stop_all_comms()
+	
 	_setup_ship_hardpoints()
 	_setup_environment()
+	_setup_cutscene_music()
 	
 	# Start with black screen and fade in
 	if fade_overlay:
@@ -149,8 +155,39 @@ func _ready() -> void:
 		tween.tween_property(fade_overlay, "color:a", 0.0, 1.2)
 	
 	# Play Narrator Track
+	if not narrator_audio:
+		narrator_audio = find_child("AudioNarrator", true, false)
+	if not narrator_audio:
+		narrator_audio = AudioStreamPlayer.new()
+		narrator_audio.name = "AudioNarrator"
+		narrator_audio.bus = "Voice"
+		var n_stream = load("res://audio/narrator/prologue_narrator_official.mp3")
+		if n_stream:
+			narrator_audio.stream = n_stream
+		add_child(narrator_audio)
 	if narrator_audio and narrator_audio.is_inside_tree() and narrator_audio.stream:
 		narrator_audio.play()
+
+var cutscene_music: AudioStreamPlayer = null
+
+func _setup_cutscene_music() -> void:
+	if not cutscene_music:
+		cutscene_music = find_child("AudioMusic", true, false)
+	if not cutscene_music:
+		cutscene_music = AudioStreamPlayer.new()
+		cutscene_music.name = "AudioMusic"
+		cutscene_music.bus = "Music"
+		add_child(cutscene_music)
+	
+	if not cutscene_music.stream:
+		var m_stream = load("res://audio/music/menu_soundscape.mp3")
+		if m_stream:
+			cutscene_music.stream = m_stream
+	
+	# Overlay at 50% volume (-10.0 dB bed so Brian's voice cuts through cleanly)
+	cutscene_music.volume_db = -10.0
+	if is_inside_tree() and cutscene_music.stream and not cutscene_music.playing:
+		cutscene_music.play()
 
 func _input(event: InputEvent) -> void:
 	if is_finishing:
@@ -393,6 +430,8 @@ func _finish_cutscene() -> void:
 		tween.tween_property(fade_overlay, "color:a", 1.0, 0.6)
 		if narrator_audio:
 			tween.tween_property(narrator_audio, "volume_db", -40.0, 0.6)
+		if cutscene_music:
+			tween.tween_property(cutscene_music, "volume_db", -40.0, 0.6)
 		tween.finished.connect(_on_transition_finished)
 	else:
 		_on_transition_finished()

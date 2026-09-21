@@ -36,6 +36,12 @@ signal closed
 @onready var rumble_check: CheckBox = %RumbleCheck
 @onready var pad_layout_list: VBoxContainer = %PadLayoutList
 
+# Data & Storage
+@onready var reset_config_btn: Button = %ResetConfigBtn
+@onready var config_status_label: Label = %ConfigStatusLabel
+@onready var clear_saves_btn: Button = %ClearSavesBtn
+@onready var save_status_label: Label = %SaveStatusLabel
+
 @onready var apply_btn: Button = %ApplyBtn
 @onready var close_btn: Button = %CloseBtn
 
@@ -46,11 +52,8 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
 	# Listen for controller connect / disconnect events
-	Input.joy_connection_changed.connect(func(_device, _connected):
-		var cfg = get_node_or_null("/root/ConfigManager")
-		if pad_status_label and cfg and cfg.has_method("get_connected_controller_name"):
-			pad_status_label.text = cfg.get_connected_controller_name()
-	)
+	if not Input.joy_connection_changed.is_connected(_on_joy_connection_changed):
+		Input.joy_connection_changed.connect(_on_joy_connection_changed)
 	
 	# Populate difficulty options
 	if difficulty_option:
@@ -66,17 +69,29 @@ func _ready() -> void:
 	window_option.add_item("Borderless Window", 2)
 	
 	# Connect slider value labels
-	sens_slider.value_changed.connect(func(v): sens_val_label.text = "%.1fx" % v)
-	master_slider.value_changed.connect(func(v): master_val_label.text = "%d%%" % int(v * 100))
-	sfx_slider.value_changed.connect(func(v): sfx_val_label.text = "%d%%" % int(v * 100))
+	if not sens_slider.value_changed.is_connected(_on_sens_changed):
+		sens_slider.value_changed.connect(_on_sens_changed)
+	if not master_slider.value_changed.is_connected(_on_master_changed):
+		master_slider.value_changed.connect(_on_master_changed)
+	if not sfx_slider.value_changed.is_connected(_on_sfx_changed):
+		sfx_slider.value_changed.connect(_on_sfx_changed)
 	
 	# Preset buttons
-	preset_azerty_btn.pressed.connect(_on_preset_azerty)
-	preset_qwerty_btn.pressed.connect(_on_preset_qwerty)
+	if not preset_azerty_btn.pressed.is_connected(_on_preset_azerty):
+		preset_azerty_btn.pressed.connect(_on_preset_azerty)
+	if not preset_qwerty_btn.pressed.is_connected(_on_preset_qwerty):
+		preset_qwerty_btn.pressed.connect(_on_preset_qwerty)
 	
 	# Action buttons
-	apply_btn.pressed.connect(_on_apply_pressed)
-	close_btn.pressed.connect(_on_close_pressed)
+	if not apply_btn.pressed.is_connected(_on_apply_pressed):
+		apply_btn.pressed.connect(_on_apply_pressed)
+	if not close_btn.pressed.is_connected(_on_close_pressed):
+		close_btn.pressed.connect(_on_close_pressed)
+	
+	if reset_config_btn and not reset_config_btn.pressed.is_connected(_on_reset_config_pressed):
+		reset_config_btn.pressed.connect(_on_reset_config_pressed)
+	if clear_saves_btn and not clear_saves_btn.pressed.is_connected(_on_clear_saves_pressed):
+		clear_saves_btn.pressed.connect(_on_clear_saves_pressed)
 	
 	if rebind_overlay:
 		rebind_overlay.hide()
@@ -85,8 +100,25 @@ func _ready() -> void:
 	_build_gamepad_ui()
 	refresh_from_config()
 
+func _on_joy_connection_changed(_device: int, _connected: bool) -> void:
+	var cfg = _get_config_manager()
+	if pad_status_label and cfg and cfg.has_method("get_connected_controller_name"):
+		pad_status_label.text = cfg.get_connected_controller_name()
+
+func _on_sens_changed(v: float) -> void:
+	if sens_val_label:
+		sens_val_label.text = "%.1fx" % v
+
+func _on_master_changed(v: float) -> void:
+	if master_val_label:
+		master_val_label.text = "%d%%" % int(v * 100)
+
+func _on_sfx_changed(v: float) -> void:
+	if sfx_val_label:
+		sfx_val_label.text = "%d%%" % int(v * 100)
+
 func _build_keybindings_ui() -> void:
-	var cfg = get_node_or_null("/root/ConfigManager")
+	var cfg = _get_config_manager()
 	if not cfg or not keybinds_list:
 		return
 	
@@ -119,7 +151,7 @@ func _build_keybindings_ui() -> void:
 		keybinds_list.add_child(row)
 
 func refresh_from_config() -> void:
-	var cfg = get_node_or_null("/root/ConfigManager")
+	var cfg = _get_config_manager()
 	if not cfg:
 		return
 	
@@ -163,7 +195,7 @@ func open_menu() -> void:
 	show()
 
 func _start_rebind(action: String) -> void:
-	var cfg = get_node_or_null("/root/ConfigManager")
+	var cfg = _get_config_manager()
 	if not cfg:
 		return
 	
@@ -188,7 +220,7 @@ func _input(event: InputEvent) -> void:
 			_cancel_rebind()
 			return
 		
-		var cfg = get_node_or_null("/root/ConfigManager")
+		var cfg = _get_config_manager()
 		if cfg:
 			cfg.rebind_action(rebind_target_action, keycode)
 		
@@ -210,19 +242,19 @@ func _finish_rebind() -> void:
 		rebind_overlay.hide()
 
 func _on_preset_azerty() -> void:
-	var cfg = get_node_or_null("/root/ConfigManager")
+	var cfg = _get_config_manager()
 	if cfg:
 		cfg.reset_keybindings_preset(true)
 		refresh_from_config()
 
 func _on_preset_qwerty() -> void:
-	var cfg = get_node_or_null("/root/ConfigManager")
+	var cfg = _get_config_manager()
 	if cfg:
 		cfg.reset_keybindings_preset(false)
 		refresh_from_config()
 
 func _on_apply_pressed() -> void:
-	var cfg = get_node_or_null("/root/ConfigManager")
+	var cfg = _get_config_manager()
 	if cfg:
 		cfg.mouse_sensitivity = sens_slider.value
 		cfg.invert_pitch = invert_check.button_pressed
@@ -254,8 +286,38 @@ func _on_close_pressed() -> void:
 	hide()
 	closed.emit()
 
+func _on_reset_config_pressed() -> void:
+	var cfg = _get_config_manager()
+	if cfg and cfg.has_method("reset_to_factory_defaults"):
+		cfg.reset_to_factory_defaults()
+		refresh_from_config()
+		if config_status_label:
+			config_status_label.text = "CONFIG RESTORED TO FACTORY DEFAULTS // OK"
+			config_status_label.modulate.a = 1.0
+			var t = create_tween()
+			t.tween_property(config_status_label, "modulate:a", 0.0, 3.5).set_delay(1.5)
+
+func _on_clear_saves_pressed() -> void:
+	var sm = _get_save_manager()
+	if sm and sm.has_method("delete_all_saves"):
+		sm.delete_all_saves()
+	var mm = _get_mission_manager()
+	if mm and mm.has_method("reset_campaign_progress"):
+		mm.reset_campaign_progress()
+	
+	# If HomeMenu is active, refresh its save state so Resume Sortie button hides
+	var cur_scene = get_tree().current_scene if (is_inside_tree() and get_tree()) else null
+	if cur_scene and cur_scene.has_method("_check_save_game_state"):
+		cur_scene._check_save_game_state()
+	
+	if save_status_label:
+		save_status_label.text = "ALL SAVES PURGED // CAMPAIGN RESET TO M01"
+		save_status_label.modulate.a = 1.0
+		var t = create_tween()
+		t.tween_property(save_status_label, "modulate:a", 0.0, 3.5).set_delay(1.5)
+
 func _build_gamepad_ui() -> void:
-	var cfg = get_node_or_null("/root/ConfigManager")
+	var cfg = _get_config_manager()
 	if not cfg or not pad_layout_list:
 		return
 	
@@ -316,3 +378,42 @@ func _build_gamepad_ui() -> void:
 			row.add_child(l_ps)
 			
 			pad_layout_list.add_child(row)
+
+func _get_config_manager() -> Node:
+	if is_inside_tree() and get_tree() and get_tree().root:
+		var c = get_tree().root.get_node_or_null("ConfigManager")
+		if c: return c
+	if get_parent():
+		var c = get_parent().get_node_or_null("ConfigManager")
+		if c: return c
+	var main_loop = Engine.get_main_loop() as SceneTree
+	if main_loop and main_loop.root:
+		var c = main_loop.root.get_node_or_null("ConfigManager")
+		if c: return c
+	return null
+
+func _get_save_manager() -> Node:
+	if is_inside_tree() and get_tree() and get_tree().root:
+		var s = get_tree().root.get_node_or_null("SaveManager")
+		if s: return s
+	if get_parent():
+		var s = get_parent().get_node_or_null("SaveManager")
+		if s: return s
+	var main_loop = Engine.get_main_loop() as SceneTree
+	if main_loop and main_loop.root:
+		var s = main_loop.root.get_node_or_null("SaveManager")
+		if s: return s
+	return null
+
+func _get_mission_manager() -> Node:
+	if is_inside_tree() and get_tree() and get_tree().root:
+		var m = get_tree().root.get_node_or_null("MissionManager")
+		if m: return m
+	if get_parent():
+		var m = get_parent().get_node_or_null("MissionManager")
+		if m: return m
+	var main_loop = Engine.get_main_loop() as SceneTree
+	if main_loop and main_loop.root:
+		var m = main_loop.root.get_node_or_null("MissionManager")
+		if m: return m
+	return null

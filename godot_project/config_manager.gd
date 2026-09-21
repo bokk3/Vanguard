@@ -19,6 +19,7 @@ var radar_circular_default: bool = true
 
 var master_volume: float = 1.0
 var sfx_volume: float = 0.85
+var music_volume: float = 0.85
 var window_mode: int = 0  # 0: Windowed, 1: Fullscreen, 2: Borderless
 
 # Action metadata
@@ -132,6 +133,7 @@ func load_settings() -> void:
 	# Audio
 	master_volume = _config.get_value("audio", "master_volume", 1.0)
 	sfx_volume = _config.get_value("audio", "sfx_volume", 0.85)
+	music_volume = _config.get_value("audio", "music_volume", 0.85)
 	
 	apply_input_mappings()
 	apply_display_and_audio()
@@ -153,6 +155,7 @@ func save_settings() -> void:
 	
 	_config.set_value("audio", "master_volume", master_volume)
 	_config.set_value("audio", "sfx_volume", sfx_volume)
+	_config.set_value("audio", "music_volume", music_volume)
 	
 	_config.save(CONFIG_PATH)
 	apply_input_mappings()
@@ -376,6 +379,32 @@ func reset_keybindings_preset(azerty: bool) -> void:
 	apply_input_mappings()
 	save_settings()
 
+func reset_to_factory_defaults() -> void:
+	is_azerty = detect_system_azerty()
+	difficulty = "NORMAL"
+	mouse_sensitivity = 1.0
+	invert_pitch = false
+	enable_gravity = true
+	enable_rumble = true
+	radar_circular_default = true
+	
+	master_volume = 1.0
+	sfx_volume = 0.85
+	music_volume = 0.85
+	window_mode = 0
+	
+	keybindings = get_default_keybindings(is_azerty)
+	
+	if FileAccess.file_exists(CONFIG_PATH):
+		DirAccess.remove_absolute(CONFIG_PATH)
+	save_settings()
+	
+	apply_input_mappings()
+	apply_display_and_audio()
+	settings_changed.emit()
+	keybindings_updated.emit()
+	print(">>> [ConfigManager] Factory settings restored to defaults.")
+
 func get_difficulty_damage_multiplier() -> float:
 	match difficulty.to_upper():
 		"EASY": return 0.5
@@ -384,14 +413,14 @@ func get_difficulty_damage_multiplier() -> float:
 
 func get_difficulty_drone_cooldown() -> float:
 	match difficulty.to_upper():
-		"EASY": return 4.5
-		"ACE", "HARD": return 2.0
-		_: return 3.0
+		"EASY": return 5.5
+		"ACE", "HARD": return 2.4
+		_: return 3.8
 
 func get_difficulty_drone_spread() -> float:
 	match difficulty.to_upper():
-		"EASY": return 0.12
-		"ACE", "HARD": return 0.04
+		"EASY": return 0.14
+		"ACE", "HARD": return 0.035
 		_: return 0.08
 
 func get_key_string_for_action(action: String) -> String:
@@ -426,6 +455,10 @@ func apply_display_and_audio() -> void:
 	if ui_idx >= 0:
 		var ui_db = linear_to_db(clamp(sfx_volume, 0.0001, 1.0))
 		AudioServer.set_bus_volume_db(ui_idx, ui_db)
+	var music_idx = AudioServer.get_bus_index("Music")
+	if music_idx >= 0:
+		var music_db = linear_to_db(clamp(music_volume, 0.0001, 1.0))
+		AudioServer.set_bus_volume_db(music_idx, music_db)
 
 func detect_system_azerty() -> bool:
 	if OS.get_name() == "Windows":

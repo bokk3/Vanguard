@@ -153,3 +153,43 @@ func delete_save(slot_name: String = DEFAULT_SLOT) -> bool:
 			var err = dir.remove("%s.json" % slot_name)
 			return err == OK
 	return false
+
+func delete_all_saves(mm_override: Node = null) -> bool:
+	should_load_on_start = false
+	var success = true
+	if DirAccess.dir_exists_absolute(SAVE_DIR):
+		var dir = DirAccess.open(SAVE_DIR)
+		if dir:
+			dir.list_dir_begin()
+			var file_name = dir.get_next()
+			while file_name != "":
+				if not dir.current_is_dir() and file_name.ends_with(".json"):
+					var err = dir.remove(file_name)
+					if err != OK:
+						success = false
+				file_name = dir.get_next()
+			dir.list_dir_end()
+	
+	# Also reset campaign progression in MissionManager if present
+	var mm = _get_mission_manager(mm_override)
+	if mm and mm.has_method("reset_campaign_progress"):
+		mm.reset_campaign_progress()
+		
+	print(">>> [SaveManager] All saved sortie states deleted.")
+	return success
+
+func _get_mission_manager(override: Node = null) -> Node:
+	if override:
+		return override
+	if is_inside_tree() and get_tree() and get_tree().root:
+		var m = get_tree().root.get_node_or_null("MissionManager")
+		if m: return m
+	if get_parent():
+		var m = get_parent().get_node_or_null("MissionManager")
+		if m: return m
+	var main_loop = Engine.get_main_loop() as SceneTree
+	if main_loop and main_loop.root:
+		var m = main_loop.root.get_node_or_null("MissionManager")
+		if m: return m
+	return null
+

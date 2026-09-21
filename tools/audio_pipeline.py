@@ -102,9 +102,9 @@ def apply_loop_crossfade(samples: np.ndarray, crossfade_samples: int = 256) -> n
     return out
 
 
-def save_sfx_wav(filename: str, samples: np.ndarray, is_loop: bool = False):
+def save_sfx_wav(filename: str, samples: np.ndarray, is_loop: bool = False, target_peak_db: float = -1.0):
     """Normalizes and saves a 44.1kHz 16-bit mono WAV file, syncing to game and docs."""
-    samples = normalize_and_clamp(samples)
+    samples = normalize_and_clamp(samples, target_peak_db=target_peak_db)
     if is_loop:
         samples = apply_loop_crossfade(samples, crossfade_samples=512)
 
@@ -225,7 +225,7 @@ def gen_hud_target_locking():
     phase = 2 * np.pi * np.cumsum(freq) / SAMPLE_RATE
     env = np.exp(-t * 32.0)
     sound = np.sin(phase) * env
-    save_sfx_wav("sfx_hud_target_locking.wav", sound, is_loop=False)
+    save_sfx_wav("sfx_hud_target_locking.wav", sound, is_loop=False, target_peak_db=-7.0)
 
 
 def gen_hud_target_locked():
@@ -238,7 +238,7 @@ def gen_hud_target_locked():
     env[:fade_len] = np.linspace(0.0, 1.0, fade_len)
     env[-fade_len:] = np.linspace(1.0, 0.0, fade_len)
     tone = (0.7 * np.sin(2 * np.pi * 1320.0 * t) + 0.3 * np.sin(2 * np.pi * 1760.0 * t)) * env * tremolo
-    save_sfx_wav("sfx_hud_target_locked.wav", tone, is_loop=False)
+    save_sfx_wav("sfx_hud_target_locked.wav", tone, is_loop=False, target_peak_db=-7.0)
 
 
 def gen_hud_missile_incoming_spike():
@@ -251,7 +251,7 @@ def gen_hud_missile_incoming_spike():
     raw_alarm = np.sin(phase)
     # Speaker saturation grit
     grit = np.tanh(raw_alarm * 2.4) * 0.85
-    save_sfx_wav("sfx_hud_missile_incoming_spike.wav", grit, is_loop=False)
+    save_sfx_wav("sfx_hud_missile_incoming_spike.wav", grit, is_loop=False, target_peak_db=-6.0)
 
 
 def gen_hud_stall_warning():
@@ -261,7 +261,7 @@ def gen_hud_stall_warning():
     burst = (np.sin(2 * np.pi * 4.0 * t) > 0.0).astype(float)
     saw = 2.0 * (t * 240.0 - np.floor(t * 240.0 + 0.5))
     tone = saw * burst * 0.75
-    save_sfx_wav("sfx_hud_stall_warning.wav", tone, is_loop=False)
+    save_sfx_wav("sfx_hud_stall_warning.wav", tone, is_loop=False, target_peak_db=-6.0)
 
 
 def gen_hud_low_altitude():
@@ -272,7 +272,7 @@ def gen_hud_low_altitude():
     chime1 = np.sin(2 * np.pi * 960.0 * t[:half]) * np.exp(-t[:half] * 18.0)
     chime2 = np.sin(2 * np.pi * 640.0 * t[half:]) * np.exp(-t[:len(t)-half] * 18.0)
     sound = np.concatenate([chime1, chime2])
-    save_sfx_wav("sfx_hud_low_altitude.wav", sound, is_loop=False)
+    save_sfx_wav("sfx_hud_low_altitude.wav", sound, is_loop=False, target_peak_db=-6.0)
 
 
 def gen_hud_capacitor_empty():
@@ -535,7 +535,7 @@ def gen_engine_exhaust_loop():
     noise_rush = np.cumsum(white)
     noise_rush = noise_rush / np.max(np.abs(noise_rush)) * 0.4
     sound = sub + mid + harm + whine + noise_rush
-    save_sfx_wav("sfx_engine_exhaust_loop.wav", sound, is_loop=True)
+    save_sfx_wav("sfx_engine_exhaust_loop.wav", sound, is_loop=True, target_peak_db=-7.0)
 
 
 def gen_engine_boost_ignite():
@@ -552,7 +552,7 @@ def gen_engine_boost_ignite():
     # Resonant burn tone
     flare = np.sin(2 * np.pi * 160.0 * t) * np.exp(-t * 8.0) * 0.4
     sound = thump + noise + flare
-    save_sfx_wav("sfx_engine_boost_ignite.wav", sound, is_loop=False)
+    save_sfx_wav("sfx_engine_boost_ignite.wav", sound, is_loop=False, target_peak_db=-5.0)
 
 
 def gen_radio_squelch_in():
@@ -586,7 +586,7 @@ def gen_hud_shield_critical():
     tone = np.where(t_mod > 0, np.sin(2 * np.pi * 1100.0 * t), np.sin(2 * np.pi * 880.0 * t))
     env = np.exp(-t * 3.5)
     sound = tone * env
-    save_sfx_wav("sfx_hud_shield_critical.wav", sound, is_loop=False)
+    save_sfx_wav("sfx_hud_shield_critical.wav", sound, is_loop=False, target_peak_db=-6.0)
 
 
 def generate_all_sfx():
@@ -919,6 +919,28 @@ def audit_audio_suite():
             failures.append(f"Corrupted or empty interlude track: {mp3_path}")
         if not os.path.exists(import_path):
             failures.append(f"Missing .import descriptor: {import_path}")
+
+    # 4. Audit Soundtrack & Menu Music Suite
+    music_dir = os.path.join(WORKSPACE_ROOT, "godot_project", "audio", "music")
+    if os.path.exists(music_dir):
+        print("\n[4/4] Auditing Soundtrack & Menu Music Tracks...")
+        for m_file in ["menu_soundscape.mp3"]:
+            checked_count += 1
+            mp3_path = os.path.join(music_dir, m_file)
+            import_path = mp3_path + ".import"
+
+            if not os.path.exists(mp3_path):
+                failures.append(f"Missing music track: {mp3_path}")
+                continue
+            if os.path.getsize(mp3_path) < 1000:
+                failures.append(f"Corrupted or empty music track: {mp3_path}")
+            if not os.path.exists(import_path):
+                failures.append(f"Missing .import descriptor for music: {import_path}")
+            else:
+                with open(import_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                    if "loop=true" not in content:
+                        failures.append(f"{m_file}.import: Loop mode not enabled (expected loop=true)")
 
     print("\n----------------------------------------------------------------------")
     print(f"Audit Summary: {checked_count} audio items verified across project.")

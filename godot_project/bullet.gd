@@ -7,6 +7,7 @@ extends Node3D
 @export var speed: float = 650.0
 @export var damage: float = 6.0
 @export var max_lifetime: float = 2.2
+@export var is_hostile: bool = false
 
 var velocity: Vector3 = Vector3.ZERO
 var shooter: Node3D = null
@@ -21,12 +22,32 @@ func _ready() -> void:
 	spark_material.emission_enabled = true
 	spark_material.emission = Color(1.0, 0.7, 0.1, 1.0)
 	spark_material.emission_energy_multiplier = 4.0
+	
+	if is_hostile:
+		_apply_hostile_visuals()
 
-func setup(from_shooter: Node3D, forward_dir: Vector3, initial_speed: float = 0.0) -> void:
+func setup(from_shooter: Node3D, forward_dir: Vector3, initial_speed: float = 0.0, hostile: bool = false) -> void:
 	shooter = from_shooter
+	is_hostile = hostile
 	# Projectile inherits forward ship speed + bullet muzzle velocity
 	velocity = forward_dir.normalized() * (speed + max(initial_speed, 0.0))
-	look_at(global_position + velocity, Vector3.UP)
+	if is_inside_tree():
+		look_at(global_position + velocity, Vector3.UP)
+	if is_hostile:
+		_apply_hostile_visuals()
+
+func _apply_hostile_visuals() -> void:
+	var tracer_mesh = get_node_or_null("TracerMesh") as MeshInstance3D
+	if tracer_mesh:
+		var red_mat = StandardMaterial3D.new()
+		red_mat.albedo_color = Color(1.0, 0.2, 0.1, 1.0)
+		red_mat.emission_enabled = true
+		red_mat.emission = Color(1.0, 0.15, 0.05, 1.0)
+		red_mat.emission_energy_multiplier = 5.5
+		tracer_mesh.material_override = red_mat
+	var light = get_node_or_null("TracerLight") as OmniLight3D
+	if light:
+		light.light_color = Color(1.0, 0.25, 0.1, 1.0)
 
 func _physics_process(delta: float) -> void:
 	if has_hit:
@@ -82,7 +103,7 @@ func _handle_hit(collider: Object, hit_pos: Vector3, hit_normal: Vector3) -> voi
 	queue_free()
 
 func _trigger_player_hitmarker() -> void:
-	if not shooter or (not shooter.is_in_group("player") and shooter.name != "Spaceship"):
+	if not shooter or (not shooter.is_in_group("player") and shooter.name != "Spaceship") or is_hostile:
 		return
 	var hud = get_tree().current_scene.find_child("TacticalOverlay", true, false) if (is_inside_tree() and get_tree() and get_tree().current_scene) else null
 	if hud and hud.has_method("trigger_hitmarker"):

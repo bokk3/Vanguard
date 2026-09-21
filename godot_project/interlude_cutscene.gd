@@ -222,10 +222,12 @@ func _ready() -> void:
 	var mm = null
 	if is_inside_tree():
 		mm = get_node_or_null("/root/MissionManager")
-	if mm and "pending_interlude_id" in mm and not mm.pending_interlude_id.is_empty():
-		current_id = mm.pending_interlude_id
+	# Immediately cut off any remaining mission comms to prevent overlapping speech
+	if mm and mm.has_method("stop_all_comms"):
+		mm.stop_all_comms()
 	
 	setup(current_id)
+	_setup_cutscene_music()
 	
 	if skip_prompt:
 		skip_prompt.text = "[ SPACE / CONTROLLER (A) / CLICK : SKIP ]"
@@ -242,6 +244,27 @@ func _ready() -> void:
 	if ResourceLoader.exists(a_path) and narrator_audio and is_inside_tree() and narrator_audio.is_inside_tree():
 		narrator_audio.stream = load(a_path)
 		narrator_audio.play()
+
+var cutscene_music: AudioStreamPlayer = null
+
+func _setup_cutscene_music() -> void:
+	if not cutscene_music:
+		cutscene_music = find_child("AudioMusic", true, false)
+	if not cutscene_music:
+		cutscene_music = AudioStreamPlayer.new()
+		cutscene_music.name = "AudioMusic"
+		cutscene_music.bus = "Music"
+		add_child(cutscene_music)
+	
+	if not cutscene_music.stream:
+		var m_stream = load("res://audio/music/menu_soundscape.mp3")
+		if m_stream:
+			cutscene_music.stream = m_stream
+	
+	# Overlay at 50% volume (-10.0 dB bed so Brian's voice cuts through cleanly)
+	cutscene_music.volume_db = -10.0
+	if is_inside_tree() and cutscene_music.stream and not cutscene_music.playing:
+		cutscene_music.play()
 
 func _input(event: InputEvent) -> void:
 	if is_finishing:
@@ -604,6 +627,8 @@ func _finish_cutscene() -> void:
 		tween.tween_property(fade_overlay, "color:a", 1.0, 0.5)
 		if narrator_audio:
 			tween.tween_property(narrator_audio, "volume_db", -40.0, 0.5)
+		if cutscene_music:
+			tween.tween_property(cutscene_music, "volume_db", -40.0, 0.5)
 		tween.finished.connect(_transition_to_next)
 	else:
 		_transition_to_next()

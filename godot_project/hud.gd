@@ -60,6 +60,7 @@ func _ready() -> void:
 	high_g_audio_player = AudioStreamPlayer.new()
 	high_g_audio_player.name = "HighGAudioPlayer"
 	high_g_audio_player.bus = "SFX"
+	high_g_audio_player.volume_db = -5.0
 	var g_stream = load("res://audio/sfx/sfx_flight_high_g_whoosh.wav")
 	if g_stream:
 		high_g_audio_player.stream = g_stream
@@ -69,6 +70,7 @@ func _ready() -> void:
 	lock_audio_player = AudioStreamPlayer.new()
 	lock_audio_player.name = "LockChirpAudioPlayer"
 	lock_audio_player.bus = "SFX"
+	lock_audio_player.volume_db = -9.0
 	var lock_stream = load("res://audio/sfx/sfx_hud_target_locking.wav")
 	if lock_stream:
 		lock_audio_player.stream = lock_stream
@@ -77,6 +79,7 @@ func _ready() -> void:
 	locked_audio_player = AudioStreamPlayer.new()
 	locked_audio_player.name = "LockedToneAudioPlayer"
 	locked_audio_player.bus = "SFX"
+	locked_audio_player.volume_db = -8.0
 	var locked_stream = load("res://audio/sfx/sfx_hud_target_locked.wav")
 	if locked_stream:
 		locked_audio_player.stream = locked_stream
@@ -86,6 +89,7 @@ func _ready() -> void:
 	shield_alarm_player = AudioStreamPlayer.new()
 	shield_alarm_player.name = "ShieldAlarmPlayer"
 	shield_alarm_player.bus = "SFX"
+	shield_alarm_player.volume_db = -7.0
 	var sh_stream = load("res://audio/sfx/sfx_hud_shield_critical.wav")
 	if sh_stream:
 		shield_alarm_player.stream = sh_stream

@@ -241,9 +241,9 @@ func _physics_process(delta: float) -> void:
 	# Dynamic Engine Thruster Exhaust Pitch & Volume Modulation
 	if engine_audio_player and not is_airframe_destroyed:
 		var speed_ratio = clamp(current_speed / max(1.0, boost_speed), 0.0, 1.0)
-		var base_vol = lerp(-18.0, -6.0, speed_ratio)
+		var base_vol = lerp(-25.0, -15.0, speed_ratio)
 		if can_boost:
-			base_vol += 3.5
+			base_vol += 3.0
 		engine_audio_player.volume_db = lerp(engine_audio_player.volume_db, base_vol, 8.0 * delta)
 		
 		var target_pitch = lerp(0.85, 1.35, speed_ratio)
@@ -618,12 +618,48 @@ func _fire_machine_gun_round() -> void:
 		telemetry.fire_cannon_round()
 
 func take_damage(amount: float) -> void:
+	if is_airframe_destroyed:
+		return
+	
 	var cfg = _get_config_manager()
-	var mult = cfg.get_difficulty_damage_multiplier() if (cfg and cfg.has_method("get_difficulty_damage_multiplier")) else 1.0
+	var diff_mult = cfg.get_difficulty_damage_multiplier() if (cfg and cfg.has_method("get_difficulty_damage_multiplier")) else 1.0
+	var final_damage = amount * diff_mult
+	
+	if not telemetry:
+		telemetry = get_node_or_null("CombatTelemetry")
 	if telemetry:
-		telemetry.apply_damage(amount * mult)
+		telemetry.apply_damage(final_damage)
+	
+	# Camera trauma shudder from hostile projectile impact
+	camera_shake_trauma = min(1.0, camera_shake_trauma + clamp(final_damage * 0.04, 0.12, 0.45))
+	
+	# Audio hit feedback
+	if scrape_audio_player:
+		scrape_audio_player.pitch_scale = randf_range(1.2, 1.5)
+		scrape_audio_player.play()
+	
+	# Controller haptics
 	if cfg and cfg.has_method("play_rumble"):
-		cfg.play_rumble(0.85, 0.9, 0.35)
+		cfg.play_rumble(0.35, 0.55, 0.18)
+		
+	# Notify Tactical HUD
+	var hud = null
+	if is_inside_tree() and get_tree() and get_tree().current_scene:
+		hud = get_tree().current_scene.find_child("TacticalOverlay", true, false)
+	elif get_parent():
+		hud = get_parent().find_child("TacticalOverlay", true, false)
+	if hud and hud.has_method("notify_combat_event"):
+		hud.notify_combat_event("// WARNING: HOSTILE HIT -%d HP //" % int(final_damage), Color(1.0, 0.35, 0.35))
+		
+	print("[Spaceship] Hostile hit received! -%d HP (Shield: %.1f | Hull: %.1f)" % [
+		int(final_damage),
+		telemetry.current_shield if telemetry else 0.0,
+		telemetry.current_hull if telemetry else 0.0
+	])
+	
+	# Catastrophic failure if hull reaches zero
+	if telemetry and telemetry.current_hull <= 0.0:
+		_trigger_catastrophic_crash(global_position, Vector3.UP, "AIRFRAME_DESTROYED", "Airframe destroyed by hostile fire.")
 
 # -----------------------------------------------------------------------------
 # 8. Ground & Obstacle Collision System (Crash vs. Glancing Scrape)
@@ -652,7 +688,7 @@ func _setup_engine_audio() -> void:
 	var eng_stream = load("res://audio/sfx/sfx_engine_exhaust_loop.wav")
 	if eng_stream:
 		engine_audio_player.stream = eng_stream
-	engine_audio_player.volume_db = -12.0
+	engine_audio_player.volume_db = -22.0
 	engine_audio_player.pitch_scale = 1.0
 	engine_audio_player.finished.connect(func():
 		if not is_airframe_destroyed and engine_audio_player:
@@ -667,7 +703,7 @@ func _setup_engine_audio() -> void:
 	var b_stream = load("res://audio/sfx/sfx_engine_boost_ignite.wav")
 	if b_stream:
 		boost_ignite_player.stream = b_stream
-	boost_ignite_player.volume_db = -3.0
+	boost_ignite_player.volume_db = -9.0
 	add_child(boost_ignite_player)
 
 func _on_telemetry_destroyed() -> void:

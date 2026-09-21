@@ -24,6 +24,7 @@ extends Node3D
 @onready var update_dialog: Control = %UpdateDialog
 @onready var fade_overlay: ColorRect = %FadeOverlay
 @onready var warp_audio: AudioStreamPlayer = %WarpAudio
+@onready var menu_music_player: AudioStreamPlayer = %MenuMusicPlayer
 @onready var sidebar: PanelContainer = $UI/Sidebar
 
 @onready var repair_progress_bar: ProgressBar = %RepairProgressBar
@@ -90,6 +91,25 @@ func _ready() -> void:
 	
 	_setup_turntable_hardpoints()
 	_check_save_game_state()
+	_setup_menu_music()
+
+func _setup_menu_music() -> void:
+	if not menu_music_player:
+		menu_music_player = get_node_or_null("%MenuMusicPlayer")
+	if not menu_music_player:
+		menu_music_player = AudioStreamPlayer.new()
+		menu_music_player.name = "MenuMusicPlayer"
+		menu_music_player.bus = "Music"
+		add_child(menu_music_player)
+	
+	if not menu_music_player.stream:
+		var stream = load("res://audio/music/menu_soundscape.mp3")
+		if stream:
+			menu_music_player.stream = stream
+	
+	if is_inside_tree() and menu_music_player and menu_music_player.stream and not menu_music_player.playing:
+		menu_music_player.volume_db = -4.0
+		menu_music_player.play()
 
 func _setup_turntable_hardpoints() -> void:
 	var ship_model = ship_pivot.get_node_or_null("SpaceshipModel")
@@ -241,6 +261,11 @@ func _launch_game_animation(mission_id: String, is_resume: bool) -> void:
 	
 	var duration: float = 1.35
 	var tween_ui = create_tween().set_parallel(true)
+	
+	# Smoothly fade out menu music as launch begins
+	if menu_music_player and menu_music_player.playing:
+		var music_tween = create_tween()
+		music_tween.tween_property(menu_music_player, "volume_db", -45.0, duration * 0.85).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	
 	# Slide sidebar off-screen to the left
 	if sidebar:

@@ -563,4 +563,9 @@ color = Color(0, 0, 0, 0)
 unique_name_in_owner = true
 bus = &"Master"
 
+[node name="MenuMusicPlayer" type="AudioStreamPlayer" parent="."]
+unique_name_in_owner = true
+bus = &"Music"
+
+
 

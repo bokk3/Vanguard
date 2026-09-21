@@ -88,7 +88,18 @@ func _ready() -> void:
 	phys_body.add_child(col_phys)
 	add_child(phys_body)
 	
-	gun_cooldown = randf_range(1.5, 3.5)
+	gun_cooldown = randf_range(2.5, 5.5)
+	
+	# 4. AudioStreamPlayer3D for spatialized hostile gunfire
+	var shot_player = AudioStreamPlayer3D.new()
+	shot_player.name = "ShotAudio3D"
+	shot_player.bus = "Weapons"
+	shot_player.max_distance = 600.0
+	shot_player.unit_size = 10.0
+	var sfx_shot = load("res://audio/sfx/sfx_weapon_cannon_burst.wav")
+	if sfx_shot:
+		shot_player.stream = sfx_shot
+	add_child(shot_player)
 
 func _cache_drone_materials(node: Node) -> void:
 	if node is MeshInstance3D and node.mesh:
@@ -114,7 +125,7 @@ func _process(delta: float) -> void:
 	look_at(new_pos + Vector3(-sin(angle), 0, cos(angle)), Vector3.UP)
 	global_position = new_pos
 	
-	# Drone weapons fire evaluation
+	# Drone weapons fire evaluation (occasional hostile shot)
 	gun_cooldown -= delta
 	if gun_cooldown <= 0.0:
 		_evaluate_weapons_fire()
@@ -129,6 +140,18 @@ func _acquire_player() -> void:
 	if not target_player and is_inside_tree() and get_tree() and get_tree().root:
 		target_player = get_tree().root.find_child("Spaceship", true, false)
 
+func _get_mission_base_damage(mid: String) -> float:
+	match mid.to_upper():
+		"M01": return 3.0   # Easy intro: 3.0 HP (minor shield tickle)
+		"M02": return 4.0   # Iron Canyon: 4.0 HP
+		"M03": return 5.5   # Apex Liftoff: 5.5 HP
+		"M04": return 7.0   # Stratosphere Zero: 7.0 HP
+		"M05": return 8.5   # Silent Orbit: 8.5 HP
+		"M06": return 9.5   # Ghost Reef: 9.5 HP
+		"M07": return 11.0  # Dauntless Defender: 11.0 HP
+		"M08": return 12.5  # Nexus Crucible: 12.5 HP
+		_: return 4.0
+
 func _evaluate_weapons_fire() -> void:
 	if not bullet_scene:
 		return
@@ -137,43 +160,68 @@ func _evaluate_weapons_fire() -> void:
 		_acquire_player()
 	
 	if not is_instance_valid(target_player):
-		gun_cooldown = 2.0
+		gun_cooldown = 2.5
+		return
+	
+	# Don't fire if player airframe is already destroyed
+	if target_player.get("is_airframe_destroyed") == true:
+		gun_cooldown = 4.0
 		return
 	
 	var cur_pos = global_position if is_inside_tree() else position
 	var to_player = target_player.global_position - cur_pos
 	var dist = to_player.length()
 	
-	# Only fire within 450m
-	if dist > 450.0 or dist < 25.0:
-		gun_cooldown = 1.5
+	# Engagement range: between 35m and 480m
+	if dist > 480.0 or dist < 35.0:
+		gun_cooldown = 1.8
 		return
 	
 	var forward = -global_transform.basis.z.normalized() if is_inside_tree() else -transform.basis.z.normalized()
 	var angle_to_player = rad_to_deg(forward.angle_to(to_player.normalized()))
 	
-	# Only fire if player is within forward 40-degree cone
-	if angle_to_player > 40.0:
-		gun_cooldown = 1.0
+	# Fire when player is within forward engagement cone (45 degrees)
+	if angle_to_player > 45.0:
+		gun_cooldown = 1.2
 		return
 	
-	# Fetch difficulty parameters
+	# Fetch difficulty parameters from ConfigManager
 	var cfg = get_tree().root.get_node_or_null("ConfigManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
-	var base_cooldown = cfg.get_difficulty_drone_cooldown() if (cfg and cfg.has_method("get_difficulty_drone_cooldown")) else 3.0
+	var base_cooldown = cfg.get_difficulty_drone_cooldown() if (cfg and cfg.has_method("get_difficulty_drone_cooldown")) else 4.0
 	var spread = cfg.get_difficulty_drone_spread() if (cfg and cfg.has_method("get_difficulty_drone_spread")) else 0.08
+	var diff_mult = cfg.get_difficulty_damage_multiplier() if (cfg and cfg.has_method("get_difficulty_damage_multiplier")) else 1.0
 	
-	gun_cooldown = base_cooldown + randf_range(-0.5, 0.5)
+	# Mission-specific scaling
+	var mm = get_tree().root.get_node_or_null("MissionManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
+	var cur_mission_id = mm.current_mission_id if (mm and "current_mission_id" in mm) else "M01"
+	if cur_mission_id == "M01":
+		spread += 0.05
+	elif cur_mission_id == "M02":
+		spread += 0.03
+	
+	# Sporadic fire cadence: way lower than player machine gun
+	gun_cooldown = base_cooldown + randf_range(-0.8, 1.2)
 	
 	# Aim with deliberate inaccuracy (less accurate than player tracking)
-	var aim_dir = (to_player.normalized() + Vector3(randf_range(-spread, spread), randf_range(-spread, spread), randf_range(-spread, spread))).normalized()
+	var aim_dir = (to_player.normalized() + Vector3(
+		randf_range(-spread, spread),
+		randf_range(-spread, spread),
+		randf_range(-spread, spread)
+	)).normalized()
 	
 	var parent_scene = get_tree().current_scene if (is_inside_tree() and get_tree() and get_tree().current_scene) else get_parent()
 	if parent_scene:
 		var bullet = bullet_scene.instantiate()
 		parent_scene.add_child(bullet)
-		bullet.global_position = cur_pos + forward * 3.0
-		bullet.damage = 4.0
-		bullet.setup(self, aim_dir, 30.0)
+		bullet.global_position = cur_pos + forward * 3.5
+		bullet.damage = _get_mission_base_damage(cur_mission_id) * diff_mult
+		bullet.setup(self, aim_dir, 30.0, true)
+		
+		# Spatialized 3D cannon report
+		var shot_player = get_node_or_null("ShotAudio3D") as AudioStreamPlayer3D
+		if shot_player and shot_player.is_inside_tree():
+			shot_player.pitch_scale = randf_range(0.85, 1.15)
+			shot_player.play()
 
 func take_damage(amount: float) -> void:
 	if not is_alive:

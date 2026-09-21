@@ -91,6 +91,14 @@ func _process(delta: float) -> void:
 		sortie_elapsed_time += delta
 		_evaluate_continuous_objectives(delta)
 
+func reset_campaign_progress() -> void:
+	unlocked_missions = ["M01"]
+	completed_missions.clear()
+	current_mission_id = "M01"
+	is_sortie_active = false
+	campaign_updated.emit()
+	print(">>> [MissionManager] Campaign progress reset to Mission 1.")
+
 # -----------------------------------------------------------------------------
 # 1. Manifest Loading & Retrieval
 # -----------------------------------------------------------------------------
@@ -1124,6 +1132,17 @@ func queue_transmission(speaker_key: String, message_text: String, duration: flo
 		"audio_path": audio_path
 	}
 	comms_queue.append(item)
+
+func stop_all_comms() -> void:
+	comms_queue.clear()
+	current_transmission.clear()
+	transmission_timer = 0.0
+	comms_cooldown = 0.0
+	if comms_audio_player and comms_audio_player.playing:
+		comms_audio_player.stop()
+	if squelch_audio_player and squelch_audio_player.playing:
+		squelch_audio_player.stop()
+	radio_transmission_ended.emit()
 
 func _process_comms_queue(delta: float) -> void:
 	if transmission_timer > 0.0:

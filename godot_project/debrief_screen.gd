@@ -406,6 +406,8 @@ func _display_modal() -> void:
 
 func _on_scramble_next_pressed() -> void:
 	var mm = get_node_or_null("/root/MissionManager")
+	if mm and mm.has_method("stop_all_comms"):
+		mm.stop_all_comms()
 	get_tree().paused = false
 	
 	if next_mission_id.is_empty():
@@ -443,9 +445,15 @@ func _on_scramble_next_pressed() -> void:
 		get_tree().reload_current_scene()
 
 func _on_replay_pressed() -> void:
+	var mm = get_node_or_null("/root/MissionManager")
+	if mm and mm.has_method("stop_all_comms"):
+		mm.stop_all_comms()
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
 func _on_hangar_pressed() -> void:
+	var mm = get_node_or_null("/root/MissionManager")
+	if mm and mm.has_method("stop_all_comms"):
+		mm.stop_all_comms()
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://home_menu.tscn")
