@@ -66,7 +66,7 @@ func save_game(slot_name: String = DEFAULT_SLOT) -> bool:
 	
 	var save_data = {
 		"format_version": 1,
-		"game_version": ProjectSettings.get_setting("application/config/version", "0.7.0"),
+		"game_version": ProjectSettings.get_setting("application/config/version", "0.7.4"),
 		"timestamp": Time.get_datetime_string_from_system(true),
 		"display_date": Time.get_datetime_string_from_system(false, true).replace("T", " "),
 		"profile": {

@@ -430,7 +430,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.6, 0.75, 0.7)
 theme_override_font_sizes/font_size = 10
-text = "PROJECT VANGUARD v0.7.0
+text = "PROJECT VANGUARD v0.7.4
 SYSTEMS INITIALIZED // READY"
 
 [node name="TitleOverlay" type="Control" parent="UI"]

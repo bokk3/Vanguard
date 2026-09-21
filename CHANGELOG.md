@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.7.4] - 2026-09-21
+
+### Added
+- **Hostile Drone Weapons Fire & Combat Dynamics**:
+  - Enemy drones fire deliberate, sporadic crimson rounds (`Color(1.0, 0.2, 0.1)`) with dynamic omni-light illumination.
+  - Inaccuracy spread calibrated so shots realistically whiz past the cockpit ($0.14\text{ rad}$ on Cadet, $0.08\text{ rad}$ on Veteran, $0.035\text{ rad}$ on Ace).
+  - Progressive damage escalation across sorties ($3.0\text{ HP}$ in M01 up to $12.5\text{ HP}$ in M08) scaled by difficulty ($0.5\times$, $1.0\times$, $1.5\times$).
+  - Full player damage pipeline: shields absorb incoming fire first before hull bleed, accompanied by camera trauma shudder, controller rumble haptics, scrape SFX, and HUD tactical alerts.
+  - Spatialized 3D cannon audio on the `Weapons` bus.
+- **Cinematic Sortie Launch & Logo Fly-Through**:
+  - Smooth camera animation swooping through the Vanguard 3D logo into hyperspace cutscene.
+  - Seamless loop integration for menu music (`menu_soundscape.mp3`) with dynamic fade-out upon sortie departure.
+  - Mandatory prologue cutscene presentation when deploying M01.
+- **Settings Data & Storage Management**:
+  - Dedicated "Data & Storage" tab in the Settings interface.
+  - Factory reset functionality reverting controls, sensitivity, audio volumes, and display presets.
+  - Save purge utility clearing `user://saves/` and resetting campaign progress.
+- **Collision Physics & Flight Mechanics**:
+  - Catastrophic high-speed terrain/obstacle impacts vs glancing deflection scrapes.
+  - Tuned boss dogfight flight envelope and wingman maneuverability.
+
 ## [0.7.0] - 2026-09-20
 
 ### Added
