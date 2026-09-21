@@ -87,7 +87,11 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_process_comms_queue(delta)
 	
-	if is_sortie_active and not get_tree().paused:
+	var is_paused = false
+	if is_inside_tree() and get_tree():
+		is_paused = get_tree().paused
+	
+	if is_sortie_active and not is_paused:
 		sortie_elapsed_time += delta
 		_evaluate_continuous_objectives(delta)
 
@@ -1004,6 +1008,8 @@ func _set_objective_status(obj_id: String, status: String, cur: Variant = 0, tar
 				obj["current_val"] = cur
 				obj["target_val"] = target
 				objective_updated.emit(obj_id, status, obj["text"], cur, target)
+				if status == "COMPLETED":
+					_check_mission_completion()
 			break
 
 func _on_mission_target_destroyed(a = null, b = null, c = null) -> void:

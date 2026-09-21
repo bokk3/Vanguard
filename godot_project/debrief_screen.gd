@@ -108,6 +108,10 @@ func show_victory_debrief(stats: Dictionary) -> void:
 	_ensure_references()
 	is_victory = true
 	var mm = get_node_or_null("/root/MissionManager") if is_inside_tree() else null
+	if stats.has("mission_id") and not str(stats["mission_id"]).is_empty():
+		current_mission_id = str(stats["mission_id"])
+	elif mm and not mm.current_mission_id.is_empty():
+		current_mission_id = mm.current_mission_id
 	var mission_data = mm.get_mission(current_mission_id) if mm else {}
 	var codename = mission_data.get("codename", "CLOUDBURST")
 	

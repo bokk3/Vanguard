@@ -215,16 +215,47 @@ func setup(interlude_id: String) -> void:
 	_setup_actors()
 	_setup_ui()
 
+func _get_mission_manager() -> Node:
+	if is_inside_tree() and get_tree() and get_tree().root:
+		var mm = get_tree().root.get_node_or_null("MissionManager")
+		if mm:
+			return mm
+	if get_parent():
+		var mm = get_parent().get_node_or_null("MissionManager")
+		if mm:
+			return mm
+	var main_loop = Engine.get_main_loop() as SceneTree
+	if main_loop and main_loop.root:
+		var mm = main_loop.root.get_node_or_null("MissionManager")
+		if mm:
+			return mm
+	if is_inside_tree():
+		return get_node_or_null("/root/MissionManager")
+	return null
+
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	
 	# Determine active interlude from MissionManager
-	var mm = null
-	if is_inside_tree():
-		mm = get_node_or_null("/root/MissionManager")
+	var mm = _get_mission_manager()
 	# Immediately cut off any remaining mission comms to prevent overlapping speech
 	if mm and mm.has_method("stop_all_comms"):
 		mm.stop_all_comms()
+	
+	if mm and not mm.pending_interlude_id.is_empty() and INTERLUDES.has(mm.pending_interlude_id):
+		current_id = mm.pending_interlude_id
+	elif mm and not mm.current_mission_id.is_empty():
+		var mission_to_interlude = {
+			"M02": "INT_M01_M02",
+			"M03": "INT_M02_M03",
+			"M04": "INT_M03_M04",
+			"M05": "INT_M04_M05",
+			"M06": "INT_M05_M06",
+			"M07": "INT_M06_M07",
+			"M08": "INT_M07_M08"
+		}
+		if mission_to_interlude.has(mm.current_mission_id):
+			current_id = mission_to_interlude[mm.current_mission_id]
 	
 	setup(current_id)
 	_setup_cutscene_music()
@@ -635,7 +666,7 @@ func _finish_cutscene() -> void:
 
 func _transition_to_next() -> void:
 	var next_m = config.get("next_mission", "")
-	var mm = get_node_or_null("/root/MissionManager")
+	var mm = _get_mission_manager()
 	
 	if config.get("is_finale", false) or next_m.is_empty():
 		# Return to Hangar Menu after Chapter 1 Finale
