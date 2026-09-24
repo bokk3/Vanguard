@@ -94,7 +94,10 @@ func _handle_hit(collider: Object, hit_pos: Vector3, hit_normal: Vector3) -> voi
 		if not damage_receiver.has_method("take_damage") and damage_receiver.get_parent():
 			damage_receiver = damage_receiver.get_parent()
 		
-		if damage_receiver.has_method("take_damage"):
+		if damage_receiver.has_method("take_damage_from"):
+			damage_receiver.take_damage_from(damage, shooter)
+			_trigger_player_hitmarker()
+		elif damage_receiver.has_method("take_damage"):
 			damage_receiver.take_damage(damage)
 			_trigger_player_hitmarker()
 	
@@ -103,7 +106,10 @@ func _handle_hit(collider: Object, hit_pos: Vector3, hit_normal: Vector3) -> voi
 	queue_free()
 
 func _trigger_player_hitmarker() -> void:
-	if not shooter or (not shooter.is_in_group("player") and shooter.name != "Spaceship") or is_hostile:
+	if not shooter or is_hostile:
+		return
+	if shooter.has_method("trigger_hitmarker"):
+		shooter.trigger_hitmarker()
 		return
 	var hud = get_tree().current_scene.find_child("TacticalOverlay", true, false) if (is_inside_tree() and get_tree() and get_tree().current_scene) else null
 	if hud and hud.has_method("trigger_hitmarker"):

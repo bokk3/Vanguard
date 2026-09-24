@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.8.0] - 2026-09-24
+
+### Added
+- **Campaign Dynamic Drop-In Split-Screen Co-Op**:
+  - Single-player sorties begin in standard full-screen across all 8 campaign missions.
+  - Player 2 joins dynamically in real time upon verified secondary control keypress (action `P2_ACTIONS`, gamepad `device >= 1`, or secondary keyboard cluster `IJKL`, `Enter`, NumPad).
+  - Runtime `CoopSplitLayer` builds dual `SubViewport`s sharing the active campaign `World3D`, rendering all mission entities without physics or rendering desync.
+  - Wingman Vanguard-2 spawns in formation alongside Player 1 (`Vector3(22, 0, -6)` offset) with distinct Solar Amber / Gold wingman livery and matching thruster glow.
+  - Dynamic split layout toggle via <kbd>F2</kbd> (Horizontal Top/Bottom $\leftrightarrow$ Vertical Left/Right).
+  - Hostile combat drones and bosses dynamically calculate proximity across all active flight elements in group `"player"` and engage the closest target.
+  - 5-second wingman field respawn loop: destruction of a single aircraft initiates an emergency repair sequence near the surviving wingman; sortie terminates with `SORTIE_WIPED` only if both flight elements are lost.
+- **Local Split-Screen PvP Dogfight Arena**:
+  - Dedicated 1v1 canyon dogfight arena (`split_screen_arena.tscn`) with first-to-5 confirmed kills victory condition.
+  - Dual independent cameras and tactical HUD overlays (`TacticalOverlay`) bound to each respective fighter without viewport state bleeding.
+  - Mutual radar tracking and missile lock-on against opponent.
+  - Kill banners and score tracking.
+- **LAN Peer-to-Peer / Network Dogfight Arena**:
+  - High-performance ENet multiplayer architecture on UDP port 7779 with host listen server authority.
+  - Autonomous zero-configuration UDP discovery beacons on port 7778 for local server discovery.
+  - Snapshot synchronization and 20Hz linear interpolation smoothing remote craft movement.
+  - Synchronized RPC machine gun bursts, missile tracking, and damage events.
+- **PvP Matchmaking & Lobby Hub (`pvp_menu.tscn`)**:
+  - Dedicated PvP hub accessible from the Home Menu for hosting LAN servers, scanning local games, connecting directly via IP, or launching local split-screen arenas.
+- **Comprehensive Multiplayer Documentation**:
+  - Dedicated architecture and engineering manual: `docs/MULTIPLAYER_AND_COOP_SYSTEM.md`.
+  - Updated `docs/CONTROLS_AND_PHYSICS.md`, `docs/HUD_AND_COMBAT_SYSTEM.md`, `docs/FEATURE_LIST_AND_UE5_PORT_GUIDE.md`, and `README.md`.
+
 ## [0.7.4] - 2026-09-21
 
 ### Added

@@ -69,6 +69,28 @@ A comprehensive architectural inventory of all systems implemented in Project Va
 * **Semantic Versioning**:
   * Tracked centrally via root `VERSION` file, `project.godot`, and `CHANGELOG.md`.
 
+### 5. Multiplayer, Split-Screen & Networking Suite
+* **Campaign Drop-In Split-Screen Co-Op**:
+  * Single-player sorties start in full screen by default across all 8 campaign missions.
+  * Player 2 drops in dynamically upon verified secondary control keypress (action `P2_ACTIONS`, gamepad `device >= 1`, or secondary keyboard cluster `IJKL`, `Enter`, NumPad).
+  * Dual `SubViewport`s created on the fly sharing the active campaign `World3D`.
+  * Player 2 spawns in wingman formation with distinct Solar Amber / Gold wingman livery.
+  * Threat AI (drones and bosses) dynamically acquire and engage whichever active player is closest.
+  * 5-second wingman field respawn loop upon airframe destruction; sortie fails only if both flight elements are lost.
+* **Local Split-Screen PvP Dogfight Arena**:
+  * First-to-5 dogfight arena (`split_screen_arena.tscn`) in the canyon proving grounds.
+  * On-the-fly layout toggle via `F2` (Horizontal Top/Bottom $\leftrightarrow$ Vertical Left/Right).
+  * Dual independent cameras and tactical HUD overlays without cross-viewport state bleeding.
+  * Mutual radar acquisition and missile lock-on against opponent.
+* **LAN Peer-to-Peer / Network Dogfight Arena**:
+  * ENet multiplayer architecture on UDP port 7779.
+  * Background UDP discovery beacon broadcast on UDP port 7778 for zero-configuration local lobby discovery.
+  * Client snapshot interpolation (20Hz lerp smoothing position, rotation, and velocities).
+  * Synchronized RPC cannon bursts, missile tracking, and damage events.
+* **PvP Matchmaking & Lobby Hub (`pvp_menu.tscn`)**:
+  * Instant access from the Home Menu.
+  * Host LAN Server, Auto-Discover LAN Games, Direct IP Connect, and Local Split-Screen Arena buttons.
+
 ---
 
 ## Part 2: Unreal Engine 5 Porting Blueprint
@@ -219,7 +241,20 @@ Unreal's **Enhanced Input** maps directly to our Godot actions:
 
 ---
 
-### 6. Asset & Pipeline Readiness in User Space
+### 6. Multiplayer & Split-Screen Architecture in UE5
+* **Split-Screen Local Multiplayer**:
+  * Utilize `UGameplayStatics::CreatePlayer(GetWorld(), 1, true)` dynamically on secondary input.
+  * Adjust `UGameViewportClient::SetForceDisableSplitscreen()` and configure viewport orientation via `UGameViewportClient::SplitscreenInfo` (`ESplitScreenType::TwoPlayer_Horizontal` vs `ESplitScreenType::TwoPlayer_Vertical`).
+  * Each `APlayerController` binds to its own `UVanguardHUDWidget` with separate camera viewports and independent audio listeners.
+* **Network Replication & LAN Matchmaking**:
+  * Set `bReplicates = true` and `SetReplicateMovement(true)` on `AVanguardFighterPawn`.
+  * Weapon fire triggers reliable Server RPCs (`Server_FireGun()`, `Server_LaunchMissile()`).
+  * Continuous position/orientation synchronization handles smooth visual interpolation with `CharacterMovementComponent` or custom replication smoothing.
+  * LAN session discovery utilizes `OnlineSubsystem` with `bIsLANMatch = true` for broadcast beacons and server pinging.
+
+---
+
+### 7. Asset & Pipeline Readiness in User Space
 All prerequisites for a frictionless UE5 import are already prepared in this workspace:
 * **Game-Ready FBX**: [`Exports/Spaceship_Sculpted_V_Hull_game_ready.fbx`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/Exports/Spaceship_Sculpted_V_Hull_game_ready.fbx) contains clean Smart UVs and convex `UCX_` collision hulls recognized natively by Unreal Engine.
 * **PBR Textures**: Packed ORM (Ambient Occlusion, Roughness, Metallic) and DirectX Normal maps generated via [`tools/texture_processor.py`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/tools/texture_processor.py).

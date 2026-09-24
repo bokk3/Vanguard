@@ -1,0 +1,253 @@
+[gd_scene load_steps=18 format=3 uid="uid://d1pvplanarena"]
+
+[ext_resource type="Script" path="res://lan_arena.gd" id="1_lan"]
+[ext_resource type="Script" path="res://spaceship_controller.gd" id="2_ctrl"]
+[ext_resource type="PackedScene" uid="uid://c21sm6f7vcpq4" path="res://Spaceship_Sculpted_V_Hull.glb" id="3_ship"]
+[ext_resource type="Script" path="res://combat_telemetry.gd" id="4_telem"]
+[ext_resource type="Script" path="res://hud.gd" id="5_hud"]
+[ext_resource type="Material" uid="uid://terrain_ground_mat" path="res://shaders/terrain_ground_material.tres" id="6_terrain"]
+[ext_resource type="PackedScene" uid="uid://c7altitudepylon" path="res://altitude_marker_pylon.tscn" id="7_pylon"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_dusk"]
+sky_top_color = Color(0.18, 0.12, 0.32, 1)
+sky_horizon_color = Color(0.85, 0.45, 0.25, 1)
+ground_bottom_color = Color(0.12, 0.1, 0.15, 1)
+ground_horizon_color = Color(0.45, 0.3, 0.25, 1)
+sun_angle_max = 15.0
+
+[sub_resource type="Sky" id="Sky_dusk"]
+sky_material = SubResource("ProceduralSkyMaterial_dusk")
+
+[sub_resource type="Environment" id="Environment_dusk"]
+background_mode = 2
+sky = SubResource("Sky_dusk")
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 1.1
+glow_bloom = 0.18
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
+material = ExtResource("6_terrain")
+size = Vector2(8000, 8000)
+subdivide_width = 8
+subdivide_depth = 8
+
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_ground"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_BeaconGold"]
+albedo_color = Color(1, 0.85, 0, 1)
+emission_enabled = true
+emission = Color(1, 0.85, 0, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_beacon"]
+material = SubResource("Mat_BeaconGold")
+radius = 6.0
+height = 12.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ship"]
+size = Vector3(9.8, 2.7, 10.3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_banner"]
+bg_color = Color(0.04, 0.07, 0.11, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.85, 1, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.03, 0.05, 0.08, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.8, 0.1, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="LAMArena" type="Node3D"]
+script = ExtResource("1_lan")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_dusk")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 0, 120, 0)
+light_color = Color(1, 0.82, 0.7, 1)
+light_energy = 1.3
+shadow_enabled = true
+
+[node name="WorldContainer" type="Node3D" parent="."]
+
+[node name="Ground" type="MeshInstance3D" parent="WorldContainer"]
+mesh = SubResource("PlaneMesh_ground")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="WorldContainer/Ground"]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WorldContainer/Ground/StaticBody3D"]
+shape = SubResource("WorldBoundaryShape3D_ground")
+
+[node name="AltitudePylon1" parent="WorldContainer" instance=ExtResource("7_pylon")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -120, 0, -150)
+
+[node name="AltitudePylon2" parent="WorldContainer" instance=ExtResource("7_pylon")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 120, 0, 150)
+
+[node name="AltitudePylon3" parent="WorldContainer" instance=ExtResource("7_pylon")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -220, 0, 0)
+
+[node name="AltitudePylon4" parent="WorldContainer" instance=ExtResource("7_pylon")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 220, 0, 0)
+
+[node name="NavBeaconAlpha" type="MeshInstance3D" parent="WorldContainer" groups=["radar_targets"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -300, 110, -250)
+mesh = SubResource("SphereMesh_beacon")
+
+[node name="NavBeaconBeta" type="MeshInstance3D" parent="WorldContainer" groups=["radar_targets"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 300, 110, 250)
+mesh = SubResource("SphereMesh_beacon")
+
+[node name="SpaceshipP1" type="CharacterBody3D" parent="WorldContainer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 65, 350)
+collision_layer = 2
+collision_mask = 29
+script = ExtResource("2_ctrl")
+player_id = 1
+pvp_mode = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WorldContainer/SpaceshipP1"]
+shape = SubResource("BoxShape3D_ship")
+
+[node name="CombatTelemetry" type="Node" parent="WorldContainer/SpaceshipP1"]
+script = ExtResource("4_telem")
+
+[node name="Model" parent="WorldContainer/SpaceshipP1" instance=ExtResource("3_ship")]
+
+[node name="SpaceshipP2" type="CharacterBody3D" parent="WorldContainer"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 65, -350)
+collision_layer = 2
+collision_mask = 29
+script = ExtResource("2_ctrl")
+player_id = 2
+pvp_mode = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WorldContainer/SpaceshipP2"]
+shape = SubResource("BoxShape3D_ship")
+
+[node name="CombatTelemetry" type="Node" parent="WorldContainer/SpaceshipP2"]
+script = ExtResource("4_telem")
+
+[node name="Model" parent="WorldContainer/SpaceshipP2" instance=ExtResource("3_ship")]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 69, 364)
+fov = 75.0
+
+[node name="HUD" type="CanvasLayer" parent="."]
+
+[node name="TacticalOverlay" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5_hud")
+
+[node name="MatchOverlay" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="TopBanner" type="PanelContainer" parent="MatchOverlay"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -260.0
+offset_top = 14.0
+offset_right = 260.0
+offset_bottom = 74.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_banner")
+
+[node name="VBox" type="VBoxContainer" parent="MatchOverlay/TopBanner"]
+layout_mode = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="ScoreLabel" type="Label" parent="MatchOverlay/TopBanner/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
+theme_override_font_sizes/font_size = 20
+text = "P1 [ 0 ]  -  [ 0 ] P2"
+horizontal_alignment = 1
+
+[node name="MatchStatusLabel" type="Label" parent="MatchOverlay/TopBanner/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.85, 1, 0.85)
+theme_override_font_sizes/font_size = 11
+text = "LAN PEER DOGFIGHT // FIRST TO 5 KILLS"
+horizontal_alignment = 1
+
+[node name="VictoryModal" type="PanelContainer" parent="MatchOverlay"]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -140.0
+offset_right = 280.0
+offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="VBox" type="VBoxContainer" parent="MatchOverlay/VictoryModal"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="VictoryTitle" type="Label" parent="MatchOverlay/VictoryModal/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
+theme_override_font_sizes/font_size = 24
+text = "VICTORY: AIR SUPREMACY"
+horizontal_alignment = 1
+
+[node name="VictoryDetail" type="Label" parent="MatchOverlay/VictoryModal/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 0.9)
+theme_override_font_sizes/font_size = 13
+text = "FINAL SCORE: P1 [ 5 ] - [ 2 ] P2"
+horizontal_alignment = 1
+
+[node name="ButtonBox" type="HBoxContainer" parent="MatchOverlay/VictoryModal/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="RematchBtn" type="Button" parent="MatchOverlay/VictoryModal/VBox/ButtonBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 38)
+layout_mode = 2
+text = "[ REMATCH ]"
+
+[node name="ExitHangarBtn" type="Button" parent="MatchOverlay/VictoryModal/VBox/ButtonBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 38)
+layout_mode = 2
+text = "[ EXIT TO HANGAR ]"

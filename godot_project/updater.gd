@@ -14,7 +14,7 @@ const API_URL: String = "https://api.github.com/repos/" + REPO + "/releases/late
 const USER_AGENT: String = "ProjectVanguard-AutoUpdater"
 const STAGING_REL_DIR: String = "user://update_staging"
 
-var current_version: String = "0.7.4"
+var current_version: String = "0.8.0"
 var available_version: String = ""
 var changelog_text: String = ""
 var download_url: String = ""
@@ -29,7 +29,7 @@ var _http_download: HTTPRequest
 var _launcher_script_path: String = ""
 
 func _ready() -> void:
-	current_version = ProjectSettings.get_setting("application/config/version", "0.7.4")
+	current_version = ProjectSettings.get_setting("application/config/version", "0.8.0")
 	_setup_http_nodes()
 	_ensure_directories()
 	

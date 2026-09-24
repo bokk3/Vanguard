@@ -74,13 +74,59 @@ Project Vanguard implements **three-layer auto-detection** backed by physical ke
 | **Yaw / Rudder Left** | **`A`** | **`Q`** | Ring finger (Top row) |
 | **Yaw / Rudder Right** | **`E`** | **`E`** | Index finger (Top row) |
 | **Afterburner Boost** | **`SHIFT`** | **`SHIFT`** | Pinky |
+| **Fire Machine Gun** | **`SPACE`** / **Left Click** | **`SPACE`** / **Left Click** | Thumb / Right hand |
+| **Fire Guided Missile**| **`R`** / **Right Click** | **`R`** / **Right Click** | Index finger / Right hand |
 | **Pitch & Steering** | **Mouse** | **Mouse** | Right hand |
 | **Toggle Mouse Lock** | **`ESC`** | **`ESC`** | Left hand |
 | **Toggle AZERTY/QWERTY** | **`F1`** | **`F1`** | Function row |
+| **Toggle Split-Screen Layout** | **`F2`** | **`F2`** | Horizontal $\leftrightarrow$ Vertical |
 
 ---
 
-## 4. Camera Follow Mechanics
+## 4. Gamepad & Controller Architecture
+
+Project Vanguard supports native XInput, DirectInput, and DualSense controller profiles with calibrated deadzones, exponential stick sensitivity curves, and frequency-split haptic vibration:
+
+| Control | Xbox / Generic Controller | PlayStation DualSense | Function |
+| :--- | :--- | :--- | :--- |
+| **Pitch & Roll** | Left Thumbstick | Left Thumbstick | Flight surfaces (Pitch $\pm 45^\circ$, Roll $360^\circ$) |
+| **Yaw (Rudder)** | Right Thumbstick (X-axis) | Right Thumbstick (X-axis) | Coordinated rudder slip |
+| **Throttle Acceleration**| Right Trigger (`RT`) | Right Trigger (`R2`) | Progressive engine thrust ($0.0 \rightarrow 1.0$) |
+| **Airbrake / Deceleration**| Left Trigger (`LT`) | Left Trigger (`L2`) | Aerodynamic drag brakes |
+| **Afterburner Nitro** | Left Bumper (`LB`) or Click L3 | Left Bumper (`L1`) or Click L3 | High-energy boost ($120\text{ m/s}$) |
+| **Fire Machine Gun** | Right Bumper (`RB`) | Right Bumper (`R1`) | Dual rotary cannons ($600\text{ RPM}$) |
+| **Fire Strike Missile**| `A` Button | `Cross (X)` Button | Guided missile release from wing rack |
+| **Pause Sortie** | `Start` / `Menu` | `Options` | Tactical pause overlay |
+
+---
+
+## 5. Multiplayer & Split-Screen Input Routing
+
+When playing in **Local Split-Screen PvP** or **Campaign Drop-In Co-Op**, the engine separates Player 1 and Player 2 inputs across hardware devices:
+
+### Dual-Controller Setup (Recommended)
+- **Controller 1 (`device 0`)**: Automatically drives **Player 1** (Lead Flight Element).
+- **Controller 2 (`device 1`)**: Automatically drives **Player 2** (Wingman / Aggressor).
+
+### Single-Keyboard Split Setup
+When sharing a single keyboard without gamepads, Player 2 utilizes the secondary right-hand key cluster:
+
+| Flight Action | Player 1 (Left Hand) | Player 2 (Right Hand / NumPad) |
+| :--- | :--- | :--- |
+| **Pitch Up / Down** | `Mouse Y` or `W`/`S` | `NumPad 8` / `NumPad 2` or `I` / `K` |
+| **Roll Left / Right** | `A` / `D` (or `Q` / `D`) | `NumPad 4` / `NumPad 6` or `J` / `L` |
+| **Yaw Rudder** | `Q` / `E` (or `A` / `E`) | `U` / `O` |
+| **Throttle Up / Down** | `Z` / `S` (or `W` / `S`) | `Y` / `H` |
+| **Afterburner Nitro** | `Left Shift` | `N` or `NumPad 0` |
+| **Fire Machine Gun** | `Space` / `Left Click` | `Enter` / `NumPad Enter` or `M` |
+| **Launch Missile** | `R` / `Right Click` | `P` or `NumPad +` |
+
+### Campaign Dynamic Drop-In Join
+In the single-player campaign, pressing any secondary control key (`Enter`, `I`, `K`, `J`, `L`, or any button on Gamepad 2) immediately joins Player 2 as the wingman, partitioning the display into dual viewports sharing the simulation world.
+
+---
+
+## 6. Camera Follow Mechanics
 
 The 3rd-person chase camera uses target position interpolation:
 $$\vec{P}_{\text{target}} = \vec{P}_{\text{ship}} + (\hat{Z}_{\text{local}} \cdot D) + (\hat{Y}_{\text{local}} \cdot H)$$
@@ -88,3 +134,4 @@ Where $D = 14.0\text{ m}$ (distance) and $H = 4.0\text{ m}$ (height).
 
 * **Lag & Lead:** The camera smoothly tracks a look-at point $8.0\text{ m}$ ahead of the nose (`forward_dir * 8.0`), giving a dynamic feeling of speed during high-G turns.
 * **Bank Compensation:** When the ship rolls into a boisterous turn, the camera rolls subtly along the ship's local up vector (`global_transform.basis.y`).
+* **Multi-Viewport Independent Cams:** In split-screen mode, `CameraP1` and `CameraP2` are isolated in independent `SubViewport` nodes, each dynamically chasing its respective aircraft without cross-camera jitter or transform bleeding.

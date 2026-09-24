@@ -7,7 +7,7 @@ config_version=5
 [application]
 
 config/name="Project Vanguard"
-config/version="0.7.4"
+config/version="0.8.0"
 run/main_scene="res://home_menu.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 
@@ -17,6 +17,7 @@ Updater="*res://updater.gd"
 ConfigManager="*res://config_manager.gd"
 SaveManager="*res://save_manager.gd"
 MissionManager="*res://mission_manager.gd"
+NetworkManager="*res://network_manager.gd"
 
 [dotnet]
 

@@ -12,6 +12,7 @@ extends Node3D
 @onready var continue_btn: Button = %ContinueBtn
 @onready var deploy_btn: Button = %DeployBtn
 @onready var prologue_btn: Button = %PrologueBtn
+@onready var pvp_btn: Button = %PvPBtn
 @onready var config_btn: Button = %ConfigBtn
 @onready var specs_btn: Button = %SpecsBtn
 @onready var quit_btn: Button = %QuitBtn
@@ -42,7 +43,7 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	
 	# Dynamic version string from project settings
-	var ver = ProjectSettings.get_setting("application/config/version", "0.5.0")
+	var ver = ProjectSettings.get_setting("application/config/version", "0.8.0")
 	if footer_label:
 		footer_label.text = "PROJECT VANGUARD v%s\nSYSTEMS INITIALIZED // READY" % ver
 	
@@ -53,6 +54,8 @@ func _ready() -> void:
 		deploy_btn.pressed.connect(_on_deploy_pressed)
 	if prologue_btn and not prologue_btn.pressed.is_connected(_on_prologue_pressed):
 		prologue_btn.pressed.connect(_on_prologue_pressed)
+	if pvp_btn and not pvp_btn.pressed.is_connected(_on_pvp_pressed):
+		pvp_btn.pressed.connect(_on_pvp_pressed)
 	if not config_btn.pressed.is_connected(_on_config_pressed):
 		config_btn.pressed.connect(_on_config_pressed)
 	if not specs_btn.pressed.is_connected(_on_specs_pressed):
@@ -233,6 +236,9 @@ func _on_prologue_pressed() -> void:
 		mm.is_prologue_preview_only = true
 	_launch_game_animation("M01", false)
 
+func _on_pvp_pressed() -> void:
+	get_tree().change_scene_to_file("res://pvp_menu.tscn")
+
 func _launch_game_animation(mission_id: String, is_resume: bool) -> void:
 	if is_launching:
 		return
@@ -243,6 +249,8 @@ func _launch_game_animation(mission_id: String, is_resume: bool) -> void:
 	deploy_btn.disabled = true
 	if prologue_btn:
 		prologue_btn.disabled = true
+	if pvp_btn:
+		pvp_btn.disabled = true
 	config_btn.disabled = true
 	specs_btn.disabled = true
 	quit_btn.disabled = true

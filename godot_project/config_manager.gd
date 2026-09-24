@@ -38,6 +38,21 @@ const ACTIONS = [
 	"toggle_radar"
 ]
 
+const P2_ACTIONS = [
+	"p2_throttle_up",
+	"p2_throttle_down",
+	"p2_yaw_left",
+	"p2_yaw_right",
+	"p2_roll_left",
+	"p2_roll_right",
+	"p2_pitch_up",
+	"p2_pitch_down",
+	"p2_boost",
+	"p2_fire_gun",
+	"p2_fire_missile",
+	"p2_toggle_radar"
+]
+
 const ACTION_LABELS = {
 	"throttle_up": "Throttle Forward",
 	"throttle_down": "Brake / Reverse",
@@ -199,6 +214,7 @@ func apply_input_mappings() -> void:
 		_apply_joypad_mappings_for_action(action)
 	
 	_apply_ui_joypad_mappings()
+	_apply_p2_input_mappings()
 
 func _apply_joypad_mappings_for_action(action: String) -> void:
 	match action:
@@ -340,6 +356,80 @@ func _apply_ui_joypad_mappings() -> void:
 			var ev_b = InputEventJoypadButton.new()
 			ev_b.button_index = JOY_BUTTON_B
 			InputMap.action_add_event("ui_cancel", ev_b)
+
+func _apply_p2_input_mappings() -> void:
+	for action in P2_ACTIONS:
+		if not InputMap.has_action(action):
+			InputMap.add_action(action)
+		else:
+			InputMap.action_erase_events(action)
+	
+	# Default Player 2 Keyboard Bindings (IJKL cluster + NumPad)
+	var p2_keys = {
+		"p2_throttle_up": [KEY_Y, KEY_KP_8],
+		"p2_throttle_down": [KEY_H, KEY_KP_5],
+		"p2_pitch_up": [KEY_K, KEY_KP_2],
+		"p2_pitch_down": [KEY_I],
+		"p2_roll_left": [KEY_J, KEY_KP_4],
+		"p2_roll_right": [KEY_L, KEY_KP_6],
+		"p2_yaw_left": [KEY_U, KEY_KP_7],
+		"p2_yaw_right": [KEY_O, KEY_KP_9],
+		"p2_boost": [KEY_N, KEY_KP_0],
+		"p2_fire_gun": [KEY_ENTER, KEY_KP_ENTER],
+		"p2_fire_missile": [KEY_M, KEY_KP_PERIOD],
+		"p2_toggle_radar": [KEY_P]
+	}
+	
+	for act in p2_keys:
+		for k in p2_keys[act]:
+			var ev = InputEventKey.new()
+			ev.keycode = k
+			InputMap.action_add_event(act, ev)
+	
+	# Default Gamepad Mappings for Player 2 (Joypad device 1, with device 0 fallback when P1 is on keyboard)
+	_apply_p2_joypad_mappings()
+
+func _apply_p2_joypad_mappings() -> void:
+	# Bind Gamepad actions for device 1 (Second Controller)
+	var joy_axes = {
+		"p2_throttle_up": [JOY_AXIS_TRIGGER_RIGHT, 1.0],
+		"p2_throttle_down": [JOY_AXIS_TRIGGER_LEFT, 1.0],
+		"p2_pitch_up": [JOY_AXIS_LEFT_Y, 1.0],
+		"p2_pitch_down": [JOY_AXIS_LEFT_Y, -1.0],
+		"p2_roll_left": [JOY_AXIS_LEFT_X, -1.0],
+		"p2_roll_right": [JOY_AXIS_LEFT_X, 1.0],
+		"p2_yaw_left": [JOY_AXIS_RIGHT_X, -1.0],
+		"p2_yaw_right": [JOY_AXIS_RIGHT_X, 1.0]
+	}
+	
+	for act in joy_axes:
+		var cfg = joy_axes[act]
+		# Device 1
+		var m1 = InputEventJoypadMotion.new()
+		m1.device = 1
+		m1.axis = cfg[0]
+		m1.axis_value = cfg[1]
+		InputMap.action_add_event(act, m1)
+	
+	var joy_buttons = {
+		"p2_throttle_up": [JOY_BUTTON_DPAD_UP],
+		"p2_throttle_down": [JOY_BUTTON_DPAD_DOWN],
+		"p2_pitch_up": [JOY_BUTTON_DPAD_DOWN],
+		"p2_pitch_down": [JOY_BUTTON_DPAD_UP],
+		"p2_yaw_left": [JOY_BUTTON_LEFT_SHOULDER],
+		"p2_yaw_right": [JOY_BUTTON_RIGHT_SHOULDER],
+		"p2_boost": [JOY_BUTTON_LEFT_STICK, JOY_BUTTON_Y],
+		"p2_fire_gun": [JOY_BUTTON_A, JOY_BUTTON_RIGHT_STICK],
+		"p2_fire_missile": [JOY_BUTTON_B],
+		"p2_toggle_radar": [JOY_BUTTON_X]
+	}
+	
+	for act in joy_buttons:
+		for btn in joy_buttons[act]:
+			var b1 = InputEventJoypadButton.new()
+			b1.device = 1
+			b1.button_index = btn
+			InputMap.action_add_event(act, b1)
 
 func play_rumble(weak: float, strong: float, duration: float, device: int = 0) -> void:
 	if enable_rumble and Input.get_connected_joypads().size() > 0:

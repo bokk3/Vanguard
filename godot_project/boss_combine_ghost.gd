@@ -84,9 +84,18 @@ func _setup_materials() -> void:
 
 func _acquire_player() -> void:
 	if is_inside_tree() and get_tree():
-		var candidate = get_tree().get_first_node_in_group("player")
-		if candidate and candidate is Node3D:
-			target_player = candidate
+		var players = get_tree().get_nodes_in_group("player")
+		var closest: Node3D = null
+		var min_d = INF
+		var my_pos = global_position
+		for p in players:
+			if is_instance_valid(p) and p is Node3D and not p.get("is_airframe_destroyed"):
+				var d = my_pos.distance_squared_to(p.global_position)
+				if d < min_d:
+					min_d = d
+					closest = p
+		if closest:
+			target_player = closest
 			return
 		var scene = get_tree().current_scene
 		if scene:

@@ -1,0 +1,293 @@
+[gd_scene load_steps=5 format=3 uid="uid://c8pvpmenu"]
+
+[ext_resource type="Script" path="res://pvp_menu.gd" id="1_pvp"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.02, 0.04, 0.07, 0.96)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+bg_color = Color(0.04, 0.08, 0.13, 0.75)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.85, 1, 0.6)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.02, 0.05, 0.09, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.8, 0.1, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="PvPMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_pvp")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="MainLayout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 60.0
+offset_top = 40.0
+offset_right = -60.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 24
+
+[node name="HeaderBox" type="HBoxContainer" parent="MainLayout"]
+layout_mode = 2
+
+[node name="TitleBox" type="VBoxContainer" parent="MainLayout/HeaderBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TitleLabel" type="Label" parent="MainLayout/HeaderBox/TitleBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.88, 1, 1)
+theme_override_font_sizes/font_size = 28
+text = "PROJECT VANGUARD // DOGFIGHT ARENA (PVP)"
+
+[node name="SubtitleLabel" type="Label" parent="MainLayout/HeaderBox/TitleBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.88, 0.95, 0.75)
+theme_override_font_sizes/font_size = 13
+text = "TACTICAL 1v1 AIR COMBAT // LOCAL SPLIT-SCREEN & LAN AUTO-DISCOVERY"
+
+[node name="BackBtn" type="Button" parent="MainLayout/HeaderBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+text = "[ RETURN TO HANGAR ]"
+
+[node name="StatusLabel" type="Label" parent="MainLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "// READY // SELECT COMBAT SORTIE MODE //"
+
+[node name="Columns" type="HBoxContainer" parent="MainLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 28
+
+[node name="SplitScreenCard" type="PanelContainer" parent="MainLayout/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Margin" type="MarginContainer" parent="MainLayout/Columns/SplitScreenCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="MainLayout/Columns/SplitScreenCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="CardTitle" type="Label" parent="MainLayout/Columns/SplitScreenCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
+theme_override_font_sizes/font_size = 20
+text = "[ 01 ] LOCAL SPLIT-SCREEN"
+
+[node name="DescLabel" type="Label" parent="MainLayout/Columns/SplitScreenCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.88, 0.95, 0.85)
+theme_override_font_sizes/font_size = 13
+text = "Engage in dual-cockpit dogfight on a single screen with shared physics and independent avionics HUDs. First to 5 kills wins."
+autowrap_mode = 2
+
+[node name="ControlsInfo" type="Label" parent="MainLayout/Columns/SplitScreenCard/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.65, 0.78, 0.88, 0.75)
+theme_override_font_sizes/font_size = 12
+text = "PILOT CONTROLS & AVIONICS:
+• Player 1 (Cobalt): WASD / Arrows / Mouse or Gamepad 1
+• Player 2 (Aggressor): IJKL / NumPad or Gamepad 2
+• Layout Toggle: Press [F2] in-game to switch Horizontal (Top/Bottom) vs Vertical (Left/Right) split on the fly
+• Combat: Mutual radar acquisition, machine gun bursts, and guided missile lock-ons"
+autowrap_mode = 2
+
+[node name="SplitScreenBtn" type="Button" parent="MainLayout/Columns/SplitScreenCard/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "[ LAUNCH LOCAL SPLIT-SCREEN ARENA ]"
+
+[node name="LanCard" type="PanelContainer" parent="MainLayout/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Margin" type="MarginContainer" parent="MainLayout/Columns/LanCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="CardTitle" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "[ 02 ] LOCAL NETWORK (LAN PEER MATCHING)"
+
+[node name="HostSection" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HostInputs" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/HostSection"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ServerNameInput" type="LineEdit" parent="MainLayout/Columns/LanCard/Margin/VBox/HostSection/HostInputs"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Server / Lobby Name"
+text = "VANGUARD LOBBY"
+
+[node name="CallsignInput" type="LineEdit" parent="MainLayout/Columns/LanCard/Margin/VBox/HostSection/HostInputs"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Host Callsign"
+text = "Vanguard-1"
+
+[node name="HostBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/HostSection/HostInputs"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 34)
+layout_mode = 2
+text = "[ HOST LAN SERVER ]"
+
+[node name="HSeparator" type="HSeparator" parent="MainLayout/Columns/LanCard/Margin/VBox"]
+layout_mode = 2
+
+[node name="LobbiesHeader" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox"]
+layout_mode = 2
+
+[node name="LobbiesTitle" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/LobbiesHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
+theme_override_font_sizes/font_size = 14
+text = "DISCOVERED LAN SERVERS (PORT 7778):"
+
+[node name="RefreshLanBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/LobbiesHeader"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 26)
+layout_mode = 2
+text = "[ REFRESH ]"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MainLayout/Columns/LanCard/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ServerListContainer" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="NoServersLabel" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/ScrollContainer/ServerListContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.65, 0.75, 0.6)
+theme_override_font_sizes/font_size = 12
+text = "No active LAN beacons detected. Ensure host has launched server on local subnet."
+
+[node name="DirectConnectBox" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="DirectIpInput" type="LineEdit" parent="MainLayout/Columns/LanCard/Margin/VBox/DirectConnectBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Direct IP Address (e.g. 192.168.1.50 or 127.0.0.1:7777)"
+text = "127.0.0.1"
+
+[node name="DirectConnectBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/DirectConnectBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 34)
+layout_mode = 2
+text = "[ DIRECT CONNECT ]"
+
+[node name="HostWaitingModal" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -110.0
+offset_right = 260.0
+offset_bottom = 110.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="VBox" type="VBoxContainer" parent="HostWaitingModal"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="ModalTitle" type="Label" parent="HostWaitingModal/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
+theme_override_font_sizes/font_size = 20
+text = "LISTEN SERVER BROADCASTING"
+horizontal_alignment = 1
+
+[node name="WaitingLabel" type="Label" parent="HostWaitingModal/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 0.85)
+theme_override_font_sizes/font_size = 13
+text = "WAITING FOR OPPONENT TO CONNECT..."
+horizontal_alignment = 1
+
+[node name="CancelHostBtn" type="Button" parent="HostWaitingModal/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "[ CANCEL SERVER ]"

@@ -382,6 +382,19 @@ icon = ExtResource("5_icon_deploy")
 alignment = 0
 expand_icon = true
 
+[node name="PvPBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "  [ 03 ]  DOGFIGHT ARENA (PVP)"
+icon = ExtResource("5_icon_deploy")
+alignment = 0
+expand_icon = true
+
 [node name="ConfigBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 42)
@@ -390,7 +403,7 @@ theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 14
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  [ 03 ]  AVIONICS CONFIG"
+text = "  [ 04 ]  AVIONICS CONFIG"
 icon = ExtResource("6_icon_config")
 alignment = 0
 expand_icon = true
@@ -403,7 +416,7 @@ theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 14
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  [ 04 ]  FIGHTER SPECS"
+text = "  [ 05 ]  FIGHTER SPECS"
 icon = ExtResource("7_icon_specs")
 alignment = 0
 expand_icon = true
@@ -416,7 +429,7 @@ theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 14
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  [ 05 ]  ABORT / QUIT"
+text = "  [ 06 ]  ABORT / QUIT"
 icon = ExtResource("8_icon_quit")
 alignment = 0
 expand_icon = true
@@ -430,7 +443,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.6, 0.75, 0.7)
 theme_override_font_sizes/font_size = 10
-text = "PROJECT VANGUARD v0.7.4
+text = "PROJECT VANGUARD v0.8.0
 SYSTEMS INITIALIZED // READY"
 
 [node name="TitleOverlay" type="Control" parent="UI"]

@@ -44,16 +44,29 @@ var lock_chirp_timer: float = 0.0
 var shield_alarm_player: AudioStreamPlayer = null
 var shield_alarm_cooldown: float = 0.0
 
+@export var player_id: int = 1
+
+func bind_to_ship(ship_node: CharacterBody3D, camera_node: Camera3D, p_id: int = 1) -> void:
+	ship = ship_node
+	camera = camera_node
+	player_id = p_id
+	if ship:
+		ship.set("custom_hud", self)
+		telemetry = ship.get_node_or_null("CombatTelemetry")
+		if telemetry and not telemetry.lock_state_changed.is_connected(_on_lock_state_changed):
+			telemetry.lock_state_changed.connect(_on_lock_state_changed)
+
 func _ready() -> void:
 	var cfg = get_node_or_null("/root/ConfigManager")
 	if cfg:
 		show_circular_radar = cfg.radar_circular_default
 		cfg.settings_changed.connect(func(): show_circular_radar = cfg.radar_circular_default)
-	if get_tree() and get_tree().current_scene:
+	if not ship and get_tree() and get_tree().current_scene:
 		var root = get_tree().current_scene
 		ship = root.get_node_or_null("Spaceship") as CharacterBody3D
 		camera = root.get_node_or_null("Camera3D") as Camera3D
 	if ship:
+		ship.set("custom_hud", self)
 		telemetry = ship.get_node_or_null("CombatTelemetry")
 	
 	# Setup High-G Cockpit Audio
@@ -123,7 +136,8 @@ func notify_combat_event(text: String, col: Color = COLOR_CYAN) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	# Toggle circular radar via customizable action
-	if event.is_action_pressed("toggle_radar"):
+	var radar_action = "p2_toggle_radar" if player_id == 2 else "toggle_radar"
+	if event.is_action_pressed(radar_action):
 		show_circular_radar = not show_circular_radar
 		queue_redraw()
 
@@ -538,7 +552,13 @@ func _draw_target_tracking(vp: Vector2, center: Vector2) -> void:
 			var is_relay = false
 			var is_boss = false
 			if is_instance_valid(target_node):
-				if "callsign_name" in target_node:
+				if target_node.is_in_group("player") and target_node != ship:
+					var p_idx = target_node.get("player_id")
+					if p_idx != null:
+						display_name = "HOSTILE // PLAYER %d" % int(p_idx)
+					else:
+						display_name = "HOSTILE // VANGUARD"
+				elif "callsign_name" in target_node:
 					display_name = target_node.callsign_name
 				elif target_node.name.begins_with("Boss") or "hull" in target_node:
 					display_name = "ACE COMBINE GHOST"

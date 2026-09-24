@@ -83,12 +83,19 @@ func detonate(hit_object: Node) -> void:
 		if not candidate.has_method("take_damage") and candidate.get_parent():
 			candidate = candidate.get_parent()
 		
-		if candidate.has_method("take_damage"):
+		if candidate.has_method("take_damage_from"):
+			candidate.take_damage_from(damage, shooter)
+			print(">>> MISSILE IMPACT: Dealt ", damage, " HP to ", candidate.name)
+		elif candidate.has_method("take_damage"):
 			candidate.take_damage(damage)
 			print(">>> MISSILE IMPACT: Dealt ", damage, " HP to ", candidate.name)
-			var mm = get_node_or_null("/root/MissionManager")
-			if mm and mm.has_method("record_hit"):
-				mm.record_hit(true)
+		
+		if shooter and shooter.has_method("trigger_hitmarker"):
+			shooter.trigger_hitmarker()
+			
+		var mm = get_node_or_null("/root/MissionManager")
+		if mm and mm.has_method("record_hit"):
+			mm.record_hit(true)
 	
 	# Spawn explosion FX into root
 	if explosion_scene:

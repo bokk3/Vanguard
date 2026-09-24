@@ -1,6 +1,14 @@
 extends CharacterBody3D
 
 signal layout_changed(is_azerty: bool)
+signal pvp_destroyed(killer_node: Node)
+
+@export_group("Multiplayer & PvP")
+@export var player_id: int = 1               ## 1 = Player 1, 2 = Player 2
+@export var is_split_screen: bool = false    ## Local split-screen active
+@export var is_network_remote: bool = false  ## Controlled by remote network peer
+@export var pvp_mode: bool = false           ## PvP dogfight active
+@export var custom_camera: Camera3D = null   ## Overrides default Camera3D
 
 @export_group("Flight Dynamics")
 @export var cruise_speed: float = 60.0        ## Normal cruising speed in m/s (~216 km/h)
@@ -31,6 +39,14 @@ signal layout_changed(is_azerty: bool)
 var current_speed: float = 60.0
 var mouse_input: Vector2 = Vector2.ZERO
 var downward_velocity: float = 0.0
+var custom_hud: Control = null
+
+# Network Replication State
+var net_target_pos: Vector3 = Vector3.ZERO
+var net_target_rot: Vector3 = Vector3.ZERO
+var net_target_vel: Vector3 = Vector3.ZERO
+var net_target_speed: float = 60.0
+var net_target_boost: bool = false
 
 @export_group("Collision & Damage")
 @export var terrain_floor_y: float = 0.0 ## Lowest ground elevation (fail-safe clamped)
@@ -73,21 +89,76 @@ const GUN_MUZZLE_OFFSETS: Array[Vector3] = [
 @onready var camera: Camera3D = get_node_or_null("../Camera3D")
 @onready var telemetry: Node = $CombatTelemetry
 
+func _get_action(base_action: String) -> String:
+	if is_split_screen and player_id == 2:
+		var p2_act = "p2_" + base_action
+		if InputMap.has_action(p2_act):
+			return p2_act
+	return base_action
+
+func _apply_p2_visuals() -> void:
+	var model_node = get_node_or_null("Model")
+	if model_node:
+		var accent_mat = StandardMaterial3D.new()
+		if pvp_mode:
+			accent_mat.albedo_color = Color(0.85, 0.16, 0.12, 1.0)
+			accent_mat.metallic = 0.8
+			accent_mat.roughness = 0.3
+			accent_mat.emission_enabled = true
+			accent_mat.emission = Color(0.95, 0.22, 0.08)
+			accent_mat.emission_energy_multiplier = 1.0
+		else:
+			accent_mat.albedo_color = Color(0.95, 0.72, 0.15, 1.0)
+			accent_mat.metallic = 0.85
+			accent_mat.roughness = 0.28
+			accent_mat.emission_enabled = true
+			accent_mat.emission = Color(1.0, 0.78, 0.2)
+			accent_mat.emission_energy_multiplier = 1.2
+			
+		for child in model_node.find_children("*", "MeshInstance3D", true, false):
+			var m = child as MeshInstance3D
+			if m and m.mesh:
+				m.material_override = accent_mat
+	
+	var glow_light = OmniLight3D.new()
+	glow_light.name = "WingmanGlow"
+	glow_light.light_color = Color(1.0, 0.22, 0.1) if pvp_mode else Color(1.0, 0.8, 0.2)
+	glow_light.light_energy = 3.5
+	glow_light.omni_range = 10.0
+	glow_light.position = Vector3(0, 0.2, 0)
+	add_child(glow_light)
+
 func _ready() -> void:
 	if not telemetry and has_node("CombatTelemetry"):
 		telemetry = $CombatTelemetry
 	add_to_group("player")
+	if pvp_mode:
+		add_to_group("radar_targets")
+		add_to_group("enemies")
+	
+	if custom_camera:
+		camera = custom_camera
+	elif not camera and has_node("../Camera3D"):
+		camera = get_node("../Camera3D")
+	
+	if player_id == 2:
+		_apply_p2_visuals()
+		
 	current_speed = cruise_speed
 	downward_velocity = 0.0
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	var cfg = get_node_or_null("/root/ConfigManager")
-	if cfg:
-		cfg.settings_changed.connect(_on_settings_changed)
-		_apply_config(cfg)
-	else:
-		detect_keyboard_layout()
-	print(">>> Project Vanguard Flight Controller Active!")
-	print("Auto-detected Keyboard Layout: %s (Press F1 in-game to toggle)" % ("AZERTY" if is_azerty else "QWERTY"))
+	if not is_split_screen and not is_network_remote:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	
+	if not is_split_screen or player_id == 1:
+		var cfg = get_node_or_null("/root/ConfigManager")
+		if cfg:
+			cfg.settings_changed.connect(_on_settings_changed)
+			_apply_config(cfg)
+		else:
+			detect_keyboard_layout()
+	print(">>> Project Vanguard Flight Controller Active (Player %d)!" % player_id)
+	if player_id == 1:
+		print("Auto-detected Keyboard Layout: %s (Press F1 in-game to toggle)" % ("AZERTY" if is_azerty else "QWERTY"))
 	
 	_setup_weapon_hardpoints()
 	_setup_machine_gun()
@@ -172,19 +243,20 @@ func detect_keyboard_layout() -> void:
 	is_azerty = false
 
 func _unhandled_input(event: InputEvent) -> void:
-	if is_airframe_destroyed:
+	if is_airframe_destroyed or is_network_remote:
 		return
 		
-	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+	if player_id == 1 and not is_network_remote and event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		mouse_input = event.relative
 	
 	if event is InputEventKey and event.pressed and event.keycode == KEY_F1:
-		is_azerty = not is_azerty
-		var cfg = get_node_or_null("/root/ConfigManager")
-		if cfg:
-			cfg.reset_keybindings_preset(is_azerty)
-		layout_changed.emit(is_azerty)
-		print("Keyboard layout switched to: ", "AZERTY" if is_azerty else "QWERTY")
+		if not is_split_screen or player_id == 1:
+			is_azerty = not is_azerty
+			var cfg = get_node_or_null("/root/ConfigManager")
+			if cfg:
+				cfg.reset_keybindings_preset(is_azerty)
+			layout_changed.emit(is_azerty)
+			print("Keyboard layout switched to: ", "AZERTY" if is_azerty else "QWERTY")
 	
 	var is_pause_key = event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE
 	var is_pause_pad = event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_START
@@ -206,9 +278,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			telemetry.apply_damage(25.0)
 			print("Simulated Hull/Shield hit: -25 HP")
 
-	# Fire Missile: Action fire_missile
-	if event.is_action_pressed("fire_missile"):
+	# Fire Missile: Action fire_missile / p2_fire_missile
+	if event.is_action_pressed(_get_action("fire_missile")):
 		_fire_missile()
+		if is_inside_tree() and multiplayer and multiplayer.has_multiplayer_peer() and not is_network_remote:
+			rpc("rpc_fire_missile_net")
 
 func _physics_process(delta: float) -> void:
 	if is_airframe_destroyed:
@@ -220,13 +294,19 @@ func _physics_process(delta: float) -> void:
 	if camera_shake_trauma > 0.0:
 		camera_shake_trauma = max(0.0, camera_shake_trauma - delta * 2.2)
 
+	if is_network_remote:
+		_process_network_sync(delta)
+		_process_camera_follow(delta)
+		_process_machine_gun(delta)
+		return
+
 	# ----------------------------------------------------
 	# 1. Action-Based Throttle & Speed Management
 	# ----------------------------------------------------
-	var throttle_up = Input.is_action_pressed("throttle_up")
-	var throttle_down = Input.is_action_pressed("throttle_down")
+	var throttle_up = Input.is_action_pressed(_get_action("throttle_up"))
+	var throttle_down = Input.is_action_pressed(_get_action("throttle_down"))
 
-	var wants_boost = Input.is_action_pressed("boost")
+	var wants_boost = Input.is_action_pressed(_get_action("boost"))
 	var can_boost = false
 	if wants_boost and telemetry:
 		can_boost = telemetry.request_afterburner(delta)
@@ -260,15 +340,15 @@ func _physics_process(delta: float) -> void:
 	# ----------------------------------------------------
 	# 2. Rotational Steering (Pitch, Roll, Yaw)
 	# ----------------------------------------------------
-	# A/D or Q/D roll, Left/Right arrow yaw, Up/Down arrow pitch
-	var r_input: float = Input.get_axis("roll_left", "roll_right")
-	var y_input: float = Input.get_axis("yaw_right", "yaw_left")
-	var p_input: float = Input.get_axis("pitch_down", "pitch_up")
+	var r_input: float = Input.get_axis(_get_action("roll_left"), _get_action("roll_right"))
+	var y_input: float = Input.get_axis(_get_action("yaw_right"), _get_action("yaw_left"))
+	var p_input: float = Input.get_axis(_get_action("pitch_down"), _get_action("pitch_up"))
 
-	var cfg = get_tree().root.get_node_or_null("ConfigManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
-	var pitch_invert = -1.0 if (cfg and cfg.invert_pitch) else 1.0
-	p_input += mouse_input.y * mouse_sensitivity * 25.0 * pitch_invert
-	y_input += -mouse_input.x * mouse_sensitivity * 18.0
+	if player_id == 1 and not is_network_remote:
+		var cfg = get_tree().root.get_node_or_null("ConfigManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
+		var pitch_invert = -1.0 if (cfg and cfg.invert_pitch) else 1.0
+		p_input += mouse_input.y * mouse_sensitivity * 25.0 * pitch_invert
+		y_input += -mouse_input.x * mouse_sensitivity * 18.0
 	mouse_input = Vector2.ZERO
 
 	rotate_object_local(Vector3.RIGHT, p_input * pitch_rate * delta)
@@ -285,14 +365,11 @@ func _physics_process(delta: float) -> void:
 	if enable_gravity:
 		var lift_ratio = clamp(current_speed / max(1.0, stall_speed), 0.0, 1.0)
 		if lift_ratio < 1.0:
-			# Stalling: loss of airflow causes sink rate to build up
 			var uncompensated_gravity = (1.0 - lift_ratio) * gravity
 			downward_velocity += uncompensated_gravity * delta
 		else:
-			# Adequate airspeed: aerodynamic lift cancels gravity and rapidly arrests sink rate
 			downward_velocity = move_toward(downward_velocity, 0.0, 45.0 * delta)
 		
-		# Pulling nose up with positive airspeed assists recovery even faster
 		if forward_dir.y > 0.05 and current_speed > stall_speed:
 			downward_velocity = move_toward(downward_velocity, 0.0, 75.0 * delta)
 		
@@ -310,9 +387,36 @@ func _physics_process(delta: float) -> void:
 	_process_flight_collisions(delta)
 
 	# ----------------------------------------------------
-	# 5. Smooth 3rd Person Chase Camera (with Collision Trauma Shake)
+	# 5. Smooth 3rd Person Chase Camera
 	# ----------------------------------------------------
-	if camera and is_inside_tree() and camera.is_inside_tree():
+	_process_camera_follow(delta)
+
+	# ----------------------------------------------------
+	# 6. Beacon Proximity Resupply
+	# ----------------------------------------------------
+	if telemetry and telemetry.missiles_remaining < telemetry.max_missiles:
+		var beacon = get_tree().current_scene.find_child("NavBeaconAlpha", true, false) if get_tree().current_scene else null
+		if beacon and global_position.distance_to(beacon.global_position) < 75.0:
+			telemetry.refill_all_missiles()
+			var hud = custom_hud if custom_hud else get_node_or_null("../HUD/TacticalOverlay")
+			if hud and hud.has_method("notify_combat_event"):
+				hud.notify_combat_event("// NAV BEACON RESUPPLY // ALL ORDNANCE RESTOCKED //", Color(1.0, 0.84, 0.0))
+
+	# ----------------------------------------------------
+	# 7. Rotary Machine Gun (BRRR) Processing
+	# ----------------------------------------------------
+	_process_machine_gun(delta)
+
+	# ----------------------------------------------------
+	# 8. Network Peer Synchronization
+	# ----------------------------------------------------
+	if is_inside_tree() and multiplayer and multiplayer.has_multiplayer_peer() and not is_network_remote:
+		rpc("sync_net_state", global_position, rotation, velocity, current_speed, was_boosting)
+
+func _process_camera_follow(delta: float) -> void:
+	var active_cam = custom_camera if custom_camera else camera
+	if active_cam and is_inside_tree() and active_cam.is_inside_tree():
+		var forward_dir = -global_transform.basis.z.normalized()
 		var target_cam_pos = global_position + (global_transform.basis.z * camera_distance) + (global_transform.basis.y * camera_height)
 		var shake_offset = Vector3.ZERO
 		if camera_shake_trauma > 0.0:
@@ -322,25 +426,9 @@ func _physics_process(delta: float) -> void:
 				randf_range(-t2 * 2.2, t2 * 2.2),
 				randf_range(-t2 * 2.2, t2 * 2.2)
 			)
-		camera.global_position = camera.global_position.lerp(target_cam_pos + shake_offset, camera_lerp_speed * delta)
+		active_cam.global_position = active_cam.global_position.lerp(target_cam_pos + shake_offset, camera_lerp_speed * delta)
 		var look_target = global_position + (forward_dir * 8.0)
-		camera.look_at(look_target, global_transform.basis.y)
-
-	# ----------------------------------------------------
-	# 6. Beacon Proximity Resupply
-	# ----------------------------------------------------
-	if telemetry and telemetry.missiles_remaining < telemetry.max_missiles:
-		var beacon = get_tree().current_scene.find_child("NavBeaconAlpha", true, false) if get_tree().current_scene else null
-		if beacon and global_position.distance_to(beacon.global_position) < 75.0:
-			telemetry.refill_all_missiles()
-			var hud = get_node_or_null("../HUD/TacticalOverlay")
-			if hud and hud.has_method("notify_combat_event"):
-				hud.notify_combat_event("// NAV BEACON RESUPPLY // ALL ORDNANCE RESTOCKED //", Color(1.0, 0.84, 0.0))
-
-	# ----------------------------------------------------
-	# 7. Rotary Machine Gun (BRRR) Processing
-	# ----------------------------------------------------
-	_process_machine_gun(delta)
+		active_cam.look_at(look_target, global_transform.basis.y)
 
 # -----------------------------------------------------------------------------
 # Weapon Hardpoints & Missile Launch System
@@ -543,7 +631,11 @@ func _process_machine_gun(delta: float) -> void:
 		if gun_flash_right:
 			gun_flash_right.light_energy = 0.0
 
-	var wants_fire = InputMap.has_action("fire_gun") and Input.is_action_pressed("fire_gun")
+	var fire_action = _get_action("fire_gun")
+	var wants_fire = false
+	if not is_network_remote:
+		wants_fire = InputMap.has_action(fire_action) and Input.is_action_pressed(fire_action)
+		
 	if wants_fire:
 		if not is_firing_gun:
 			is_firing_gun = true
@@ -554,16 +646,20 @@ func _process_machine_gun(delta: float) -> void:
 		var max_burst_per_frame = 4
 		while gun_timer <= 0.0 and max_burst_per_frame > 0:
 			_fire_machine_gun_round()
+			if is_inside_tree() and multiplayer and multiplayer.has_multiplayer_peer() and not is_network_remote:
+				rpc("rpc_fire_gun_burst")
 			gun_timer += (1.0 / gun_fire_rate)
 			max_burst_per_frame -= 1
 
 		# Subtle camera recoil vibration & controller haptics
 		var cfg = get_node_or_null("/root/ConfigManager")
-		if cfg and cfg.has_method("play_rumble"):
-			cfg.play_rumble(0.22, 0.08, 0.06)
+		if cfg and cfg.has_method("play_rumble") and not is_network_remote:
+			var pad_idx = 1 if (is_split_screen and player_id == 2) else 0
+			cfg.play_rumble(0.22, 0.08, 0.06, pad_idx)
 		
-		if camera:
-			camera.position += Vector3(
+		var active_cam = custom_camera if custom_camera else camera
+		if active_cam:
+			active_cam.position += Vector3(
 				randf_range(-0.025, 0.025),
 				randf_range(-0.025, 0.025),
 				randf_range(-0.025, 0.025)
@@ -604,7 +700,7 @@ func _fire_machine_gun_round() -> void:
 			spawn_parent = self
 		spawn_parent.add_child(bullet)
 		bullet.global_position = spawn_pos
-		bullet.setup(self, bullet_dir, current_speed)
+		bullet.setup(self, bullet_dir, current_speed, (player_id == 2))
 
 	# Muzzle Flash
 	gun_flash_timer = 0.035
@@ -617,12 +713,25 @@ func _fire_machine_gun_round() -> void:
 	if telemetry:
 		telemetry.fire_cannon_round()
 
-func take_damage(amount: float) -> void:
+func trigger_hitmarker() -> void:
+	if custom_hud and custom_hud.has_method("trigger_hitmarker"):
+		custom_hud.trigger_hitmarker()
+	elif is_inside_tree() and get_tree() and get_tree().current_scene:
+		var hud = get_tree().current_scene.find_child("TacticalOverlay", true, false)
+		if hud and hud.has_method("trigger_hitmarker"):
+			hud.trigger_hitmarker()
+
+func take_damage_from(amount: float, attacker: Node = null) -> void:
+	take_damage(amount, attacker)
+
+func take_damage(amount: float, attacker: Node = null) -> void:
 	if is_airframe_destroyed:
 		return
 	
 	var cfg = _get_config_manager()
-	var diff_mult = cfg.get_difficulty_damage_multiplier() if (cfg and cfg.has_method("get_difficulty_damage_multiplier")) else 1.0
+	var diff_mult = 1.0
+	if not pvp_mode and cfg and cfg.has_method("get_difficulty_damage_multiplier"):
+		diff_mult = cfg.get_difficulty_damage_multiplier()
 	var final_damage = amount * diff_mult
 	
 	if not telemetry:
@@ -638,20 +747,21 @@ func take_damage(amount: float) -> void:
 		scrape_audio_player.pitch_scale = randf_range(1.2, 1.5)
 		scrape_audio_player.play()
 	
-	# Controller haptics
-	if cfg and cfg.has_method("play_rumble"):
-		cfg.play_rumble(0.35, 0.55, 0.18)
+	# Controller haptics (only if local player)
+	if not is_network_remote and cfg and cfg.has_method("play_rumble"):
+		var pad_idx = 1 if (is_split_screen and player_id == 2) else 0
+		cfg.play_rumble(0.35, 0.55, 0.18, pad_idx)
 		
 	# Notify Tactical HUD
-	var hud = null
-	if is_inside_tree() and get_tree() and get_tree().current_scene:
-		hud = get_tree().current_scene.find_child("TacticalOverlay", true, false)
-	elif get_parent():
-		hud = get_parent().find_child("TacticalOverlay", true, false)
-	if hud and hud.has_method("notify_combat_event"):
-		hud.notify_combat_event("// WARNING: HOSTILE HIT -%d HP //" % int(final_damage), Color(1.0, 0.35, 0.35))
+	if custom_hud and custom_hud.has_method("notify_combat_event"):
+		custom_hud.notify_combat_event("// WARNING: HIT -%d HP //" % int(final_damage), Color(1.0, 0.35, 0.35))
+	elif is_inside_tree() and get_tree() and get_tree().current_scene:
+		var hud = get_tree().current_scene.find_child("TacticalOverlay", true, false)
+		if hud and hud.has_method("notify_combat_event"):
+			hud.notify_combat_event("// WARNING: HOSTILE HIT -%d HP //" % int(final_damage), Color(1.0, 0.35, 0.35))
 		
-	print("[Spaceship] Hostile hit received! -%d HP (Shield: %.1f | Hull: %.1f)" % [
+	print("[Spaceship P%d] Hit received! -%d HP (Shield: %.1f | Hull: %.1f)" % [
+		player_id,
 		int(final_damage),
 		telemetry.current_shield if telemetry else 0.0,
 		telemetry.current_hull if telemetry else 0.0
@@ -659,7 +769,10 @@ func take_damage(amount: float) -> void:
 	
 	# Catastrophic failure if hull reaches zero
 	if telemetry and telemetry.current_hull <= 0.0:
-		_trigger_catastrophic_crash(global_position, Vector3.UP, "AIRFRAME_DESTROYED", "Airframe destroyed by hostile fire.")
+		if pvp_mode:
+			_trigger_pvp_destroyed(attacker)
+		else:
+			_trigger_catastrophic_crash(global_position, Vector3.UP, "AIRFRAME_DESTROYED", "Airframe destroyed by hostile fire.")
 
 # -----------------------------------------------------------------------------
 # 8. Ground & Obstacle Collision System (Crash vs. Glancing Scrape)
@@ -811,6 +924,12 @@ func _trigger_glancing_scrape(normal: Vector3, impact_pos: Vector3, impact_inten
 func _trigger_catastrophic_crash(impact_pos: Vector3, normal: Vector3, reason_code: String, reason_text: String) -> void:
 	if is_airframe_destroyed:
 		return
+	if pvp_mode:
+		_trigger_pvp_destroyed(null)
+		return
+	if is_split_screen and not pvp_mode:
+		_trigger_coop_destroyed(reason_code, reason_text)
+		return
 	is_airframe_destroyed = true
 	current_speed = 0.0
 	downward_velocity = 0.0
@@ -818,7 +937,9 @@ func _trigger_catastrophic_crash(impact_pos: Vector3, normal: Vector3, reason_co
 	
 	if engine_audio_player:
 		engine_audio_player.stop()
-	
+	if is_firing_gun and gun_audio_player:
+		gun_audio_player.stop()
+		
 	# 1. Play Explosion Audio
 	if crash_audio_player:
 		crash_audio_player.pitch_scale = randf_range(0.95, 1.05)
@@ -826,7 +947,7 @@ func _trigger_catastrophic_crash(impact_pos: Vector3, normal: Vector3, reason_co
 		
 	# 2. Haptic Rumble Shockwave
 	var cfg = _get_config_manager()
-	if cfg and cfg.has_method("play_rumble"):
+	if cfg and cfg.has_method("play_rumble") and not is_network_remote:
 		cfg.play_rumble(1.0, 1.0, 0.85)
 		
 	# 3. Spawn Explosion Fireball & Debris
@@ -846,6 +967,140 @@ func _trigger_catastrophic_crash(impact_pos: Vector3, normal: Vector3, reason_co
 	var mm = _get_mission_manager()
 	if mm and mm.has_method("fail_mission"):
 		mm.fail_mission(reason_code, reason_text)
+
+func _trigger_coop_destroyed(reason_code: String, reason_text: String) -> void:
+	if is_airframe_destroyed:
+		return
+	is_airframe_destroyed = true
+	current_speed = 0.0
+	downward_velocity = 0.0
+	velocity = Vector3.ZERO
+	
+	if engine_audio_player:
+		engine_audio_player.stop()
+	if is_firing_gun and gun_audio_player:
+		gun_audio_player.stop()
+		
+	if crash_audio_player:
+		crash_audio_player.pitch_scale = randf_range(0.95, 1.05)
+		crash_audio_player.play()
+		
+	var ship_pos = global_position if is_inside_tree() else position
+	_spawn_crash_explosion(ship_pos, Vector3.UP)
+	
+	var ship_model = get_node_or_null("Model")
+	if ship_model:
+		ship_model.visible = false
+		
+	camera_shake_trauma = 1.0
+	print("[Co-op] Player %d airframe lost! Reason: %s - %s" % [player_id, reason_code, reason_text])
+	
+	var main_scene = null
+	if is_inside_tree() and get_tree() and get_tree().current_scene:
+		main_scene = get_tree().current_scene
+	if not main_scene or not main_scene.has_method("_on_coop_player_destroyed"):
+		var p = get_parent()
+		while p:
+			if p.has_method("_on_coop_player_destroyed"):
+				main_scene = p
+				break
+			p = p.get_parent()
+			
+	if main_scene and main_scene.has_method("_on_coop_player_destroyed"):
+		main_scene._on_coop_player_destroyed(self, reason_code, reason_text)
+	else:
+		var mm = _get_mission_manager()
+		if mm and mm.has_method("fail_mission"):
+			mm.fail_mission(reason_code, reason_text)
+
+func _trigger_pvp_destroyed(attacker: Node) -> void:
+	if is_airframe_destroyed:
+		return
+	is_airframe_destroyed = true
+	current_speed = 0.0
+	downward_velocity = 0.0
+	velocity = Vector3.ZERO
+	
+	if engine_audio_player:
+		engine_audio_player.stop()
+	if is_firing_gun and gun_audio_player:
+		gun_audio_player.stop()
+		
+	if crash_audio_player:
+		crash_audio_player.pitch_scale = randf_range(0.95, 1.05)
+		crash_audio_player.play()
+		
+	var ship_pos = global_position if is_inside_tree() else position
+	_spawn_crash_explosion(ship_pos, Vector3.UP)
+	
+	var ship_model = get_node_or_null("Model")
+	if ship_model:
+		ship_model.visible = false
+		
+	camera_shake_trauma = 1.0
+	print("[PvP] Ship Player %d destroyed! Attacker: %s" % [player_id, attacker.name if attacker else "Collision/Crash"])
+	pvp_destroyed.emit(attacker)
+
+func pvp_respawn(spawn_pos: Vector3, spawn_rot: Vector3) -> void:
+	is_airframe_destroyed = false
+	global_position = spawn_pos
+	rotation = spawn_rot
+	current_speed = cruise_speed
+	downward_velocity = 0.0
+	velocity = -global_transform.basis.z * cruise_speed
+	
+	var ship_model = get_node_or_null("Model")
+	if ship_model:
+		ship_model.visible = true
+	
+	if telemetry:
+		telemetry.current_shield = telemetry.max_shield
+		telemetry.current_hull = telemetry.max_hull
+		telemetry.current_nitro = telemetry.max_nitro
+		telemetry.is_overheated = false
+		telemetry.refill_all_missiles()
+		telemetry.shield_changed.emit(telemetry.current_shield, telemetry.max_shield)
+		telemetry.hull_changed.emit(telemetry.current_hull, telemetry.max_hull)
+		telemetry.nitro_changed.emit(telemetry.current_nitro, telemetry.max_nitro, false)
+	
+	if engine_audio_player and not engine_audio_player.playing:
+		engine_audio_player.play()
+	
+	var active_cam = custom_camera if custom_camera else camera
+	if active_cam and is_inside_tree() and active_cam.is_inside_tree():
+		var fwd = -global_transform.basis.z.normalized()
+		active_cam.global_position = global_position + (global_transform.basis.z * camera_distance) + (global_transform.basis.y * camera_height)
+		active_cam.look_at(global_position + (fwd * 8.0), global_transform.basis.y)
+
+func _process_network_sync(delta: float) -> void:
+	global_position = global_position.lerp(net_target_pos, clamp(20.0 * delta, 0.0, 1.0))
+	rotation = rotation.lerp(net_target_rot, clamp(20.0 * delta, 0.0, 1.0))
+	velocity = net_target_vel
+	current_speed = net_target_speed
+	was_boosting = net_target_boost
+
+@rpc("unreliable_ordered")
+func sync_net_state(pos: Vector3, rot_euler: Vector3, vel: Vector3, spd: float, boosting: bool) -> void:
+	net_target_pos = pos
+	net_target_rot = rot_euler
+	net_target_vel = vel
+	net_target_speed = spd
+	net_target_boost = boosting
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_fire_gun_burst() -> void:
+	if is_network_remote:
+		_fire_machine_gun_round()
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_fire_missile_net() -> void:
+	if is_network_remote:
+		_fire_missile()
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_take_damage_net(dmg: float, attacker_path: String) -> void:
+	var att_node = get_node_or_null(attacker_path)
+	take_damage(dmg, att_node)
 
 func _spawn_scrape_sparks(pos: Vector3, normal: Vector3) -> void:
 	if not is_inside_tree():
@@ -883,6 +1138,8 @@ func _spawn_crash_explosion(pos: Vector3, _normal: Vector3) -> void:
 		return
 	var exp_root = Node3D.new()
 	exp_root.top_level = true
+	var parent_target = get_parent() if get_parent() else self
+	parent_target.add_child(exp_root)
 	exp_root.global_position = pos
 	
 	# Fireball Light Flash
@@ -916,9 +1173,6 @@ func _spawn_crash_explosion(pos: Vector3, _normal: Vector3) -> void:
 	sphere.material = mat
 	p.mesh = sphere
 	exp_root.add_child(p)
-	
-	var parent_target = get_parent() if get_parent() else self
-	parent_target.add_child(exp_root)
 	
 	var tw = create_tween()
 	if tw:

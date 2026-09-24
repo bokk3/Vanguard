@@ -120,7 +120,8 @@ func _process_nitro_recovery(delta: float) -> void:
 		return
 
 	# Passive recharge when not using boost
-	if not Input.is_key_pressed(KEY_SHIFT) and current_nitro < max_nitro:
+	var ship_boosting = ship.was_boosting if (ship and "was_boosting" in ship) else Input.is_key_pressed(KEY_SHIFT)
+	if not ship_boosting and current_nitro < max_nitro:
 		current_nitro = min(max_nitro, current_nitro + nitro_recharge_rate * delta)
 		nitro_changed.emit(current_nitro, max_nitro, is_overheated)
 

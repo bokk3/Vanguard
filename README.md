@@ -12,6 +12,7 @@
 [![404th Vanguard](https://img.shields.io/badge/Wing-404th_Vanguard-00E5FF?style=for-the-badge)](docs/lore/README.md)
 [![Status](https://img.shields.io/badge/Status-Combat_Ready-00C853?style=for-the-badge)](godot_project/)
 [![Engine](https://img.shields.io/badge/Engine-Godot_4_%7C_UE5-0D47A1?style=for-the-badge)](docs/PIPELINE_WORKFLOW.md)
+[![Multiplayer](https://img.shields.io/badge/Multiplayer-Split--Screen_%7C_LAN_P2P-7C4DFF?style=for-the-badge)](docs/MULTIPLAYER_AND_COOP_SYSTEM.md)
 [![Lore Bible](https://img.shields.io/badge/Lore-Ascension_War-FFB300?style=for-the-badge)](docs/lore/README.md)
 
 </div>
@@ -59,6 +60,8 @@ Comprehensive engineering and design documents are available in the [`docs/`](do
   *The Ascension War chronology, Sol Orbital Directorate vs Helion Combine, 404th Vanguard Strike Wing, and diegetic aircraft dossiers.*
 * 🎯 **[Campaign Missions (01-04)](docs/lore/CAMPAIGN_MISSIONS.md)**  
   *Detailed combat operations, AWACS dialogue, objective design, and 100% realistic asset feasibility matrix for the first 4 missions.*
+* 🛰️ **[Multiplayer, Split-Screen & Co-Op Architecture](docs/MULTIPLAYER_AND_COOP_SYSTEM.md)**  
+  *Campaign drop-in co-op, local split-screen PvP dogfighting, LAN peer-to-peer listen servers, ENet snapshot synchronization, and UDP discovery beacons.*
 * 🎮 **[Tactical HUD & Combat Telemetry](docs/HUD_AND_COMBAT_SYSTEM.md)**  
   *Compass horizon ribbon, 350m circular radar, screen-space target lock, and nitro afterburner mechanics.*
 * ✈️ **[Flight Dynamics, Gravity & Controls Guide](docs/CONTROLS_AND_PHYSICS.md)**  
@@ -121,9 +124,12 @@ The flight controller automatically detects **AZERTY** (Belgian / French) vs **Q
 | **Bank / Roll Right** | **`D`** | **`D`** | Index finger (Home row) |
 | **Yaw / Rudder Left** | **`A`** | **`Q`** | Ring finger (Top row) |
 | **Yaw / Rudder Right** | **`E`** | **`E`** | Index finger (Top row) |
+| **Fire Machine Gun** | **`SPACE`** / **Left Click** | **`SPACE`** / **Left Click** | Thumb / Right hand |
+| **Fire Strike Missile** | **`R`** / **Right Click** | **`R`** / **Right Click** | Index finger / Right hand |
 | **Pitch & Steering** | **Mouse** | **Mouse** | Right hand |
 | **Toggle Mouse Lock** | **`ESC`** | **`ESC`** | Left hand |
-| **Switch Layout** | **`F1`** | **`F1`** | Function row |
+| **Switch AZERTY/QWERTY**| **`F1`** | **`F1`** | Function row |
+| **Toggle Split-Screen Layout**| **`F2`** | **`F2`** | Horizontal $\leftrightarrow$ Vertical |
 
 ---
 

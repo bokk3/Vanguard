@@ -107,11 +107,49 @@ This HUD was designed to port 1:1 into Unreal Engine 5:
 
 ---
 
-## 5. Verification & Testing
+## 5. Multi-Player & Split-Screen HUD Telemetry
 
-* **Direct Headless Test:**
+### Dual-Viewport Avionics Binding
+To support split-screen dogfights and campaign drop-in co-op without telemetry cross-talk, the HUD system uses dynamic instance binding:
+```gdscript
+hud_instance.bind_to_ship(ship_node, camera_node, player_id)
+```
+- **Independent Viewport Rendering:** Each player's HUD is embedded inside their respective `SubViewport/HUD` `CanvasLayer`, ensuring reticle unprojection calculations (`unproject_position`) use that player's viewport camera and aspect ratio.
+- **Player Identification & Color Theming:**
+  - **Player 1 (Flight Lead):** Cyan/Sky Blue tactical instrumentation (`#00E5FF`).
+  - **Player 2 Co-Op Wingman:** Solar Amber/Gold avionics (`#FFB300`) with wingman formation telemetry.
+  - **Player 2 PvP Aggressor:** Crimson/Amber dogfight avionics (`#FF3D00`) with direct lock-on against Player 1.
+
+### Multi-Target Radar Symbology
+The 350m tactical radar identifies all contacts in 3D battlespace:
+- **Crimson Diamond (`#FF2638`):** Hostile combat drones, strike craft, and PvP opponents in group `"enemies"`.
+- **Amber Cross (`#FFB300`):** Friendly wingman (Player 2) in group `"player"` / `"radar_targets"`.
+- **Emerald Chevron (`#00E676`):** Friendly mission targets (e.g. Olympus-4 transport, SOC Dauntless).
+- **Gold Ring (`#FFD700`):** Tactical navigation beacons and canyon pylon gates.
+
+### Damage Pipeline & Combat Feedback
+Incoming hostile rounds and collisions process through an integrated multi-sensory feedback pipeline:
+1. **Shield Absorption:** Shields deplete first (`telemetry.current_shield`).
+2. **Hull Bleed:** Damage beyond available shields damages the structural hull (`telemetry.current_hull`).
+3. **Cockpit Trauma:** Screen trauma shaking scales up to `1.0` and decays smoothly.
+4. **Haptic Rumble:** Direct gamepad rumble pulse (`cfg.play_rumble(weak, strong, duration, device_id)`).
+5. **HUD Alarm:** Flashes red warning banner: `// WARNING: HIT -X HP //`.
+
+### Co-Op Field Respawn System
+In campaign co-op sorties, catastrophic destruction of a single aircraft does not trigger mission failure. A 5-second emergency airframe repair countdown begins on the downed player's HUD. Upon completion, the wingman respawns in formation alongside the surviving flight lead with full shields, repaired hull, and replenished ordnance. Only the loss of both flight elements fails the sortie (`SORTIE_WIPED`).
+
+---
+
+## 6. Verification & Testing
+
+* **Split-Screen & Co-Op Headless Test:**
   ```powershell
-  godot_console --headless --quit-after 2 --path "godot_project"
+  godot_console --headless --path godot_project -s test_campaign_coop.gd
+  godot_console --headless --path godot_project -s test_split_screen.gd
+  ```
+* **Full PvP & Networking Suite:**
+  ```powershell
+  godot_console --headless --path godot_project -s test_pvp_system.gd
   ```
 * **Interactive Playtest:**
   Double-click `Launch_Godot_Vanguard.bat` on the Windows Desktop.
