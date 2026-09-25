@@ -48,6 +48,15 @@ var net_target_vel: Vector3 = Vector3.ZERO
 var net_target_speed: float = 60.0
 var net_target_boost: bool = false
 
+# Mobile Web HOTAS Input Overrides
+var mobile_control_active: bool = false
+var mobile_pitch: float = 0.0
+var mobile_roll: float = 0.0
+var mobile_yaw: float = 0.0
+var mobile_throttle: float = -1.0
+var mobile_boost: bool = false
+var mobile_fire_primary: bool = false
+
 @export_group("Collision & Damage")
 @export var terrain_floor_y: float = 0.0 ## Lowest ground elevation (fail-safe clamped)
 
@@ -127,6 +136,22 @@ func _apply_p2_visuals() -> void:
 	glow_light.omni_range = 10.0
 	glow_light.position = Vector3(0, 0.2, 0)
 	add_child(glow_light)
+
+func apply_mobile_inputs(data: Dictionary) -> void:
+	mobile_control_active = true
+	if data.has("pitch"): mobile_pitch = float(data["pitch"])
+	if data.has("roll"): mobile_roll = float(data["roll"])
+	if data.has("yaw"): mobile_yaw = float(data["yaw"])
+	if data.has("throttle"): mobile_throttle = float(data["throttle"])
+	if data.has("boost"): mobile_boost = bool(data["boost"])
+	if data.has("fire_primary"): mobile_fire_primary = bool(data["fire_primary"])
+	if data.has("fire_missile") and bool(data["fire_missile"]):
+		_fire_missile()
+		if is_inside_tree() and multiplayer and multiplayer.has_multiplayer_peer() and not is_network_remote:
+			rpc("rpc_fire_missile_net")
+	if data.has("target_lock") and bool(data["target_lock"]):
+		if telemetry and telemetry.has_method("cycle_target"):
+			telemetry.cycle_target()
 
 func _ready() -> void:
 	if not telemetry and has_node("CombatTelemetry"):
@@ -306,14 +331,17 @@ func _physics_process(delta: float) -> void:
 	var throttle_up = Input.is_action_pressed(_get_action("throttle_up"))
 	var throttle_down = Input.is_action_pressed(_get_action("throttle_down"))
 
-	var wants_boost = Input.is_action_pressed(_get_action("boost"))
+	var wants_boost = Input.is_action_pressed(_get_action("boost")) or (mobile_control_active and mobile_boost)
 	var can_boost = false
 	if wants_boost and telemetry:
 		can_boost = telemetry.request_afterburner(delta)
 	
 	var target_top_speed = boost_speed if can_boost else cruise_speed
 
-	if throttle_up:
+	if mobile_control_active and mobile_throttle >= 0.0:
+		var target_mobile_speed = lerp(min_speed, target_top_speed, mobile_throttle)
+		current_speed = move_toward(current_speed, target_mobile_speed, acceleration * delta * 2.0)
+	elif throttle_up:
 		current_speed = move_toward(current_speed, target_top_speed, acceleration * delta)
 	elif throttle_down:
 		current_speed = move_toward(current_speed, min_speed, braking * delta)
@@ -343,6 +371,11 @@ func _physics_process(delta: float) -> void:
 	var r_input: float = Input.get_axis(_get_action("roll_left"), _get_action("roll_right"))
 	var y_input: float = Input.get_axis(_get_action("yaw_right"), _get_action("yaw_left"))
 	var p_input: float = Input.get_axis(_get_action("pitch_down"), _get_action("pitch_up"))
+
+	if mobile_control_active:
+		p_input += mobile_pitch
+		r_input += mobile_roll
+		y_input += mobile_yaw
 
 	if player_id == 1 and not is_network_remote:
 		var cfg = get_tree().root.get_node_or_null("ConfigManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
@@ -634,7 +667,7 @@ func _process_machine_gun(delta: float) -> void:
 	var fire_action = _get_action("fire_gun")
 	var wants_fire = false
 	if not is_network_remote:
-		wants_fire = InputMap.has_action(fire_action) and Input.is_action_pressed(fire_action)
+		wants_fire = (InputMap.has_action(fire_action) and Input.is_action_pressed(fire_action)) or (mobile_control_active and mobile_fire_primary)
 		
 	if wants_fire:
 		if not is_firing_gun:

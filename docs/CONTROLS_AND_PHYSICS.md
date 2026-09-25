@@ -126,7 +126,25 @@ In the single-player campaign, pressing any secondary control key (`Enter`, `I`,
 
 ---
 
-## 6. Camera Follow Mechanics
+## 6. Mobile Web HOTAS & Gyroscope Flight Control 📱
+
+In addition to physical gamepads and keyboards, Project Vanguard accepts flight telemetry directly from smartphones running the web companion (`https://project-vanguard.pages.dev/controller`):
+
+### Touch HOTAS Mapping
+* **Virtual Flight Stick (Left Thumb)**: Continuous 2D analog vector for pitch and roll.
+* **Continuous Throttle Slider (Right Thumb)**: $0\%$ to $100\%$ linear thrust with afterburner detent above $90\%$.
+* **Primary Trigger**: Continuous photon cannon salvo with mobile haptic pulse.
+* **Secondary Trigger**: Missile lock-on and release.
+
+### Gyroscope & Motion Flight Steering
+When motion control is enabled, the browser's `DeviceOrientationEvent` maps physical device attitude directly into angular rates:
+* **Pitch Axis**: $\beta$ (tilt forward/backwards) $\rightarrow$ Pitch Elevator deflection.
+* **Roll Axis**: $\gamma$ (tilt left/right) $\rightarrow$ Aileron roll rate.
+* **Auto-Centering Neutral Deadzone**: $5^\circ$ neutral resting angle to prevent accidental drift when resting hands comfortably.
+
+---
+
+## 7. Camera Follow Mechanics
 
 The 3rd-person chase camera uses target position interpolation:
 $$\vec{P}_{\text{target}} = \vec{P}_{\text{ship}} + (\hat{Z}_{\text{local}} \cdot D) + (\hat{Y}_{\text{local}} \cdot H)$$
@@ -135,3 +153,4 @@ Where $D = 14.0\text{ m}$ (distance) and $H = 4.0\text{ m}$ (height).
 * **Lag & Lead:** The camera smoothly tracks a look-at point $8.0\text{ m}$ ahead of the nose (`forward_dir * 8.0`), giving a dynamic feeling of speed during high-G turns.
 * **Bank Compensation:** When the ship rolls into a boisterous turn, the camera rolls subtly along the ship's local up vector (`global_transform.basis.y`).
 * **Multi-Viewport Independent Cams:** In split-screen mode, `CameraP1` and `CameraP2` are isolated in independent `SubViewport` nodes, each dynamically chasing its respective aircraft without cross-camera jitter or transform bleeding.
+

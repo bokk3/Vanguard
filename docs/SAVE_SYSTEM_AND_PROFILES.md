@@ -1,38 +1,53 @@
-# Vanguard Save Game System & Profile Persistence
+# Vanguard Save Game System, Sovereign Profiles & Zero-Cost Cloud Sync 💾☁️
 
-Comprehensive technical documentation for the Project Vanguard Save Game System, state serialization, profile management, and semantic versioning strategy.
+Comprehensive technical documentation for the Project Vanguard Save Game System, offline state serialization, cryptographic integrity sealing, and zero-cost cloud profile persistence.
 
 ---
 
 ## 1. Storage Location & Accessibility
 
-The save system stores all sortie data in human-readable, indented JSON in an isolated `saves/` directory.
+The save system stores all sortie and campaign data in human-readable, indented JSON in an isolated `saves/` directory.
 
 | Context | Path | Notes |
 | :--- | :--- | :--- |
-| **Godot Virtual Path** | `user://saves/vanguard_savegame.json` | Isolated from config (`user://settings.cfg`) |
+| **Godot Virtual Path** | `user://saves/vanguard_savegame.json` | Isolated from engine config (`user://settings.cfg`) |
 | **Windows OS Resolved Path** | `%APPDATA%\Godot\app_userdata\Project Vanguard\saves\vanguard_savegame.json` | Directly accessible in Windows Explorer for backups & modding |
 | **Default Slot Name** | `vanguard_savegame` | Expandable to multi-slot profiles (`slot_1`, `slot_2`) |
+| **Web Cloud Backup** | `https://project-vanguard.pages.dev/api/pilot/sync` | Encrypted, zero-cost cloud sync powered by Cloudflare D1 |
 
 ---
 
-## 2. JSON Save Schema Breakdown
+## 2. JSON Save Schema Breakdown (v0.8.0)
 
 ```json
 {
   "format_version": 1,
-  "game_version": "0.5.0",
-  "timestamp": "2026-09-20T05:55:00Z",
-  "display_date": "2026-09-20 05:55",
+  "game_version": "0.8.0",
+  "timestamp": "2026-09-25T13:30:00Z",
+  "display_date": "2026-09-25 13:30",
   "profile": {
     "callsign": "VANGUARD-LEAD",
     "squadron": "404th Vanguard Strike Wing",
-    "rank": "FLIGHT LIEUTENANT"
+    "rank": "FLIGHT LIEUTENANT",
+    "pilot_id": "vng-usr-8849-ace",
+    "auth_token": "cf_edge_jwt_token_sample"
   },
   "sortie": {
-    "mission_id": "SORTIE_01_RECON_INTERCEPT",
-    "mission_title": "Operation Archangel: Low-Orbit Intercept",
+    "mission_id": "M01",
+    "mission_title": "Operation CLOUDBURST",
+    "theater": "Sub-Cloud Interception Sector 07",
     "scene_file": "res://main.tscn"
+  },
+  "campaign": {
+    "unlocked_mission_id": "M02",
+    "mission_records": {
+      "M01": {
+        "completed": true,
+        "high_score": 14200,
+        "best_time_sec": 184.2,
+        "rank": "S"
+      }
+    }
   },
   "ship": {
     "position": [0.0, 42.5, -80.0],
@@ -55,18 +70,23 @@ The save system stores all sortie data in human-readable, indented JSON in an is
       "health": 75.0,
       "global_pos": [-120.0, 75.0, -320.0]
     }
+  },
+  "security": {
+    "hmac_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   }
 }
 ```
 
 ---
 
-## 3. Core Architecture
+## 3. Core Architecture & Hybrid Cloud Sync
 
 ```mermaid
 flowchart TD
-    subgraph Storage [Disk Persistence]
+    subgraph Storage [Disk Persistence (Offline First)]
         JSON[user://saves/vanguard_savegame.json]
+        HMAC[HMAC-SHA256 Integrity Verification]
+        JSON <--> HMAC
     end
 
     subgraph Manager [SaveManager Autoload Singleton]
@@ -74,32 +94,42 @@ flowchart TD
         SM <-->|Read / Write Pretty JSON| JSON
     end
 
-    subgraph Home [Home Menu Scene]
-        HM[home_menu.gd]
-        ContinueBtn[01 CONTINUE SORTIE]
-        DeployBtn[02 NEW SORTIE]
-        StatusLabel[Active Sortie Stats Readout]
-        HM -->|Checks has_save| SM
-        ContinueBtn -->|Sets should_load_on_start = true| SM
+    subgraph Cloud [Zero-Cost Cloud Edge - project-vanguard.pages.dev]
+        CF[Cloudflare Pages Functions: /api/pilot/sync]
+        D1[("Cloudflare D1: SQLite Edge Database\nFree: 5M reads/day, 100k writes/day")]
+        CF <--> D1
+        SM -.->|Asynchronous HTTPRequest| CF
     end
 
-    subgraph Flight [Flight Mission Scene]
-        Ship[Spaceship Controller]
-        Telem[Combat Telemetry]
-        Drone[Enemy Drone]
-        Pause[Pause Menu Overlay]
-        
-        Pause -->|Save Button| SM
-        Pause -->|Load Button| SM
-        SM -.->|Gathers Flight Dynamics| Ship
-        SM -.->|Gathers Shields, Hull, Missiles| Telem
-        SM -.->|Gathers Target States| Drone
+    subgraph WebPortal [Web Browser Client]
+        Web[project-vanguard.pages.dev/pilot]
+        Drop[Client-Side Drag & Drop Save Inspector]
+        JSON -.->|User inspects local save file| Drop
+        Drop --> Web
     end
 ```
 
 ---
 
-## 4. UI Integrations
+## 4. Pilot Identity & Cloud Synchronization
+
+### 4.1 $0 Cloud Architecture (Cloudflare Pages + D1)
+Project Vanguard uses a **Sovereign Pilot model**:
+* **100% Offline Capability**: Pilots retain complete ownership of their local JSON save file. The game requires zero network connection to launch, save, or play.
+* **Optional Cloud Link**: When connected to the internet, pilots can link their callsign to their free account on `project-vanguard.pages.dev`:
+  1. Pilot signs up on `project-vanguard.pages.dev` with Callsign & Password.
+  2. In-game, pilot clicks **"Link Account"** and enters their credentials (or uses a 6-character link code).
+  3. Sortie debrief scores, campaign progression, and medal unlocks automatically sync to Cloudflare D1 via non-blocking background `HTTPRequest`.
+
+### 4.2 Web Dossier Save Inspector ($0 Server Compute)
+On the live portal (`https://project-vanguard.pages.dev`), pilots can drag and drop their `vanguard_savegame.json` directly into the browser:
+* The web app uses the browser's native `FileReader` API.
+* Parses combat stats, weapon accuracy, mission completion trees, and flight hours.
+* **100% Client-Side**: Consumes zero cloud compute and zero server bandwidth.
+
+---
+
+## 5. UI Integrations
 
 ### Home Menu (`res://home_menu.tscn`)
 * Automatically checks `SaveManager.has_save()`.
@@ -107,7 +137,7 @@ flowchart TD
   * Reveals **`[ 01 ] CONTINUE SORTIE`** button (styled with glowing primary cyan border).
   * Prompts **`[ 02 ] NEW SORTIE`** as second option.
   * Sidebar status box dynamically displays:
-    `ACTIVE SORTIE: 2026-09-20 05:55`
+    `ACTIVE SORTIE: 2026-09-25 13:30`
     `HULL INTEGRITY: 85%`
     `MISSILES ARMED: 3/4`
 * When no save exists:
@@ -126,24 +156,15 @@ flowchart TD
 
 ---
 
-## 5. Semantic Versioning Strategy
+## 6. Semantic Versioning Strategy
 
 Project Vanguard follows [Semantic Versioning 2.0.0](https://semver.org/):
 * **MAJOR**: Incompatible architectural milestones or engine conversions (e.g., Godot -> UE5 port).
-* **MINOR**: New gameplay features, UI overhauls, or subsystems (e.g., `v0.5.0` Save Game System).
+* **MINOR**: New gameplay features, UI overhauls, or subsystems (e.g., `v0.8.0` Split-Screen, LAN Dogfights & Cloud Architecture).
 * **PATCH**: Bug fixes, control adjustments, or visual polish.
 
 ### Version Single Source of Truth
-1. Root `VERSION` file: `0.5.0`
-2. Project Configuration: `config/version="0.5.0"` in `godot_project/project.godot`
+1. Root `VERSION` file: `0.8.0`
+2. Project Configuration: `config/version="0.8.0"` in `godot_project/project.godot`
 3. Engine Runtime: Retrieved via `ProjectSettings.get_setting("application/config/version")`
 4. Changelog: Tracked in `CHANGELOG.md` following [Keep a Changelog](https://keepachangelog.com/).
-
----
-
-## 6. Unreal Engine 5 Conversion Blueprint
-
-When porting to Unreal Engine 5:
-* `SaveManager` (`Node`) maps to a custom `USaveGame` subclass (e.g. `UVanguardSaveGame`).
-* File storage handled via `UGameplayStatics::SaveGameToSlot` and `UGameplayStatics::LoadGameFromSlot`.
-* Telemetry variables map directly into `UCombatTelemetryComponent`.

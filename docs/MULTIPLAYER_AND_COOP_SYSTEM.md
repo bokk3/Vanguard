@@ -117,12 +117,15 @@ Project Vanguard implements an autonomous listen-server network model with zero 
 
 ---
 
+---
+
 ## 6. Input Routing & Hardware Controls
 
 | Control Scheme | Player 1 (Lead Element) | Player 2 (Wingman / Opponent) |
 | :--- | :--- | :--- |
 | **Primary Gamepad** | Gamepad 1 (`device 0`) | Gamepad 2 (`device 1`) |
 | **Haptic Feedback** | Device 0 Dual Motors | Device 1 Dual Motors |
+| **Mobile Web Controller** | Web HOTAS / Gyro Steering | Web HOTAS / Gyro Steering (QR Scan) |
 | **Keyboard Steering**| Mouse or `W`/`S` + `A`/`D` (or `Z`/`S` + `Q`/`D`) | `NumPad 8/2` + `NumPad 4/6` or `I/K` + `J/L` |
 | **Keyboard Throttle**| `Z`/`S` (AZERTY) or `W`/`S` (QWERTY) | `Y` (Throttle Up) / `H` (Airbrake) |
 | **Keyboard Rudder** | `A`/`E` (AZERTY) or `Q`/`E` (QWERTY) | `U` (Rudder Left) / `O` (Rudder Right) |
@@ -133,7 +136,39 @@ Project Vanguard implements an autonomous listen-server network model with zero 
 
 ---
 
-## 7. Automated Test Suite
+## 7. "Scan-to-Fly" Mobile Web Controller (Zero-Install HOTAS) 📱
+
+To eliminate the "missing controller" barrier for local split-screen co-op and LAN dogfights, Project Vanguard features an autonomous mobile web controller companion:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Wingman as Friend / Player 2
+    participant TV as Game Station (TV / Monitor)
+    participant Phone as Mobile Browser (Safari / Chrome)
+    participant Host as Godot Engine (Local WebSocket Server)
+
+    TV->>TV: Displays dynamic QR code in lobby
+    Note over TV: QR: https://project-vanguard.pages.dev/controller?host=192.168.1.50:8080
+    Wingman->>TV: Scans QR with regular phone camera
+    Wingman->>Phone: Mobile Web Controller opens instantly
+    Phone->>Host: Direct LAN WebSocket connection (ws://192.168.1.50:8080)
+    Host->>TV: "PILOT WINGMAN-2 JOINED VIA MOBILE HOTAS"
+    Host->>TV: Splits screen into co-op / dogfight mode!
+    Host->>Phone: 10Hz Aircraft Vitals (Shields, Hull, Missiles)
+    Phone->>Host: 30Hz Control Frame (Pitch, Roll, Yaw, Fire)
+```
+
+### Key Highlights:
+1. **Zero App Store Downloads**: Runs 100% in the mobile browser (`https://project-vanguard.pages.dev/controller`). No iOS App Store / Google Play downloads needed.
+2. **Sub-5ms Direct LAN Latency**: Connects directly to the host PC's local IP via WebSockets. No cloud relays or internet lag.
+3. **Motion / Gyroscope Steering**: Tilt the physical phone forward/back for pitch and left/right for roll using `DeviceOrientationEvent`.
+4. **Haptic Rumble**: Vibrates the phone upon weapon firing, missile lock, and taking fire using `navigator.vibrate()`.
+5. **Secondary Instrument Display**: Real-time HUD gauges (shield %, hull %, missile count, radar warnings) directly in the pilot's palms.
+
+---
+
+## 8. Automated Test Suite
 
 Headless verification for all multiplayer and co-operative systems is integrated into the continuous test harness:
 
@@ -147,3 +182,4 @@ godot_console --headless --path godot_project -s test_split_screen.gd
 # 3. LAN Peer-to-Peer & UDP Discovery Verification
 godot_console --headless --path godot_project -s test_pvp_system.gd
 ```
+

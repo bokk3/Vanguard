@@ -37,10 +37,41 @@ func _ready() -> void:
 	if is_inside_tree() and get_tree():
 		get_tree().create_timer(3.5).timeout.connect(func():
 			if not is_coop_active and is_inside_tree() and single_hud and single_hud.has_method("notify_combat_event"):
-				single_hud.notify_combat_event("// CO-OP ENABLED // P2 PRESS SECONDARY CONTROLS TO JOIN //", Color(0.65, 0.85, 1.0))
+				single_hud.notify_combat_event("// CO-OP READY // PRESS F3 OR SCAN QR ON PHONE TO FLY //", Color(0.65, 0.85, 1.0))
 		)
+		
+	# Mobile Web HOTAS Server Integration
+	var net_ctrl = get_node_or_null("/root/NetworkControllerServer")
+	if net_ctrl:
+		net_ctrl.start_server(8080)
+		if not net_ctrl.pilot_connected.is_connected(_on_mobile_pilot_joined):
+			net_ctrl.pilot_connected.connect(_on_mobile_pilot_joined)
+
+var qr_dialog: Control = null
+
+func _toggle_qr_dialog() -> void:
+	if not qr_dialog:
+		var scene = load("res://qr_join_dialog.tscn")
+		if scene:
+			qr_dialog = scene.instantiate()
+			add_child(qr_dialog)
+	if qr_dialog and qr_dialog.has_method("toggle_dialog"):
+		qr_dialog.toggle_dialog()
+
+func _on_mobile_pilot_joined(callsign: String, _player_id: int) -> void:
+	if not is_coop_active:
+		join_player_2()
+	var hud = p2_hud if p2_hud else single_hud
+	if hud and hud.has_method("notify_combat_event"):
+		hud.notify_combat_event("// WINGMAN JOINED: MOBILE PILOT %s //" % callsign, Color(0.0, 0.95, 1.0))
 
 func _unhandled_input(event: InputEvent) -> void:
+	# F3: Toggle Mobile QR Scan-to-Fly dialog
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F3:
+		_toggle_qr_dialog()
+		get_viewport().set_input_as_handled()
+		return
+
 	if not is_coop_active:
 		if _is_secondary_control_event(event):
 			join_player_2()
@@ -116,6 +147,10 @@ func join_player_2() -> void:
 		p2_ship.add_child(model)
 	
 	add_child(p2_ship)
+	
+	var net_ctrl = get_node_or_null("/root/NetworkControllerServer")
+	if net_ctrl:
+		net_ctrl.register_ship(2, p2_ship)
 	
 	# Formation spawn alongside Player 1
 	var fwd = -ship_p1.global_transform.basis.z.normalized()

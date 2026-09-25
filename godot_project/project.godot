@@ -18,6 +18,7 @@ ConfigManager="*res://config_manager.gd"
 SaveManager="*res://save_manager.gd"
 MissionManager="*res://mission_manager.gd"
 NetworkManager="*res://network_manager.gd"
+NetworkControllerServer="*res://network_controller_server.gd"
 
 [dotnet]
 

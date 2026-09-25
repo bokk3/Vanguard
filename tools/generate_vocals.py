@@ -384,6 +384,60 @@ SCRIPT = [
         "pitch": "-2Hz",
         "rate": "+2%",
         "text": "Confirmed! Dreadnought Nemesis-9 is detonating! The Celestial Forge is breaking apart! All Vanguard units, disengage and RTB! Chapter Two is ours!"
+    },
+
+    # -------------------------------------------------------------
+    # GAME-01 ADDITIONS: Catapult launch & M08 phase gate lines
+    # (generated separately from the original manifest — new GAME-01 wiring)
+    # -------------------------------------------------------------
+    {
+        "filename": "m07_ross_catapult_clear.mp3",
+        "voice": "olympus_captain",
+        "pitch": "-3Hz",
+        "rate": "+0%",
+        "text": "Dauntless actual — you're clear of the deck. Good hunting, Vanguard."
+    },
+    {
+        "filename": "m07_ross_torps_cleared.mp3",
+        "voice": "olympus_captain",
+        "pitch": "-3Hz",
+        "rate": "+0%",
+        "text": "All torpedoes neutralised! Dauntless battle group is secure. Outstanding work, Vanguard."
+    },
+    {
+        "filename": "m08_vane_phase2.mp3",
+        "voice": "ghost_boss",
+        "pitch": "-4Hz",
+        "rate": "-1%",
+        "text": "Vanguard-1! You've punched through our flak screen. Shields at maximum!"
+    },
+    {
+        "filename": "m08_apex_phase2_unlock.mp3",
+        "voice": "apex_command",
+        "pitch": "-2Hz",
+        "rate": "+3%",
+        "text": "Phase 1 cleared. Nemesis-9's shield emitter pylons are now exposed. Destroy them!"
+    },
+    {
+        "filename": "m08_vane_phase3.mp3",
+        "voice": "ghost_boss",
+        "pitch": "-4Hz",
+        "rate": "-2%",
+        "text": "Impossible... the shield dome is shattered! PROTECT THE CORE!"
+    },
+    {
+        "filename": "m08_apex_phase3_unlock.mp3",
+        "voice": "apex_command",
+        "pitch": "-2Hz",
+        "rate": "+3%",
+        "text": "Reactor core is exposed! One strike run — make it count, Vanguard."
+    },
+    {
+        "filename": "m08_apex_victory.mp3",
+        "voice": "apex_command",
+        "pitch": "-2Hz",
+        "rate": "+2%",
+        "text": "NEMESIS-9 DESTROYED. The Helion flagship is gone. The Belt is ours. Mission accomplished, Vanguard-1!"
     }
 ]
 

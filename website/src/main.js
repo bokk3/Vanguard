@@ -356,5 +356,308 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ==========================================================================
+  // PILOT PORTAL (Registration, Authentication & Live Dossier)
+  // ==========================================================================
+  const pilotModal = document.getElementById('pilotModal');
+  const pilotPortalBtn = document.getElementById('pilot-portal-btn');
+  const heroRegisterBtn = document.getElementById('hero-register-btn');
+  const mobilePilotBtn = document.getElementById('mobile-pilot-portal-btn');
+  const closePilotModalBtn = document.getElementById('close-pilot-modal-btn');
+
+  const tabRegisterBtn = document.getElementById('tab-register-btn');
+  const tabLoginBtn = document.getElementById('tab-login-btn');
+  const tabDossierBtn = document.getElementById('tab-dossier-btn');
+
+  const viewRegister = document.getElementById('view-register');
+  const viewLogin = document.getElementById('view-login');
+  const viewDossier = document.getElementById('view-dossier');
+
+  const registerForm = document.getElementById('register-form');
+  const regFeedback = document.getElementById('reg-feedback');
+  const loginForm = document.getElementById('login-form');
+  const loginFeedback = document.getElementById('login-feedback');
+
+  const pilotPortalLabel = document.getElementById('pilot-portal-label');
+  const mobilePilotLabel = document.getElementById('mobile-pilot-label');
+  const pilotPortalIcon = document.getElementById('pilot-portal-icon');
+
+  function openPilotModal() {
+    audio.beep(880, 0.05);
+    if (pilotModal) pilotModal.classList.remove('hidden');
+    // If logged in, jump straight to dossier
+    if (localStorage.getItem('vanguard_pilot_token')) {
+      switchTab('dossier');
+    }
+  }
+
+  function closePilotModal() {
+    if (pilotModal) pilotModal.classList.add('hidden');
+  }
+
+  if (pilotPortalBtn) pilotPortalBtn.addEventListener('click', openPilotModal);
+  if (heroRegisterBtn) heroRegisterBtn.addEventListener('click', openPilotModal);
+  if (mobilePilotBtn) mobilePilotBtn.addEventListener('click', openPilotModal);
+  if (closePilotModalBtn) closePilotModalBtn.addEventListener('click', closePilotModal);
+
+  if (pilotModal) {
+    pilotModal.addEventListener('click', (e) => {
+      if (e.target === pilotModal) closePilotModal();
+    });
+  }
+
+  function switchTab(tab) {
+    audio.beep(1200, 0.03);
+    [tabRegisterBtn, tabLoginBtn, tabDossierBtn].forEach(b => {
+      if (b) {
+        b.classList.remove('border-vanguard-cyan', 'text-vanguard-cyan', 'bg-vanguard-cyan/5', 'border-vanguard-amber', 'text-vanguard-amber');
+        b.classList.add('border-transparent', 'text-slate-400');
+      }
+    });
+
+    [viewRegister, viewLogin, viewDossier].forEach(v => {
+      if (v) v.classList.add('hidden');
+    });
+
+    if (tab === 'register' && tabRegisterBtn && viewRegister) {
+      tabRegisterBtn.classList.add('border-vanguard-cyan', 'text-vanguard-cyan', 'bg-vanguard-cyan/5');
+      tabRegisterBtn.classList.remove('border-transparent', 'text-slate-400');
+      viewRegister.classList.remove('hidden');
+    } else if (tab === 'login' && tabLoginBtn && viewLogin) {
+      tabLoginBtn.classList.add('border-vanguard-cyan', 'text-vanguard-cyan', 'bg-vanguard-cyan/5');
+      tabLoginBtn.classList.remove('border-transparent', 'text-slate-400');
+      viewLogin.classList.remove('hidden');
+    } else if (tab === 'dossier' && tabDossierBtn && viewDossier) {
+      tabDossierBtn.classList.add('border-vanguard-amber', 'text-vanguard-amber', 'bg-vanguard-amber/5');
+      tabDossierBtn.classList.remove('border-transparent', 'text-slate-400');
+      viewDossier.classList.remove('hidden');
+      renderDossier();
+    }
+  }
+
+  if (tabRegisterBtn) tabRegisterBtn.addEventListener('click', () => switchTab('register'));
+  if (tabLoginBtn) tabLoginBtn.addEventListener('click', () => switchTab('login'));
+  if (tabDossierBtn) tabDossierBtn.addEventListener('click', () => switchTab('dossier'));
+
+  function updateAuthUI() {
+    const rawProfile = localStorage.getItem('vanguard_pilot_profile');
+    if (rawProfile && pilotPortalLabel) {
+      try {
+        const pilot = JSON.parse(rawProfile);
+        pilotPortalLabel.textContent = pilot.callsign;
+        if (mobilePilotLabel) mobilePilotLabel.textContent = `${pilot.rank} ${pilot.callsign}`;
+        if (pilotPortalIcon) pilotPortalIcon.textContent = '⚡';
+        if (heroRegisterBtn) {
+          heroRegisterBtn.innerHTML = `<span class="text-xl">⚡</span><span>PILOT DOSSIER // ${pilot.callsign}</span>`;
+        }
+        if (tabDossierBtn) tabDossierBtn.classList.remove('hidden');
+      } catch {}
+    } else if (pilotPortalLabel) {
+      pilotPortalLabel.textContent = 'COMMISSION CALLSIGN';
+      if (mobilePilotLabel) mobilePilotLabel.textContent = 'COMMISSION CALLSIGN';
+      if (pilotPortalIcon) pilotPortalIcon.textContent = '🎖️';
+      if (heroRegisterBtn) {
+        heroRegisterBtn.innerHTML = `<span class="text-2xl">🎖️</span><span id="hero-register-text">COMMISSION CALLSIGN (FREE)</span>`;
+      }
+      if (tabDossierBtn) tabDossierBtn.classList.add('hidden');
+    }
+  }
+
+  function renderDossier() {
+    const rawProfile = localStorage.getItem('vanguard_pilot_profile');
+    if (!rawProfile) return;
+    try {
+      const pilot = JSON.parse(rawProfile);
+      const callEl = document.getElementById('dossier-callsign');
+      const rankEl = document.getElementById('dossier-rank-squadron');
+      if (callEl) callEl.textContent = pilot.callsign;
+      if (rankEl) rankEl.textContent = `${pilot.rank} // ${pilot.squadron}`;
+      const stats = pilot.stats || {};
+      const sortiesEl = document.getElementById('dossier-sorties');
+      const killsEl = document.getElementById('dossier-kills');
+      const campEl = document.getElementById('dossier-campaign');
+      if (sortiesEl) sortiesEl.textContent = stats.total_sorties || 0;
+      if (killsEl) killsEl.textContent = stats.total_kills || 0;
+      if (campEl) campEl.textContent = stats.highest_mission_unlocked || 'M01';
+    } catch {}
+  }
+
+  // Handle Pilot Registration
+  if (registerForm) {
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (regFeedback) regFeedback.classList.add('hidden');
+      const submitBtn = document.getElementById('btn-submit-reg');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'COMMISSIONING...';
+      }
+
+      const payload = {
+        callsign: document.getElementById('reg-callsign').value.trim(),
+        email: document.getElementById('reg-email').value.trim(),
+        password: document.getElementById('reg-password').value,
+        rank: document.getElementById('reg-rank').value,
+        squadron: document.getElementById('reg-squadron').value,
+      };
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          audio.lock();
+          localStorage.setItem('vanguard_pilot_token', data.token);
+          localStorage.setItem('vanguard_pilot_profile', JSON.stringify(data.pilot));
+          localStorage.setItem('vanguard_callsign', data.pilot.callsign);
+          updateAuthUI();
+          switchTab('dossier');
+        } else {
+          audio.beep(300, 0.15, 'sawtooth');
+          if (regFeedback) {
+            regFeedback.className = 'p-3 rounded text-xs border border-red-500/50 bg-red-950/40 text-red-400 font-bold block';
+            regFeedback.textContent = data.error || 'Registration failed. Check inputs.';
+          }
+        }
+      } catch (err) {
+        if (regFeedback) {
+          regFeedback.className = 'p-3 rounded text-xs border border-red-500/50 bg-red-950/40 text-red-400 font-bold block';
+          regFeedback.textContent = 'Failed to connect to Vanguard edge network.';
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>🎖️</span><span>COMMISSION CALLSIGN // ENLIST NOW</span>';
+        }
+      }
+    });
+  }
+
+  // Handle Pilot Login
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (loginFeedback) loginFeedback.classList.add('hidden');
+      const submitBtn = document.getElementById('btn-submit-login');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'AUTHENTICATING...';
+      }
+
+      const payload = {
+        callsign_or_email: document.getElementById('login-identifier').value.trim(),
+        password: document.getElementById('login-password').value,
+      };
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          audio.ping();
+          localStorage.setItem('vanguard_pilot_token', data.token);
+          localStorage.setItem('vanguard_pilot_profile', JSON.stringify(data.pilot));
+          localStorage.setItem('vanguard_callsign', data.pilot.callsign);
+          updateAuthUI();
+          switchTab('dossier');
+        } else {
+          audio.beep(300, 0.15, 'sawtooth');
+          if (loginFeedback) {
+            loginFeedback.className = 'p-3 rounded text-xs border border-red-500/50 bg-red-950/40 text-red-400 font-bold block';
+            loginFeedback.textContent = data.error || 'Authentication rejected.';
+          }
+        }
+      } catch (err) {
+        if (loginFeedback) {
+          loginFeedback.className = 'p-3 rounded text-xs border border-red-500/50 bg-red-950/40 text-red-400 font-bold block';
+          loginFeedback.textContent = 'Connection error. Check network link.';
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>🔐</span><span>AUTHENTICATE PILOT</span>';
+        }
+      }
+    });
+  }
+
+  // Handle Station Pair Authorization
+  const btnApproveStation = document.getElementById('btn-approve-station');
+  const inputStationCode = document.getElementById('input-station-code');
+  const stationFeedback = document.getElementById('station-link-feedback');
+
+  if (btnApproveStation) {
+    btnApproveStation.addEventListener('click', async () => {
+      const code = inputStationCode.value.trim().toUpperCase();
+      const token = localStorage.getItem('vanguard_pilot_token');
+      if (!code) return;
+      if (!token) {
+        if (stationFeedback) {
+          stationFeedback.className = 'text-[10px] font-bold text-red-400 block pt-1';
+          stationFeedback.textContent = 'You must be logged in to authorize a game station.';
+        }
+        return;
+      }
+
+      btnApproveStation.disabled = true;
+      btnApproveStation.textContent = 'PAIRING...';
+
+      try {
+        const res = await fetch('/api/auth/link?action=approve', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token,
+          },
+          body: JSON.stringify({ link_code: code }),
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          audio.lock();
+          if (stationFeedback) {
+            stationFeedback.className = 'text-[10px] font-bold text-emerald-400 block pt-1';
+            stationFeedback.textContent = `// STATION AUTHORIZED // Welcome aboard! //`;
+          }
+          inputStationCode.value = '';
+        } else {
+          if (stationFeedback) {
+            stationFeedback.className = 'text-[10px] font-bold text-red-400 block pt-1';
+            stationFeedback.textContent = data.error || 'Invalid or expired station code.';
+          }
+        }
+      } catch {
+        if (stationFeedback) {
+          stationFeedback.className = 'text-[10px] font-bold text-red-400 block pt-1';
+          stationFeedback.textContent = 'Station authorization failed. Check network.';
+        }
+      } finally {
+        btnApproveStation.disabled = false;
+        btnApproveStation.textContent = 'Authorize';
+      }
+    });
+  }
+
+  // Handle Logout
+  const btnLogout = document.getElementById('btn-logout');
+  if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+      localStorage.removeItem('vanguard_pilot_token');
+      localStorage.removeItem('vanguard_pilot_profile');
+      audio.beep(600, 0.08);
+      updateAuthUI();
+      switchTab('login');
+    });
+  }
+
+  updateAuthUI();
   syncGitHubRelease();
 });

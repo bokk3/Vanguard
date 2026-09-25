@@ -12,6 +12,7 @@ dist-ssr/
 .env.*.local
 *.local
 .vite/
+.wrangler/
 
 # Editor
 .vscode/*

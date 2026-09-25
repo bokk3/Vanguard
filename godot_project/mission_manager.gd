@@ -60,6 +60,22 @@ var m03_wave_drones_alive: int = 0
 var m03_transport_node: Node3D = null
 var m03_is_cleared: bool = false
 
+# M07 Carrier Catapult Launch State
+var m07_catapult_lock_timer: float = 0.0  # > 0 while player is locked in catapult
+var m07_catapult_launched: bool = false   # true once the launch impulse fires
+var m07_carrier_node: Node3D = null
+
+# M08 Dreadnought Phase Gate State
+# Phase 1: destroy all 6 Flak_Turret_XX  -> unlocks Phase 2
+# Phase 2: destroy Shield_Pylon_Alpha + Shield_Pylon_Beta -> unlocks Phase 3
+# Phase 3: destroy ReactorCore           -> mission complete
+var m08_phase: int = 1                       # current active phase (1/2/3)
+var m08_flak_destroyed: int = 0              # tracks Phase 1 kills
+var m08_pylons_destroyed: int = 0            # tracks Phase 2 kills
+var m08_phase2_nodes_locked: bool = true     # shield pylons invulnerable until Phase 2
+var m08_phase3_node_locked: bool = true      # reactor core invulnerable until Phase 3
+var m08_dread_node: Node3D = null
+
 # References to active level nodes
 var active_root: Node3D = null
 var active_ship: CharacterBody3D = null
@@ -220,9 +236,14 @@ func _setup_objectives(m_data: Dictionary) -> void:
 		}
 		
 		# Configure numeric targets
-		if item["id"] in ["obj_destroy_all", "obj_escorts", "obj_mines", "obj_skirmishers", "obj_flak_pods"]:
+		if item["id"] in ["obj_destroy_all", "obj_escorts", "obj_mines", "obj_skirmishers"]:
 			item["target_val"] = 4
 			targets_total += 4
+		elif item["id"] == "obj_flak_pods":
+			# M08 has 6 named Flak_Turret nodes (per CAD-01 / GLB spec); earlier missions used 4
+			var flak_count = 6 if current_mission_id == "M08" else 4
+			item["target_val"] = flak_count
+			targets_total += flak_count
 		elif item["id"] in ["obj_relays", "obj_generators"]:
 			item["target_val"] = 3
 			targets_total += 3
@@ -845,15 +866,39 @@ func _spawn_m07_carrier_and_torpedoes() -> void:
 	carrier.add_to_group("friendlies")
 	_add_static_box_collision(carrier, Vector3(90, 40, 280), Vector3.ZERO, 16) # Layer 5: Allies
 	active_root.add_child(carrier)
+	m07_carrier_node = carrier
 	if carrier_mesh:
 		var vis = carrier_mesh.instantiate()
 		carrier.add_child(vis)
 		
-	# 2. Spawn Wingman Viper 2 (Miller)
+	# ── CATAPULT LAUNCH: snap player fighter into SOCKET_Catapult_1 ──────────
+	# SOCKET_Catapult_1 is at carrier-local (-25, 80, 12) per asset spec §3.1C.
+	# We convert to world space and position + orient the ship there, then lock
+	# controls for m07_catapult_lock_timer seconds while the catapult fires.
+	var catapult_local = Vector3(-25.0, 80.0, 12.0)
+	var catapult_world = carrier.to_global(catapult_local)
+	
+	if is_instance_valid(active_ship):
+		active_ship.global_position = catapult_world
+		# Orient fighter along carrier's forward (+Z) catapult track
+		active_ship.global_rotation = carrier.global_rotation
+		# Lock flight controls during the catapult acceleration phase
+		if "catapult_locked" in active_ship:
+			active_ship.catapult_locked = true
+		elif "input_disabled" in active_ship:
+			active_ship.input_disabled = true
+		print("[MissionManager] M07: Player snapped to SOCKET_Catapult_1 @ ", catapult_world)
+	
+	# Start the lock timer — _evaluate_continuous_objectives releases it after 2.5s
+	m07_catapult_lock_timer = 2.5
+	m07_catapult_launched = false
+	
+	# 2. Spawn Wingman Viper 2 (Miller) — launches from SOCKET_Catapult_2
 	var viper_mesh = load("res://assets/meshes/vehicles/Spaceship_Viper_Supreme_HD.fbx")
 	var wingman = Node3D.new()
 	wingman.name = "Wingman_Miller"
-	wingman.position = Vector3(45, 65, 80)
+	var catapult2_world = carrier.to_global(Vector3(25.0, 80.0, 12.0))
+	wingman.position = catapult2_world
 	wingman.add_to_group("friendlies")
 	active_root.add_child(wingman)
 	if viper_mesh:
@@ -891,45 +936,69 @@ func _spawn_m08_dreadnought_boss() -> void:
 	var dread_mesh = load("res://assets/meshes/vehicles/dreadnought_nemesis9.glb")
 	var drone_script = load("res://target_drone.gd")
 	
-	# 1. Spawn Dreadnought Nemesis-9
+	# Reset phase state
+	m08_phase = 1
+	m08_flak_destroyed = 0
+	m08_pylons_destroyed = 0
+	m08_phase2_nodes_locked = true
+	m08_phase3_node_locked = true
+	
+	# 1. Spawn Dreadnought Nemesis-9 hull
 	var dread = Node3D.new()
 	dread.name = "Dreadnought_Nemesis9"
 	dread.position = Vector3(0, 80, -420)
 	dread.add_to_group("enemies")
 	_add_static_box_collision(dread, Vector3(100, 45, 260), Vector3.ZERO, 4) # Layer 3: Enemies
 	active_root.add_child(dread)
+	m08_dread_node = dread
+	
 	if dread_mesh:
 		var vis = dread_mesh.instantiate()
 		dread.add_child(vis)
-		
-	# 2. Phase 1: 4 Rotary Flak Pods
-	var flak_offsets = [
-		Vector3(-32, 22, -40), Vector3(32, 22, -40),
-		Vector3(-32, 22, 50), Vector3(32, 22, 50)
-	]
-	for i in range(flak_offsets.size()):
+	
+	# ── Phase 1: Wire the 6 named Flak_Turret GLB nodes as damage listeners ──
+	# The GLB now contains Flak_Turret_01 … Flak_Turret_06 as separate child meshes.
+	# We attach Area3D hitboxes to each so the combat system can register hits.
+	for i in range(1, 7):
+		var turret_name = "Flak_Turret_%02d" % i
 		var fp = Node3D.new()
-		fp.name = "FlakPod_0" + str(i + 1)
+		fp.name = turret_name
 		fp.set_script(drone_script)
 		fp.drone_type = "sentry"
-		fp.center_point = dread.position + flak_offsets[i]
+		# World positions match the GLB placements from cad01_capital_ships.py
+		var flak_world_offsets = [
+			Vector3(-55.0, 150.0, 20.0),  # Port forward
+			Vector3(-70.0,   0.0, 15.0),  # Port midship
+			Vector3(-55.0,-150.0, 18.0),  # Port aft
+			Vector3( 55.0, 150.0, 20.0),  # Starboard forward
+			Vector3( 70.0,   0.0, 15.0),  # Starboard midship
+			Vector3( 55.0,-150.0, 18.0),  # Starboard aft
+		]
+		var offset = flak_world_offsets[i - 1]
+		fp.center_point = dread.position + offset
 		fp.orbit_radius = 0.0
 		fp.orbit_speed = 0.0
-		fp.altitude = (dread.position + flak_offsets[i]).y
+		fp.altitude = (dread.position + offset).y
 		fp.max_health = 100.0
 		fp.health = 100.0
 		fp.respawn_enabled = false
+		# Phase gate: turrets are immediately active in Phase 1
 		fp.destroyed.connect(_on_mission_target_destroyed.bind(fp, "obj_flak_pods"))
 		active_root.add_child(fp)
-		fp.position = dread.position + flak_offsets[i]
+		fp.position = dread.position + offset
 		
-	# 3. Phase 2: 2 Ventral Shield Generators
-	for i in range(2):
+	# ── Phase 2: Wire Shield_Pylon_Alpha and Shield_Pylon_Beta ────────────────
+	# Locked (invulnerable) until all 6 flak turrets are destroyed (Phase 1 cleared).
+	var pylon_defs = [
+		{"name": "Shield_Pylon_Alpha", "offset": Vector3(0.0,  80.0, 42.0)},
+		{"name": "Shield_Pylon_Beta",  "offset": Vector3(0.0, -60.0, 42.0)},
+	]
+	for pd in pylon_defs:
 		var sg = Node3D.new()
-		sg.name = "ShieldDome_0" + str(i + 1)
+		sg.name = pd["name"]
 		sg.set_script(drone_script)
 		sg.drone_type = "generator"
-		var offset = Vector3(-28.0 if i == 0 else 28.0, -20.0, 0.0)
+		var offset = pd["offset"]
 		sg.center_point = dread.position + offset
 		sg.orbit_radius = 0.0
 		sg.orbit_speed = 0.0
@@ -937,11 +1006,15 @@ func _spawn_m08_dreadnought_boss() -> void:
 		sg.max_health = 150.0
 		sg.health = 150.0
 		sg.respawn_enabled = false
+		# Phase gate: invulnerable flag — checked in target_drone before applying damage
+		if "invulnerable" in sg:
+			sg.invulnerable = true  # will be cleared when Phase 2 unlocks
 		sg.destroyed.connect(_on_mission_target_destroyed.bind(sg, "obj_shield_domes"))
 		active_root.add_child(sg)
 		sg.position = dread.position + offset
 		
-	# 4. Phase 3: Core Reactor
+	# ── Phase 3: Core Reactor ─────────────────────────────────────────────────
+	# Locked until both shield pylons are destroyed (Phase 2 cleared).
 	var core = Node3D.new()
 	core.name = "ReactorCore"
 	core.set_script(drone_script)
@@ -953,6 +1026,8 @@ func _spawn_m08_dreadnought_boss() -> void:
 	core.max_health = 350.0
 	core.health = 350.0
 	core.respawn_enabled = false
+	if "invulnerable" in core:
+		core.invulnerable = true  # cleared when Phase 3 unlocks
 	core.destroyed.connect(_on_mission_target_destroyed.bind(core, "obj_destroy_dreadnought"))
 	active_root.add_child(core)
 	core.position = dread.position + Vector3(0, -18, 20)
@@ -999,6 +1074,51 @@ func _evaluate_continuous_objectives(delta: float) -> void:
 			var d_boss = active_ship.global_position.distance_to(boss.global_position)
 			if d_boss < 480.0:
 				_set_objective_status("obj_intercept", "COMPLETED", 1, 1)
+	
+	# M07: Catapult launch sequence — countdown then release flight controls
+	if current_mission_id == "M07" and m07_catapult_lock_timer > 0.0:
+		m07_catapult_lock_timer -= delta
+		if not m07_catapult_launched and m07_catapult_lock_timer <= 1.5:
+			# Apply catapult impulse — give the ship a strong forward velocity burst
+			m07_catapult_launched = true
+			if is_instance_valid(active_ship):
+				if "velocity" in active_ship:
+					active_ship.velocity = active_ship.global_transform.basis.z * -220.0
+				elif "current_speed" in active_ship:
+					active_ship.current_speed = 220.0
+		if m07_catapult_lock_timer <= 0.0:
+			# Release pilot control
+			m07_catapult_lock_timer = 0.0
+			if is_instance_valid(active_ship):
+				if "catapult_locked" in active_ship:
+					active_ship.catapult_locked = false
+				elif "input_disabled" in active_ship:
+					active_ship.input_disabled = false
+			queue_transmission("ROSS", "Dauntless actual — you're clear of the deck. Good hunting, Vanguard.", 4.0, "res://audio/comms/m07_ross_catapult_clear.mp3")
+	
+	# M08: Phase-gate evaluation — unlock Phase 2 and 3 as objectives complete
+	if current_mission_id == "M08" and is_instance_valid(active_root):
+		if m08_phase == 1 and m08_phase2_nodes_locked and m08_flak_destroyed >= 6:
+			m08_phase = 2
+			m08_phase2_nodes_locked = false
+			# Unlock the two shield pylon nodes
+			for pylon_name in ["Shield_Pylon_Alpha", "Shield_Pylon_Beta"]:
+				var pylon = active_root.get_node_or_null(pylon_name)
+				if is_instance_valid(pylon) and "invulnerable" in pylon:
+					pylon.invulnerable = false
+			queue_transmission("VANE", "Vanguard-1! You've punched through our flak screen. Shields at maximum!", 4.5, "res://audio/comms/m08_vane_phase2.mp3")
+			queue_transmission("APEX_CMD", "Phase 1 cleared. Nemesis-9's shield emitter pylons are now exposed. Destroy them!", 4.0, "res://audio/comms/m08_apex_phase2_unlock.mp3")
+			print("[MissionManager] M08: Phase 2 unlocked — shield pylons now vulnerable.")
+		elif m08_phase == 2 and m08_phase3_node_locked and m08_pylons_destroyed >= 2:
+			m08_phase = 3
+			m08_phase3_node_locked = false
+			# Unlock the reactor core
+			var core = active_root.get_node_or_null("ReactorCore")
+			if is_instance_valid(core) and "invulnerable" in core:
+				core.invulnerable = false
+			queue_transmission("VANE", "Impossible... the shield dome is shattered! PROTECT THE CORE!", 4.0, "res://audio/comms/m08_vane_phase3.mp3")
+			queue_transmission("APEX_CMD", "Reactor core is exposed! One strike run — make it count, Vanguard.", 4.5, "res://audio/comms/m08_apex_phase3_unlock.mp3")
+			print("[MissionManager] M08: Phase 3 unlocked — reactor core now vulnerable.")
 
 func _set_objective_status(obj_id: String, status: String, cur: Variant = 0, target: Variant = 1) -> void:
 	for obj in active_objectives:
@@ -1038,6 +1158,16 @@ func _on_mission_target_destroyed(a = null, b = null, c = null) -> void:
 					queue_transmission("APEX_CMD", "Jamming network collapsed! Radar uplink re-established. Sweep remaining patrols.", 4.5, "res://audio/comms/m02_apex_relays_down.mp3")
 				elif current_mission_id == "M03" and obj_id == "obj_destroy_all":
 					queue_transmission("APEX_CMD", "Air corridor sanitized. Olympus-4, fire your booster stage!", 4.0, "res://audio/comms/m03_apex_wave_cleared.mp3")
+				elif current_mission_id == "M07" and obj_id == "obj_intercept_torps":
+					queue_transmission("ROSS", "All torpedoes neutralised! Dauntless battle group is secure. Outstanding work, Vanguard.", 5.0, "res://audio/comms/m07_ross_torps_cleared.mp3")
+				elif current_mission_id == "M08" and obj_id == "obj_flak_pods":
+					# Track Phase 1 kills individually — phase gate checks in _evaluate_continuous_objectives
+					m08_flak_destroyed += 1
+				elif current_mission_id == "M08" and obj_id == "obj_shield_domes":
+					# Track Phase 2 kills individually
+					m08_pylons_destroyed += 1
+				elif current_mission_id == "M08" and obj_id == "obj_destroy_dreadnought":
+					queue_transmission("APEX_CMD", "NEMESIS-9 DESTROYED. The Helion flagship is gone. The Belt is ours. Mission accomplished, Vanguard-1!", 6.0, "res://audio/comms/m08_apex_victory.mp3")
 			objective_updated.emit(obj_id, obj["status"], obj["text"], obj["current_val"], obj["target_val"])
 			break
 	

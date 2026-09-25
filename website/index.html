@@ -77,10 +77,17 @@
           <a href="#pipeline" class="text-slate-300 hover:text-vanguard-cyan transition-colors flex items-center gap-1">
             <span class="text-vanguard-cyan">05.</span> Pipeline
           </a>
+          <a href="/controller.html" class="text-vanguard-amber hover:text-white transition-colors flex items-center gap-1 font-bold">
+            <span>📱</span> Mobile HOTAS
+          </a>
         </nav>
 
-        <!-- CTA GitHub Button -->
+        <!-- CTA GitHub & Pilot Portal Button -->
         <div class="hidden sm:flex items-center space-x-3">
+          <button id="pilot-portal-btn" class="px-5 py-2.5 text-xs sm:text-sm font-display font-black uppercase tracking-wider border-2 border-vanguard-gold bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/30 text-vanguard-gold hover:from-vanguard-gold hover:to-amber-400 hover:text-black hover:shadow-[0_0_25px_rgba(255,215,0,0.6)] transition-all rounded-lg shadow-[0_0_15px_rgba(255,215,0,0.35)] active:scale-95 flex items-center gap-2 cursor-pointer">
+            <span id="pilot-portal-icon" class="text-base">🎖️</span>
+            <span id="pilot-portal-label">COMMISSION CALLSIGN</span>
+          </button>
           <a href="https://github.com/bokk3/Vanguard" target="_blank" rel="noopener noreferrer" class="px-4 py-2 text-xs font-mono uppercase tracking-wider border border-vanguard-border bg-vanguard-panel hover:border-vanguard-cyan hover:text-vanguard-cyan hover:shadow-cyan-glow transition-all rounded">
             GitHub Repo
           </a>
@@ -104,6 +111,12 @@
         <a href="#fighter" class="block py-1 text-slate-300 hover:text-vanguard-cyan">03. Fighter Specifications</a>
         <a href="#controls" class="block py-1 text-slate-300 hover:text-vanguard-cyan">04. Flight Controls</a>
         <a href="#pipeline" class="block py-1 text-slate-300 hover:text-vanguard-cyan">05. CAD Pipeline</a>
+        <a href="/controller.html" class="block py-1 text-vanguard-amber font-bold flex items-center gap-1.5">
+          <span>📱</span> 06. Mobile HOTAS Controller (PWA)
+        </a>
+        <button id="mobile-pilot-portal-btn" class="w-full text-center py-3 px-4 rounded-lg bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/30 border-2 border-vanguard-gold text-vanguard-gold font-display font-black tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,215,0,0.3)]">
+          <span class="text-lg">🎖️</span> <span id="mobile-pilot-label">COMMISSION CALLSIGN</span>
+        </button>
         <a href="#downloads" class="block py-2 text-vanguard-cyan font-bold">Deploy Sortie v0.8.0</a>
       </div>
     </div>
@@ -146,12 +159,16 @@
 
           <!-- Action Buttons -->
           <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
-            <a id="hero-download-btn" href="https://github.com/bokk3/Vanguard/releases" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-3.5 bg-vanguard-cyan text-black font-display font-bold text-lg uppercase tracking-wider rounded hover:bg-white hover:shadow-cyan-glow transition-all text-center flex items-center justify-center gap-2">
+            <button id="hero-register-btn" class="w-full sm:w-auto px-8 py-3.5 border-2 border-vanguard-gold bg-gradient-to-r from-amber-500/30 via-yellow-400/25 to-amber-500/30 hover:from-vanguard-gold hover:to-amber-400 text-vanguard-gold hover:text-black font-display font-black text-lg uppercase tracking-wider rounded-lg shadow-[0_0_25px_rgba(255,215,0,0.45)] hover:shadow-[0_0_35px_rgba(255,215,0,0.85)] transition-all text-center flex items-center justify-center gap-2.5 active:scale-95 cursor-pointer">
+              <span class="text-2xl">🎖️</span>
+              <span id="hero-register-text">COMMISSION CALLSIGN (FREE)</span>
+            </button>
+            <a id="hero-download-btn" href="https://github.com/bokk3/Vanguard/releases" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-7 py-3.5 bg-vanguard-cyan text-black font-display font-bold text-base uppercase tracking-wider rounded hover:bg-white hover:shadow-cyan-glow transition-all text-center flex items-center justify-center gap-2">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
               <span id="hero-download-text">Download v0.8.0-Alpha (Win64)</span>
             </a>
             <a href="#multiplayer" class="w-full sm:w-auto px-6 py-3.5 border border-vanguard-border bg-vanguard-panel/90 text-slate-200 font-mono text-sm uppercase tracking-wider rounded hover:border-vanguard-cyan hover:text-vanguard-cyan transition-all text-center">
-              Explore Multiplayer
+              Multiplayer
             </a>
           </div>
 
@@ -280,6 +297,31 @@
           </ul>
         </div>
 
+      </div>
+
+      <!-- Feature 4 Showcase: Scan-to-Fly Mobile Web HOTAS Companion -->
+      <div class="tactical-box p-6 md:p-8 rounded-xl border border-vanguard-cyan/60 bg-gradient-to-r from-vanguard-panel via-vanguard-panel2 to-vanguard-panel flex flex-col lg:flex-row items-center justify-between gap-6 shadow-cyan-glow mt-8 mb-12">
+        <div class="space-y-3 max-w-2xl text-center lg:text-left">
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-vanguard-amber/20 border border-vanguard-amber/50 text-vanguard-amber text-xs font-bold font-mono">
+            <span>📱</span> "SCAN-TO-FLY" ZERO-INSTALL MOBILE COMPANION
+          </div>
+          <h3 class="text-2xl font-bold font-display text-white">No Extra Controller? Use Any Smartphone.</h3>
+          <p class="text-sm text-slate-300 leading-relaxed font-sans">
+            Point your phone camera at the on-screen QR code in the game lobby. Your mobile browser instantly transforms into a low-latency cockpit HOTAS with an analog touch stick, continuous throttle, gyroscope motion steering, and tactile haptic rumble over local WiFi. Zero app store downloads required.
+          </p>
+          <div class="flex flex-wrap gap-4 text-xs font-mono text-vanguard-textMuted justify-center lg:justify-start">
+            <span class="flex items-center gap-1.5"><span class="text-vanguard-cyan">✔</span> &lt;3ms Local WebSocket</span>
+            <span class="flex items-center gap-1.5"><span class="text-vanguard-cyan">✔</span> Gyro Tilt Steering</span>
+            <span class="flex items-center gap-1.5"><span class="text-vanguard-cyan">✔</span> Web Haptic Feedback</span>
+            <span class="flex items-center gap-1.5"><span class="text-vanguard-cyan">✔</span> Second-Screen HUD</span>
+          </div>
+        </div>
+        <div class="flex flex-col sm:flex-row items-center gap-3 shrink-0">
+          <a href="/controller.html" class="px-6 py-3 rounded-lg bg-vanguard-cyan hover:bg-white text-black font-display font-bold text-sm tracking-wider uppercase transition-all shadow-cyan-glow active:scale-95 flex items-center gap-2">
+            <span>🕹️</span>
+            <span>Launch Web HOTAS</span>
+          </a>
+        </div>
       </div>
 
       <!-- Interactive Split Screen Layout Simulator (F2 Demonstration) -->
@@ -770,7 +812,205 @@
       </div>
 
     </div>
-  </footer>
+  <!-- ===================================================================== -->
+  <!-- PILOT OPERATIONS PORTAL & REGISTRATION MODAL                          -->
+  <!-- ===================================================================== -->
+  <div id="pilotModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="relative w-full max-w-xl bg-vanguard-panel border border-vanguard-cyan/60 rounded-xl shadow-cyan-glow overflow-hidden font-mono flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="bg-vanguard-deep/90 px-6 py-4 border-b border-vanguard-border flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <img src="/images/vanguard_squadron_patch_cropped.png" alt="404th Wing" class="w-8 h-8 object-contain">
+          <div>
+            <h3 class="font-display font-bold text-white text-base tracking-wider flex items-center gap-2">
+              <span>PILOT COMMISSION TERMINAL</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px]">D1 EDGE LIVE</span>
+            </h3>
+            <p class="text-[10px] text-vanguard-textMuted uppercase tracking-widest">Sol Orbital Directorate // Personnel Registry</p>
+          </div>
+        </div>
+        <button id="close-pilot-modal-btn" class="text-slate-400 hover:text-white p-1 text-lg">✕</button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="flex border-b border-vanguard-border text-xs uppercase tracking-wider bg-black/40">
+        <button id="tab-register-btn" class="flex-1 py-3 text-center border-b-2 border-vanguard-cyan text-vanguard-cyan font-bold transition-all bg-vanguard-cyan/5">
+          🚀 Commission (Register)
+        </button>
+        <button id="tab-login-btn" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-bold transition-all">
+          🔐 Authenticate (Login)
+        </button>
+        <button id="tab-dossier-btn" class="hidden flex-1 py-3 text-center border-b-2 border-transparent text-vanguard-amber hover:text-white font-bold transition-all">
+          🎖️ Pilot Dossier
+        </button>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div class="p-6">
+        
+        <!-- VIEW 1: REGISTRATION / COMMISSION -->
+        <div id="view-register" class="space-y-4">
+          <p class="text-xs text-slate-300 leading-relaxed font-sans">
+            Enlist your flight callsign in the 404th Strike Wing. Your credentials grant verified global leaderboard placement, cross-device campaign cloud saves, and companion cockpit integration.
+          </p>
+
+          <div id="reg-feedback" class="hidden p-3 rounded text-xs border font-bold"></div>
+
+          <form id="register-form" class="space-y-3">
+            <div>
+              <label class="block text-[11px] font-bold text-vanguard-textMuted uppercase mb-1">
+                Flight Callsign (Unique Pilot Identifier)
+              </label>
+              <div class="relative">
+                <input id="reg-callsign" type="text" required placeholder="e.g. VIPER, MAVERICK-7, GHOST" class="w-full bg-slate-950 border border-vanguard-border rounded px-3 py-2 text-white font-mono text-xs uppercase tracking-wider focus:border-vanguard-cyan focus:outline-none">
+                <span class="absolute right-3 top-2 text-[10px] text-slate-500">3-20 CHARS</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-vanguard-textMuted uppercase mb-1">
+                Pilot Comm Email
+              </label>
+              <input id="reg-email" type="email" required placeholder="pilot@vanguard.space" class="w-full bg-slate-950 border border-vanguard-border rounded px-3 py-2 text-white font-mono text-xs focus:border-vanguard-cyan focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-vanguard-textMuted uppercase mb-1">
+                Secure Security Passcode
+              </label>
+              <input id="reg-password" type="password" required minlength="8" placeholder="••••••••••••" class="w-full bg-slate-950 border border-vanguard-border rounded px-3 py-2 text-white font-mono text-xs focus:border-vanguard-cyan focus:outline-none">
+              <span class="text-[10px] text-slate-500 mt-1 block">Protected with edge PBKDF2-HMAC-SHA256 (100,000 rounds).</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-1">
+              <div>
+                <label class="block text-[10px] font-bold text-vanguard-textMuted uppercase mb-1">Rank</label>
+                <select id="reg-rank" class="w-full bg-slate-950 border border-vanguard-border rounded px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                  <option value="FLIGHT LIEUTENANT">FLIGHT LIEUTENANT</option>
+                  <option value="CAPTAIN">CAPTAIN</option>
+                  <option value="MAJOR">MAJOR</option>
+                  <option value="WING COMMANDER">WING COMMANDER</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-vanguard-textMuted uppercase mb-1">Squadron</label>
+                <select id="reg-squadron" class="w-full bg-slate-950 border border-vanguard-border rounded px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                  <option value="404th Vanguard Strike Wing">404th Vanguard Strike Wing</option>
+                  <option value="Sol Orbital Directorate">Sol Orbital Directorate</option>
+                  <option value="Helion Aggressor Wing">Helion Aggressor Wing</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" id="btn-submit-reg" class="w-full mt-5 py-3.5 rounded-lg border-2 border-vanguard-gold bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-300 text-black font-display font-black text-sm uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(255,215,0,0.5)] hover:shadow-[0_0_30px_rgba(255,215,0,0.85)] active:scale-98 flex items-center justify-center gap-2 cursor-pointer">
+              <span class="text-base">🎖️</span>
+              <span>COMMISSION CALLSIGN // ENLIST NOW</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- VIEW 2: LOGIN / AUTHENTICATION -->
+        <div id="view-login" class="hidden space-y-4">
+          <p class="text-xs text-slate-300 leading-relaxed font-sans">
+            Authenticate to access your military flight record, synchronize campaign sortie logs, or authorize a game station.
+          </p>
+
+          <div id="login-feedback" class="hidden p-3 rounded text-xs border font-bold"></div>
+
+          <form id="login-form" class="space-y-3">
+            <div>
+              <label class="block text-[11px] font-bold text-vanguard-textMuted uppercase mb-1">
+                Callsign or Registered Email
+              </label>
+              <input id="login-identifier" type="text" required placeholder="VIPER or pilot@vanguard.space" class="w-full bg-slate-950 border border-vanguard-border rounded px-3 py-2 text-white font-mono text-xs focus:border-vanguard-cyan focus:outline-none uppercase">
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-vanguard-textMuted uppercase mb-1">
+                Passcode
+              </label>
+              <input id="login-password" type="password" required placeholder="••••••••••••" class="w-full bg-slate-950 border border-vanguard-border rounded px-3 py-2 text-white font-mono text-xs focus:border-vanguard-cyan focus:outline-none">
+            </div>
+
+            <button type="submit" id="btn-submit-login" class="w-full mt-4 py-3 rounded bg-vanguard-cyan hover:bg-white text-black font-display font-bold text-xs uppercase tracking-widest transition-all shadow-cyan-glow active:scale-98 flex items-center justify-center gap-2">
+              <span>🔐</span>
+              <span>AUTHENTICATE PILOT</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- VIEW 3: PILOT DOSSIER / SERVICE RECORD -->
+        <div id="view-dossier" class="hidden space-y-5">
+          <!-- Military ID Badge -->
+          <div class="p-4 rounded-xl border border-vanguard-cyan/60 bg-gradient-to-r from-vanguard-deep via-vanguard-panel to-vanguard-deep shadow-hud-box relative overflow-hidden">
+            <div class="absolute -right-6 -bottom-6 w-32 h-32 rounded-full border border-vanguard-cyan/10 pointer-events-none"></div>
+            
+            <div class="flex items-center justify-between pb-3 border-b border-vanguard-border/60">
+              <div class="flex items-center gap-3">
+                <img src="/images/vanguard_squadron_patch_cropped.png" alt="404th Wing" class="w-12 h-12 object-contain drop-shadow-[0_0_8px_#00e5ff]">
+                <div>
+                  <div class="text-[9px] text-vanguard-cyan font-bold tracking-widest uppercase">// SOL ORBITAL DIRECTORATE //</div>
+                  <h4 id="dossier-callsign" class="text-2xl font-black text-white font-display tracking-wider">VANGUARD-LEAD</h4>
+                  <div id="dossier-rank-squadron" class="text-[11px] text-vanguard-amber font-bold">FLIGHT LIEUTENANT // 404TH STRIKE WING</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <span class="inline-block px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-bold">ACTIVE SERVICE</span>
+              </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-3 gap-3 pt-3 text-center">
+              <div class="p-2 rounded bg-black/40 border border-vanguard-border/50">
+                <div class="text-[10px] text-vanguard-textMuted uppercase">Sorties Flown</div>
+                <div id="dossier-sorties" class="text-lg font-bold text-white mt-0.5">0</div>
+              </div>
+              <div class="p-2 rounded bg-black/40 border border-vanguard-border/50">
+                <div class="text-[10px] text-vanguard-textMuted uppercase">Confirmed Kills</div>
+                <div id="dossier-kills" class="text-lg font-bold text-vanguard-cyan mt-0.5">0</div>
+              </div>
+              <div class="p-2 rounded bg-black/40 border border-vanguard-border/50">
+                <div class="text-[10px] text-vanguard-textMuted uppercase">Campaign Status</div>
+                <div id="dossier-campaign" class="text-lg font-bold text-vanguard-amber mt-0.5">M01</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Game Station Link Section -->
+          <div class="p-4 rounded-lg border border-vanguard-border bg-black/50 space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="text-vanguard-cyan text-sm">📺</span>
+              <span class="text-xs font-bold text-white">PAIR WITH GAME STATION (PC / TV)</span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-sans">
+              Enter the 6-character code shown on your game station screen to authenticate the PC without typing your password.
+            </p>
+            <div class="flex gap-2 pt-1">
+              <input id="input-station-code" type="text" placeholder="e.g. ACE-782" class="flex-1 bg-slate-950 border border-vanguard-border rounded px-3 py-1.5 text-xs text-white uppercase font-mono tracking-widest focus:border-vanguard-cyan focus:outline-none">
+              <button id="btn-approve-station" class="px-4 py-1.5 rounded bg-vanguard-cyan hover:bg-white text-black font-bold text-xs uppercase tracking-wider transition-all">
+                Authorize
+              </button>
+            </div>
+            <div id="station-link-feedback" class="hidden text-[10px] font-bold pt-1"></div>
+          </div>
+
+          <!-- Modal Actions -->
+          <div class="flex items-center justify-between pt-2 border-t border-vanguard-border/60">
+            <a href="/controller.html" class="px-4 py-2 rounded border border-vanguard-amber/50 bg-vanguard-amber/10 hover:bg-vanguard-amber/20 text-vanguard-amber text-xs font-bold transition-all flex items-center gap-1.5">
+              <span>📱</span>
+              <span>Launch Mobile HOTAS</span>
+            </a>
+            <button id="btn-logout" class="px-4 py-2 rounded border border-red-500/40 bg-red-950/20 hover:bg-red-900/40 text-red-400 text-xs font-bold transition-all">
+              ⎋ Decommission / Logout
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
 
   <script type="module" src="/src/main.js"></script>
 </body>

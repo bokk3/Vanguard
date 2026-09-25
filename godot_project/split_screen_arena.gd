@@ -82,8 +82,39 @@ func _ready() -> void:
 	_apply_split_layout(is_horizontal_split)
 	_update_score_ui()
 	print(">>> Split-Screen Dogfight Arena Initialized: First to %d Kills!" % max_kills_to_win)
+	
+	# Mobile Web HOTAS Server Integration
+	var net_ctrl = get_node_or_null("/root/NetworkControllerServer")
+	if net_ctrl:
+		net_ctrl.start_server(8080)
+		net_ctrl.register_ship(2, ship_p2)
+		if not net_ctrl.pilot_connected.is_connected(_on_mobile_pilot_joined):
+			net_ctrl.pilot_connected.connect(_on_mobile_pilot_joined)
+
+var qr_dialog: Control = null
+
+func _toggle_qr_dialog() -> void:
+	if not qr_dialog:
+		var scene = load("res://qr_join_dialog.tscn")
+		if scene:
+			qr_dialog = scene.instantiate()
+			$SplitUI.add_child(qr_dialog)
+	if qr_dialog and qr_dialog.has_method("toggle_dialog"):
+		qr_dialog.toggle_dialog()
+
+func _on_mobile_pilot_joined(callsign: String, player_id: int) -> void:
+	if match_status_label:
+		match_status_label.text = "// MOBILE PILOT [%s] COMMISSIONED AS PLAYER %d //" % [callsign, player_id]
+	if hud_p2 and hud_p2.has_method("notify_combat_event"):
+		hud_p2.notify_combat_event("// MOBILE HOTAS ONLINE: PILOT %s //" % callsign, Color(0.0, 0.95, 1.0))
 
 func _unhandled_input(event: InputEvent) -> void:
+	# F3: Toggle Mobile QR Scan-to-Fly dialog
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F3:
+		_toggle_qr_dialog()
+		get_viewport().set_input_as_handled()
+		return
+
 	# F2: Toggle Split Screen Orientation (Horizontal / Vertical)
 	if event is InputEventKey and event.pressed and event.keycode == KEY_F2:
 		is_horizontal_split = not is_horizontal_split

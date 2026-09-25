@@ -7,3 +7,9 @@ ENVIRONMENT = "production"
 VERSION = "0.8.0"
 GAME_TITLE = "Project Vanguard"
 REPOSITORY = "https://github.com/bokk3/Vanguard"
+AUTH_SECRET = "vanguard-strike-wing-404th-secret-key-2026"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "vanguard-db"
+database_id = "a8b580b5-bc8c-4aca-a7bb-9105bccaa533"
