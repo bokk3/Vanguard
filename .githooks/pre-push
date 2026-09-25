@@ -1,0 +1,40 @@
+#!/bin/sh
+# Project Vanguard: Git Pre-Push Hook
+# 1. Preserves Git LFS validation
+# 2. Ensures the website passes production build before pushing to remote
+
+# Run Git LFS if available
+if command -v git-lfs >/dev/null 2>&1; then
+  git lfs pre-push "$@" || exit $?
+fi
+
+# Check if website directory exists and has package.json
+if [ -d "website" ] && [ -f "website/package.json" ]; then
+  echo ""
+  echo "================================================================="
+  echo ">>> [Vanguard Hook] Pre-Push: Validating website build..."
+  echo "================================================================="
+  echo ""
+
+  cd website || exit 1
+  npm run build
+  BUILD_STATUS=$?
+
+  if [ $BUILD_STATUS -ne 0 ]; then
+    echo ""
+    echo "================================================================="
+    echo ">>> [Vanguard Hook] FATAL: Website build failed!"
+    echo ">>> Push aborted. Fix build errors before pushing upstream."
+    echo "================================================================="
+    echo ""
+    exit 1
+  fi
+
+  echo ""
+  echo "================================================================="
+  echo ">>> [Vanguard Hook] Website production build verified! Proceeding with push."
+  echo "================================================================="
+  echo ""
+fi
+
+exit 0

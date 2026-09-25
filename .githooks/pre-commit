@@ -1,0 +1,39 @@
+#!/bin/sh
+# Project Vanguard: Git Pre-Commit Hook
+# Automatically builds and validates the website when changes in website/ are staged.
+
+# Check if any staged files are within the website/ directory
+CHANGED_WEBSITE_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^website/')
+
+if [ -n "$CHANGED_WEBSITE_FILES" ]; then
+  echo ""
+  echo "================================================================="
+  echo ">>> [Vanguard Hook] Staged changes detected in website/:"
+  echo "$CHANGED_WEBSITE_FILES" | sed 's/^/    - /'
+  echo ">>> Triggering website production build (npm run build)..."
+  echo "================================================================="
+  echo ""
+
+  # Execute build inside website directory
+  cd website || exit 1
+  npm run build
+  BUILD_STATUS=$?
+
+  if [ $BUILD_STATUS -ne 0 ]; then
+    echo ""
+    echo "================================================================="
+    echo ">>> [Vanguard Hook] FATAL: Website build failed!"
+    echo ">>> Aborting commit to prevent broken code from being staged."
+    echo "================================================================="
+    echo ""
+    exit 1
+  fi
+
+  echo ""
+  echo "================================================================="
+  echo ">>> [Vanguard Hook] Website build successful! Proceeding with commit."
+  echo "================================================================="
+  echo ""
+fi
+
+exit 0
