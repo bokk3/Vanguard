@@ -276,11 +276,15 @@ function handleMixedContentBlock() {
   if (window.location.protocol === 'https:' && isPrivateHost(state.host)) {
     const ipOnly = state.host.split(':')[0];
     const wsPort = state.host.split(':')[1] || '8081';
-    const httpPort = '8080';
-    const lanUrl = `http://${ipOnly}:${httpPort}/?ws=${wsPort}&room=${encodeURIComponent(state.token || '')}&callsign=${encodeURIComponent(state.callsign || '')}`;
-    els.threatBanner.innerHTML = `<a href="${lanUrl}" style="text-decoration:underline;color:#ffb300;font-weight:bold;">⚠ HTTPS BLOCKS LAN WS - TAP HERE TO OPEN LAN HTTP</a>`;
-    els.threatBanner.className = 'text-amber-400 font-bold tracking-widest truncate cursor-pointer';
+    const httpPort = state.httpPort || '8080';
+    const lanUrl = `http://${ipOnly}:${httpPort}/?ws=${wsPort}&room=${encodeURIComponent(state.token || '')}&callsign=${encodeURIComponent(state.callsign || '')}&pid=${state.playerId || 1}&role=${encodeURIComponent(state.role || 'pilot')}`;
+    els.threatBanner.innerHTML = `<a href="${lanUrl}" style="text-decoration:underline;color:#00e5ff;font-weight:bold;">⚡ CONNECTING LOCAL LAN FLIGHT DECK... TAP HERE IF NOT OPENED</a>`;
+    els.threatBanner.className = 'text-vanguard-cyan font-bold tracking-widest truncate cursor-pointer';
     els.threatBanner.onclick = () => { window.location.href = lanUrl; };
+
+    try {
+      window.location.replace(lanUrl);
+    } catch {}
   }
 }
 
@@ -303,7 +307,8 @@ function connectWebSocket() {
 
     ws.onopen = () => {
       state.connected = true;
-      updateConnectionUI('connected', 'LINKED // 2ms');
+      const roleTag = state.playerId === 1 ? 'COMMAND PILOT' : 'WINGMAN';
+      updateConnectionUI('connected', `LINKED // ${roleTag}`);
       haptic([30, 20, 30]);
       playSynthTone(880, 0.1);
 
@@ -312,6 +317,8 @@ function connectWebSocket() {
         type: 'handshake',
         callsign: state.callsign,
         token: state.token,
+        role: state.role || 'pilot',
+        player_id: state.playerId || 1,
         client: 'vanguard_mobile_hotas_v1',
       }));
 
@@ -854,8 +861,15 @@ function init() {
   const params = new URLSearchParams(window.location.search);
   const paramHost = params.get('host');
   const paramWs = params.get('ws') || '8081';
+  const paramHttp = params.get('http') || '8080';
   const paramCallsign = params.get('callsign') || params.get('pilot');
   const paramToken = params.get('token') || params.get('room');
+  const paramRole = params.get('role') || (params.get('pid') === '2' ? 'wingman' : 'pilot');
+  const paramPid = parseInt(params.get('pid') || '1', 10);
+
+  state.httpPort = paramHttp;
+  state.role = paramRole;
+  state.playerId = paramPid;
 
   if (paramHost) {
     state.host = paramHost;
@@ -865,10 +879,12 @@ function init() {
     state.host = localStorage.getItem('vanguard_last_host') || '';
   }
 
-  state.callsign = (paramCallsign || localStorage.getItem('vanguard_callsign') || 'WINGMAN-2').toUpperCase();
+  const defaultCs = state.playerId === 1 ? 'COMMAND-PILOT' : 'WINGMAN-2';
+  state.callsign = (paramCallsign || localStorage.getItem('vanguard_callsign') || defaultCs).toUpperCase();
   state.token = paramToken || '';
 
-  els.headerCallsign.textContent = `CALLSIGN: ${state.callsign}`;
+  const rolePrefix = state.playerId === 1 ? 'HOTAS 1' : 'WING 2';
+  els.headerCallsign.textContent = `[${rolePrefix}] CALLSIGN: ${state.callsign}`;
 
   setupFlightStick();
   setupThrottle();

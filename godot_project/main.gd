@@ -44,6 +44,7 @@ func _ready() -> void:
 	var net_ctrl = get_node_or_null("/root/NetworkControllerServer")
 	if net_ctrl:
 		net_ctrl.start_server(8080)
+		net_ctrl.register_ship(1, ship_p1)
 		if not net_ctrl.pilot_connected.is_connected(_on_mobile_pilot_joined):
 			net_ctrl.pilot_connected.connect(_on_mobile_pilot_joined)
 
@@ -58,7 +59,12 @@ func _toggle_qr_dialog() -> void:
 	if qr_dialog and qr_dialog.has_method("toggle_dialog"):
 		qr_dialog.toggle_dialog()
 
-func _on_mobile_pilot_joined(callsign: String, _player_id: int) -> void:
+func _on_mobile_pilot_joined(callsign: String, p_id: int) -> void:
+	if p_id == 1:
+		if single_hud and single_hud.has_method("notify_combat_event"):
+			single_hud.notify_combat_event("// CONTROLLER 1 LINKED: PHONE GYRO HOTAS (%s) //" % callsign, Color(0.0, 0.95, 1.0))
+		return
+
 	if not is_coop_active:
 		join_player_2()
 	var hud = p2_hud if p2_hud else single_hud

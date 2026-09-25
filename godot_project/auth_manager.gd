@@ -22,7 +22,12 @@ var stats: Dictionary = {
 	"total_sorties": 0,
 	"total_kills": 0,
 	"total_flight_time_sec": 0,
-	"highest_mission_unlocked": "M01"
+	"highest_mission_unlocked": "M01",
+	"battles_won": 0,
+	"battles_lost": 0,
+	"dogfight_kills": 0,
+	"preferred_controls": "AZERTY",
+	"battle_history": []
 }
 
 var http_request: HTTPRequest = null
@@ -246,3 +251,76 @@ func _sync_pilot_to_systems() -> void:
 	if controller_server:
 		# If mobile pilot connects, default host pilot callsign is updated
 		pass
+
+## Logs a completed battle/sortie outcome and updates career stats
+func record_battle_result(theater: String, outcome: String, kills: int, duration_sec: float) -> void:
+	if not stats.has("total_sorties"): stats["total_sorties"] = 0
+	if not stats.has("total_kills"): stats["total_kills"] = 0
+	if not stats.has("total_flight_time_sec"): stats["total_flight_time_sec"] = 0.0
+	if not stats.has("battles_won"): stats["battles_won"] = 0
+	if not stats.has("battles_lost"): stats["battles_lost"] = 0
+	if not stats.has("battle_history"): stats["battle_history"] = []
+	
+	stats["total_sorties"] = int(stats["total_sorties"]) + 1
+	stats["total_kills"] = int(stats["total_kills"]) + kills
+	stats["total_flight_time_sec"] = float(stats["total_flight_time_sec"]) + duration_sec
+	
+	var is_win = outcome.to_upper() in ["VICTORY", "WON", "SUCCESS"]
+	if is_win:
+		stats["battles_won"] = int(stats["battles_won"]) + 1
+	else:
+		stats["battles_lost"] = int(stats["battles_lost"]) + 1
+		
+	var entry = {
+		"date": Time.get_date_string_from_system(),
+		"theater": theater,
+		"outcome": outcome,
+		"kills": kills,
+		"duration_sec": round(duration_sec)
+	}
+	var hist: Array = stats["battle_history"]
+	hist.append(entry)
+	if hist.size() > 25:
+		hist.pop_front()
+	stats["battle_history"] = hist
+	
+	if remember_me:
+		_save_profile()
+	print(">>> [AuthManager] Combat engagement logged: %s (%s) // %d kills // Career sorties: %d" % [
+		theater, outcome, kills, stats["total_sorties"]
+	])
+	
+	# Auto-sync cloud if authenticated
+	sync_cloud_save()
+
+## Synchronizes combat stats and savegame to Cloudflare D1 via /api/pilot/sync
+func sync_cloud_save() -> void:
+	if token.is_empty():
+		return
+		
+	var sync_request = HTTPRequest.new()
+	add_child(sync_request)
+	sync_request.timeout = 6.0
+	
+	var payload = {
+		"total_sorties": stats.get("total_sorties", 0),
+		"total_kills": stats.get("total_kills", 0),
+		"total_flight_time_sec": stats.get("total_flight_time_sec", 0.0),
+		"highest_mission_unlocked": stats.get("highest_mission_unlocked", "M01"),
+		"save_data": {
+			"stats": stats,
+			"rank": rank,
+			"squadron": squadron,
+			"callsign": callsign
+		}
+	}
+	
+	var headers = [
+		"Content-Type: application/json",
+		"Authorization: Bearer " + token
+	]
+	
+	sync_request.request_completed.connect(func(_res, _code, _h, _b):
+		sync_request.queue_free()
+	)
+	sync_request.request("https://project-vanguard.pages.dev/api/pilot/sync", headers, HTTPClient.METHOD_POST, JSON.stringify(payload))

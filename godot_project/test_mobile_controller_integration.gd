@@ -36,15 +36,22 @@ func _init() -> void:
 		return
 	print("[PASS] NetworkControllerServer listening (HTTP: %d, WS: %d)" % [server.http_port, server.port])
 	
-	# 2. Verify QR Code & URL
-	var url = server.get_controller_url()
-	print("[PASS] Generated Mobile Controller URL: ", url)
-	if not url.begins_with("http://") or url.find("?ws=") == -1:
-		push_error("Generated URL is invalid format: %s" % url)
+	# 2. Verify QR Code & URL (Web Gateway + Direct LAN)
+	var url_gw = server.get_controller_url(1, "pilot", true)
+	print("[PASS] Generated Web Gateway URL: ", url_gw)
+	if not url_gw.begins_with("https://project-vanguard.pages.dev") or url_gw.find("host=") == -1:
+		push_error("Generated Web Gateway URL is invalid format: %s" % url_gw)
+		quit(1)
+		return
+
+	var url_lan = server.get_controller_url(1, "pilot", false)
+	print("[PASS] Generated Direct LAN URL: ", url_lan)
+	if not url_lan.begins_with("http://") or url_lan.find("?ws=") == -1:
+		push_error("Generated LAN URL is invalid format: %s" % url_lan)
 		quit(1)
 		return
 		
-	var qr_tex = server.get_qr_texture(4)
+	var qr_tex = server.get_qr_texture(1, "pilot", true, 4)
 	if not qr_tex:
 		push_error("Failed to generate QR ImageTexture!")
 		quit(1)
@@ -53,10 +60,10 @@ func _init() -> void:
 	
 	# 3. Setup Dummy Spaceship
 	dummy_ship = SpaceshipControllerClass.new()
-	dummy_ship.player_id = 2
+	dummy_ship.player_id = 1
 	root.add_child(dummy_ship)
-	server.register_ship(2, dummy_ship)
-	print("[PASS] Bound Dummy Spaceship to Player 2 slot.")
+	server.register_ship(1, dummy_ship)
+	print("[PASS] Bound Dummy Spaceship to Player 1 slot (Solo Controller 1).")
 	
 	server.pilot_connected.connect(func(callsign, pid):
 		print("[PASS] Server received Pilot Connected signal: Callsign='%s', PlayerID=%d" % [callsign, pid])

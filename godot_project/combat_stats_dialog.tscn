@@ -1,0 +1,331 @@
+[gd_scene load_steps=5 format=3 uid="uid://csdiag77vanguard"]
+
+[ext_resource type="Script" path="res://combat_stats_dialog.gd" id="1_csd"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.03, 0.06, 0.1, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.9, 1, 0.8)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0.9, 1, 0.25)
+shadow_size = 25
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_statcard"]
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+bg_color = Color(0.05, 0.11, 0.18, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0.75, 0.9, 0.4)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_logbox"]
+content_margin_left = 14.0
+content_margin_top = 12.0
+content_margin_right = 14.0
+content_margin_bottom = 12.0
+bg_color = Color(0.02, 0.04, 0.08, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.15, 0.3, 0.45, 0.5)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="CombatStatsDialog" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_csd")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.8)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainPanel" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(800, 560)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="Margin" type="MarginContainer" parent="CenterContainer/MainPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HeaderHBox" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "🎖️ COMBAT SERVICE RECORD // PILOT BATTLE TELEMETRY"
+
+[node name="CloseBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/HeaderHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+text = "✕"
+
+[node name="DossierBar" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="CallsignLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/DossierBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 13
+text = "CALLSIGN: VANGUARD-LEAD"
+
+[node name="SepD1" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/DossierBar"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.55, 0.7, 1)
+text = "|"
+
+[node name="RankLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/DossierBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "RANK: LIEUTENANT"
+
+[node name="SepD2" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/DossierBar"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.55, 0.7, 1)
+text = "|"
+
+[node name="SquadronLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/DossierBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 0.85)
+theme_override_font_sizes/font_size = 12
+text = "SQUADRON: 404TH VANGUARD"
+
+[node name="ControlsBadge" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/DossierBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.1, 0.95, 0.4, 1)
+theme_override_font_sizes/font_size = 11
+text = "PRIMARY AVIONICS: ⌨ AZERTY"
+horizontal_alignment = 2
+
+[node name="Grid" type="GridContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 10
+columns = 3
+
+[node name="CardSorties" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_statcard")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardSorties"]
+layout_mode = 2
+
+[node name="Lbl" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardSorties/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.75, 0.9, 1)
+theme_override_font_sizes/font_size = 10
+text = "TOTAL SORTIES"
+
+[node name="SortiesVal" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardSorties/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="CardKills" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_statcard")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardKills"]
+layout_mode = 2
+
+[node name="Lbl" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardKills/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.75, 0.9, 1)
+theme_override_font_sizes/font_size = 10
+text = "BANDITS NEUTRALIZED"
+
+[node name="KillsVal" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardKills/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.2, 1)
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="CardTime" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_statcard")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardTime"]
+layout_mode = 2
+
+[node name="Lbl" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardTime/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.75, 0.9, 1)
+theme_override_font_sizes/font_size = 10
+text = "FLIGHT TIME"
+
+[node name="FlightTimeVal" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardTime/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "0h 00m"
+
+[node name="CardWins" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_statcard")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardWins"]
+layout_mode = 2
+
+[node name="Lbl" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardWins/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.75, 0.9, 1)
+theme_override_font_sizes/font_size = 10
+text = "DOGFIGHT WINS"
+
+[node name="WinsVal" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardWins/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1, 0.95, 0.4, 1)
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="CardLosses" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_statcard")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardLosses"]
+layout_mode = 2
+
+[node name="Lbl" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardLosses/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.75, 0.9, 1)
+theme_override_font_sizes/font_size = 10
+text = "DOGFIGHT LOSSES"
+
+[node name="LossesVal" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardLosses/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.5, 0.5, 1)
+theme_override_font_sizes/font_size = 20
+text = "0"
+
+[node name="CardRatio" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_statcard")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardRatio"]
+layout_mode = 2
+
+[node name="Lbl" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardRatio/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.75, 0.9, 1)
+theme_override_font_sizes/font_size = 10
+text = "COMBAT WIN RATE"
+
+[node name="WinRatioVal" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardRatio/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 20
+text = "0.0%"
+
+[node name="HistoryHeader" type="Label" parent="CenterContainer/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.85, 1, 0.95)
+theme_override_font_sizes/font_size = 11
+text = "// RECENT COMBAT ENGAGEMENTS"
+
+[node name="HistoryBox" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_logbox")
+
+[node name="Scroll" type="ScrollContainer" parent="CenterContainer/MainPanel/Margin/VBox/HistoryBox"]
+layout_mode = 2
+
+[node name="BattlesContainer" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/HistoryBox/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="NoBattlesLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/HistoryBox/Scroll/BattlesContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.65, 0.75, 0.8)
+theme_override_font_sizes/font_size = 11
+text = "No recent sortie logs recorded. Deploy into combat to log telemetry."
+horizontal_alignment = 1
+
+[node name="FooterBar" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="StatusMsgLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/FooterBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.65, 0.8, 0.9, 0.85)
+theme_override_font_sizes/font_size = 11
+text = "// ENCRYPTED TELEMETRY LOCAL CACHE ACTIVE //"
+
+[node name="SyncBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/FooterBar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 32)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "↺ SYNC CLOUD DOSSIER"

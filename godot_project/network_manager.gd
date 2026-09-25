@@ -12,6 +12,8 @@ signal connected_to_server()
 signal connection_failed()
 signal disconnected_from_server()
 
+signal party_updated(parties: Dictionary)
+
 const DEFAULT_GAME_PORT: int = 7777
 const DEFAULT_BEACON_PORT: int = 7778
 const BEACON_INTERVAL: float = 1.0
@@ -28,6 +30,14 @@ var beacon_timer: float = 0.0
 var server_name: String = "VANGUARD ARENA"
 var player_callsign: String = "Vanguard-1"
 var current_map_name: String = "Dusk Canyon"
+
+var parties: Dictionary = {
+	"Alpha": { "name": "Squadron Alpha", "pilot_callsign": "LEAD", "pilot_input": "AZERTY", "crew": [] },
+	"Bravo": { "name": "Squadron Bravo", "pilot_callsign": "EMPTY", "pilot_input": "AZERTY", "crew": [] }
+}
+var my_party: String = "Alpha"
+var my_role: String = "pilot"
+var my_input: String = "AZERTY"
 
 var discovered_servers: Dictionary = {} # IP -> { "name": ..., "port": ..., "last_seen": ..., ... }
 
@@ -215,3 +225,37 @@ func _on_connection_failed() -> void:
 func _on_server_disconnected() -> void:
 	print("[NetworkManager] Disconnected from host server.")
 	disconnected_from_server.emit()
+
+# -----------------------------------------------------------------------------
+# Squadron Party & Main Pilot Management
+# -----------------------------------------------------------------------------
+func set_my_party_role(party_name: String, role: String, input_mode: String = "") -> void:
+	my_party = party_name
+	my_role = role
+	if not input_mode.is_empty():
+		my_input = input_mode
+		
+	var pid = multiplayer.get_unique_id() if (multiplayer and multiplayer.has_multiplayer_peer()) else 1
+	if multiplayer and multiplayer.has_multiplayer_peer():
+		rpc("rpc_update_party_member", pid, my_party, my_role, player_callsign, my_input)
+	else:
+		_local_update_party(pid, my_party, my_role, player_callsign, my_input)
+
+func _local_update_party(peer_id: int, p_name: String, role: String, cs: String, input_mode: String) -> void:
+	if not parties.has(p_name):
+		return
+	if role == "pilot":
+		parties[p_name]["pilot_callsign"] = cs
+		parties[p_name]["pilot_input"] = input_mode
+		parties[p_name]["pilot_peer"] = peer_id
+	else:
+		var crew: Array = parties[p_name].get("crew", [])
+		if not crew.has(cs):
+			crew.append(cs)
+		parties[p_name]["crew"] = crew
+	party_updated.emit(parties)
+
+@rpc("any_peer", "call_local", "reliable")
+func rpc_update_party_member(peer_id: int, p_name: String, role: String, cs: String, input_mode: String) -> void:
+	_local_update_party(peer_id, p_name, role, cs, input_mode)
+

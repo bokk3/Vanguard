@@ -37,8 +37,17 @@
           <span class="hidden xl:inline">LIFT RATIO: <span id="ticker-lift" class="text-vanguard-cyan">100% (OPTIMAL)</span></span>
         </div>
         <div class="flex items-center space-x-4">
+          <button id="bgm-toggle" class="hover:text-vanguard-cyan transition-colors text-vanguard-cyan flex items-center gap-1.5 cursor-pointer text-xs font-mono" title="Menu Soundtrack">
+            <span id="bgm-icon">🎵</span>
+            <span id="bgm-label">[ BGM: PLAYING ]</span>
+            <span id="bgm-bars" class="inline-flex items-end gap-0.5 h-3">
+              <span class="w-0.5 h-2 bg-vanguard-cyan animate-pulse"></span>
+              <span class="w-0.5 h-3 bg-vanguard-cyan animate-pulse" style="animation-delay: 150ms"></span>
+              <span class="w-0.5 h-1.5 bg-vanguard-cyan animate-pulse" style="animation-delay: 300ms"></span>
+            </span>
+          </button>
           <button id="sound-toggle" class="hover:text-vanguard-cyan transition-colors text-vanguard-cyan">
-            [ AUDIO: TACTICAL ]
+            [ SFX: TACTICAL ]
           </button>
           <span id="top-version-badge" class="px-2 py-0.5 rounded bg-vanguard-cyan/10 text-vanguard-cyan border border-vanguard-cyan/30 text-[10px] font-bold tracking-widest uppercase">
             v0.8.1-ALPHA
@@ -77,6 +86,9 @@
           <a href="#pipeline" class="text-slate-300 hover:text-vanguard-cyan transition-colors flex items-center gap-1">
             <span class="text-vanguard-cyan">05.</span> Pipeline
           </a>
+          <a href="#stats" class="text-slate-300 hover:text-vanguard-cyan transition-colors flex items-center gap-1">
+            <span class="text-vanguard-cyan">06.</span> Combat Stats
+          </a>
           <a href="/controller.html" class="text-vanguard-amber hover:text-white transition-colors flex items-center gap-1 font-bold">
             <span>📱</span> Mobile HOTAS
           </a>
@@ -111,8 +123,9 @@
         <a href="#fighter" class="block py-1 text-slate-300 hover:text-vanguard-cyan">03. Fighter Specifications</a>
         <a href="#controls" class="block py-1 text-slate-300 hover:text-vanguard-cyan">04. Flight Controls</a>
         <a href="#pipeline" class="block py-1 text-slate-300 hover:text-vanguard-cyan">05. CAD Pipeline</a>
+        <a href="#stats" class="block py-1 text-slate-300 hover:text-vanguard-cyan">06. Combat Stats & Records</a>
         <a href="/controller.html" class="block py-1 text-vanguard-amber font-bold flex items-center gap-1.5">
-          <span>📱</span> 06. Mobile HOTAS Controller (PWA)
+          <span>📱</span> 07. Mobile HOTAS Controller (PWA)
         </a>
         <button id="mobile-pilot-portal-btn" class="w-full text-center py-3 px-4 rounded-lg bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/30 border-2 border-vanguard-gold text-vanguard-gold font-display font-black tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,215,0,0.3)]">
           <span class="text-lg">🎖️</span> <span id="mobile-pilot-label">COMMISSION CALLSIGN</span>
@@ -753,6 +766,138 @@
     </div>
   </section>
 
+  <!-- Section: Combat Stats & Battle Records -->
+  <section id="stats" class="py-20 border-b border-vanguard-border/50 relative bg-vanguard-deep/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-12 space-y-3">
+        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-cyan">[ REAL-TIME FLIGHT TELEMETRY & SORTIE LOGS ]</span>
+        <h2 class="text-3xl sm:text-5xl font-bold text-white tracking-wide">
+          COMBAT STATS & SERVICE RECORD
+        </h2>
+        <p class="text-slate-300 font-light text-sm sm:text-base">
+          Tactical performance dossier tracking dogfight victories, air-to-air kills, career flight time, and recent combat engagements synchronized across your local Godot station and the Cloudflare Edge network.
+        </p>
+      </div>
+
+      <!-- Pilot ID & Cloud Status Banner -->
+      <div class="tactical-box p-6 rounded-xl border border-vanguard-border max-w-5xl mx-auto mb-8 bg-vanguard-panel/90 shadow-hud-box">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-vanguard-border/70">
+          <div class="flex items-center space-x-4">
+            <img src="/images/vanguard_squadron_patch_cropped.png" alt="404th Wing" class="w-14 h-14 object-contain drop-shadow-[0_0_12px_#00e5ff]">
+            <div>
+              <div class="text-[10px] font-mono text-vanguard-cyan font-bold tracking-widest uppercase">// SOL ORBITAL DIRECTORATE //</div>
+              <h3 id="stats-pilot-callsign" class="text-2xl sm:text-3xl font-black text-white font-display tracking-wider">VANGUARD-LEAD</h3>
+              <div id="stats-pilot-rank-squadron" class="text-xs font-mono text-vanguard-amber font-semibold">
+                FLIGHT LIEUTENANT // 404TH STRIKE WING
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3">
+            <div id="stats-cloud-badge" class="px-3 py-1.5 rounded bg-black/60 border border-vanguard-cyan/30 text-vanguard-cyan text-xs font-mono font-bold flex items-center gap-1.5">
+              <span id="stats-cloud-dot" class="w-2 h-2 rounded-full bg-vanguard-cyan animate-pulse"></span>
+              <span id="stats-cloud-status">LOCAL TELEMETRY</span>
+            </div>
+            <button id="btn-sync-stats" class="px-4 py-1.5 rounded bg-vanguard-cyan hover:bg-white text-black text-xs font-mono font-bold transition-all shadow-cyan-glow flex items-center gap-1.5 cursor-pointer">
+              <span>🔄</span>
+              <span>SYNC STATS</span>
+            </button>
+            <button id="btn-portal-from-stats" class="px-4 py-1.5 rounded border border-vanguard-gold bg-vanguard-gold/10 hover:bg-vanguard-gold hover:text-black text-vanguard-gold text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+              <span>🎖️</span>
+              <span id="stats-auth-btn-label">COMMISSION / LOGIN</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 8 Core Combat Metrics Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+          <div class="p-4 bg-black/50 rounded border border-vanguard-border/80 text-center">
+            <span class="block text-[11px] font-mono text-slate-400 uppercase">CAREER SORTIES</span>
+            <span id="stats-total-sorties" class="text-2xl sm:text-3xl font-mono font-black text-white mt-1 block">0</span>
+            <span class="text-[10px] font-mono text-slate-500">Missions & Battles</span>
+          </div>
+
+          <div class="p-4 bg-black/50 rounded border border-vanguard-emerald/40 text-center">
+            <span class="block text-[11px] font-mono text-emerald-400 uppercase">DOGFIGHT WINS</span>
+            <span id="stats-battles-won" class="text-2xl sm:text-3xl font-mono font-black text-emerald-400 mt-1 block">0</span>
+            <span class="text-[10px] font-mono text-emerald-500/70">PvP / AI Victories</span>
+          </div>
+
+          <div class="p-4 bg-black/50 rounded border border-vanguard-crimson/40 text-center">
+            <span class="block text-[11px] font-mono text-red-400 uppercase">BATTLES LOST</span>
+            <span id="stats-battles-lost" class="text-2xl sm:text-3xl font-mono font-black text-red-400 mt-1 block">0</span>
+            <span class="text-[10px] font-mono text-red-500/70">Combat Defeats</span>
+          </div>
+
+          <div class="p-4 bg-black/50 rounded border border-vanguard-gold/40 text-center">
+            <span class="block text-[11px] font-mono text-yellow-400 uppercase">WIN RATE</span>
+            <span id="stats-win-rate" class="text-2xl sm:text-3xl font-mono font-black text-yellow-400 mt-1 block">0.0%</span>
+            <span class="text-[10px] font-mono text-yellow-500/70">Victory Ratio</span>
+          </div>
+
+          <div class="p-4 bg-black/50 rounded border border-vanguard-border/80 text-center">
+            <span class="block text-[11px] font-mono text-slate-400 uppercase">AIR-TO-AIR KILLS</span>
+            <span id="stats-total-kills" class="text-2xl sm:text-3xl font-mono font-black text-vanguard-cyan mt-1 block">0</span>
+            <span class="text-[10px] font-mono text-slate-500">Hostiles Destroyed</span>
+          </div>
+
+          <div class="p-4 bg-black/50 rounded border border-vanguard-border/80 text-center">
+            <span class="block text-[11px] font-mono text-slate-400 uppercase">FLIGHT TIME</span>
+            <span id="stats-flight-time" class="text-xl sm:text-2xl font-mono font-black text-white mt-1 block">00m 00s</span>
+            <span class="text-[10px] font-mono text-slate-500">Time in Envelope</span>
+          </div>
+
+          <div class="p-4 bg-black/50 rounded border border-vanguard-border/80 text-center">
+            <span class="block text-[11px] font-mono text-slate-400 uppercase">PREFERRED AVIONICS</span>
+            <span id="stats-preferred-controls" class="text-lg sm:text-xl font-mono font-black text-vanguard-amber mt-1 block">AZERTY</span>
+            <span class="text-[10px] font-mono text-slate-500">Input Layout</span>
+          </div>
+
+          <div class="p-4 bg-black/50 rounded border border-vanguard-border/80 text-center">
+            <span class="block text-[11px] font-mono text-slate-400 uppercase">HIGHEST SORTIE</span>
+            <span id="stats-highest-mission" class="text-lg sm:text-xl font-mono font-black text-vanguard-gold mt-1 block">M01</span>
+            <span class="text-[10px] font-mono text-slate-500">Campaign Clearance</span>
+          </div>
+        </div>
+
+        <!-- Recent Combat Engagements Log -->
+        <div class="mt-8 pt-6 border-t border-vanguard-border/70">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center space-x-2">
+              <span class="text-vanguard-cyan">⚔️</span>
+              <span class="font-display font-bold text-sm tracking-wider uppercase text-white">RECENT COMBAT ENGAGEMENTS & DOGFIGHTS</span>
+            </div>
+            <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider">// LAST 10 SORTIES //</span>
+          </div>
+
+          <div class="overflow-x-auto rounded-lg border border-vanguard-border/80 bg-black/60">
+            <table class="w-full text-left font-mono text-xs">
+              <thead class="bg-vanguard-deep text-slate-400 border-b border-vanguard-border/80 uppercase text-[10px] tracking-wider">
+                <tr>
+                  <th class="py-2.5 px-4">TIMESTAMP</th>
+                  <th class="py-2.5 px-4">THEATER / OP</th>
+                  <th class="py-2.5 px-4">OUTCOME</th>
+                  <th class="py-2.5 px-4">KILLS</th>
+                  <th class="py-2.5 px-4">DURATION</th>
+                  <th class="py-2.5 px-4">AVIONICS</th>
+                </tr>
+              </thead>
+              <tbody id="stats-history-tbody" class="divide-y divide-vanguard-border/40 text-slate-300">
+                <tr>
+                  <td colspan="6" class="py-6 text-center text-slate-500 font-mono text-xs">
+                    NO COMBAT SORTIES LOGGED YET. DEPLOY INTO COMBAT OR PAIR PHONE TO RECORD FLIGHT TELEMETRY.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- Section 6: Downloads & System Specs -->
   <section id="downloads" class="py-24 relative">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
@@ -974,6 +1119,28 @@
                 <div class="text-[10px] text-vanguard-textMuted uppercase">Campaign Status</div>
                 <div id="dossier-campaign" class="text-lg font-bold text-vanguard-amber mt-0.5">M01</div>
               </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 pt-2 text-center">
+              <div class="p-2 rounded bg-black/40 border border-vanguard-border/50">
+                <div class="text-[10px] text-emerald-400 uppercase">Dogfight Record</div>
+                <div id="dossier-record" class="text-base font-bold text-emerald-400 mt-0.5">0W - 0L</div>
+              </div>
+              <div class="p-2 rounded bg-black/40 border border-vanguard-border/50">
+                <div class="text-[10px] text-yellow-400 uppercase">Win Rate</div>
+                <div id="dossier-win-rate" class="text-base font-bold text-yellow-400 mt-0.5">0.0%</div>
+              </div>
+              <div class="p-2 rounded bg-black/40 border border-vanguard-border/50">
+                <div class="text-[10px] text-vanguard-textMuted uppercase">Controls</div>
+                <div id="dossier-controls" class="text-base font-bold text-vanguard-cyan mt-0.5">AZERTY</div>
+              </div>
+            </div>
+
+            <div class="pt-2 text-center">
+              <a href="#stats" id="dossier-stats-link" class="text-[11px] font-mono text-vanguard-cyan hover:underline inline-flex items-center gap-1">
+                <span>📊</span>
+                <span>Open Full Combat Stats & Sortie History &rarr;</span>
+              </a>
             </div>
           </div>
 

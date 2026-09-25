@@ -29,6 +29,38 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_alpha_card"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.03, 0.08, 0.14, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.85, 1, 0.7)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bravo_card"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.14, 0.04, 0.04, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.3, 0.2, 0.7)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
 [node name="PvPMenu" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -257,37 +289,186 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -260.0
-offset_top = -110.0
-offset_right = 260.0
-offset_bottom = 110.0
+offset_left = -460.0
+offset_top = -270.0
+offset_right = 460.0
+offset_bottom = 270.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
 
-[node name="VBox" type="VBoxContainer" parent="HostWaitingModal"]
+[node name="Margin" type="MarginContainer" parent="HostWaitingModal"]
 layout_mode = 2
-theme_override_constants/separation = 16
-alignment = 1
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
 
-[node name="ModalTitle" type="Label" parent="HostWaitingModal/VBox"]
+[node name="VBox" type="VBoxContainer" parent="HostWaitingModal/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="HeaderBox" type="VBoxContainer" parent="HostWaitingModal/Margin/VBox"]
+layout_mode = 2
+
+[node name="LobbyTitle" type="Label" parent="HostWaitingModal/Margin/VBox/HeaderBox"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
 theme_override_font_sizes/font_size = 20
-text = "LISTEN SERVER BROADCASTING"
+text = "SQUADRON COMBAT LOBBY // VANGUARD ARENA"
 horizontal_alignment = 1
 
-[node name="WaitingLabel" type="Label" parent="HostWaitingModal/VBox"]
+[node name="WaitingLabel" type="Label" parent="HostWaitingModal/Margin/VBox/HeaderBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.95, 1, 0.85)
+theme_override_colors/font_color = Color(0, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "LISTEN SERVER ACTIVE // WAITING FOR OPPONENTS..."
+horizontal_alignment = 1
+
+[node name="PartiesHBox" type="HBoxContainer" parent="HostWaitingModal/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="AlphaPartyCard" type="PanelContainer" parent="HostWaitingModal/Margin/VBox/PartiesHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_alpha_card")
+
+[node name="VBox" type="VBoxContainer" parent="HostWaitingModal/Margin/VBox/PartiesHBox/AlphaPartyCard"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="PartyHeader" type="Label" parent="HostWaitingModal/Margin/VBox/PartiesHBox/AlphaPartyCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "◈ SQUADRON ALPHA (BLUE/GOLD)"
+
+[node name="PilotSection" type="VBoxContainer" parent="HostWaitingModal/Margin/VBox/PartiesHBox/AlphaPartyCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="AlphaPilotLabel" type="Label" parent="HostWaitingModal/Margin/VBox/PartiesHBox/AlphaPartyCard/VBox/PilotSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
 theme_override_font_sizes/font_size = 13
-text = "WAITING FOR OPPONENT TO CONNECT..."
-horizontal_alignment = 1
+text = "⭐ MAIN PILOT: VANGUARD-LEAD"
 
-[node name="CancelHostBtn" type="Button" parent="HostWaitingModal/VBox"]
+[node name="AlphaInputBtn" type="Button" parent="HostWaitingModal/Margin/VBox/PartiesHBox/AlphaPartyCard/VBox/PilotSection"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 36)
 layout_mode = 2
-size_flags_horizontal = 4
-text = "[ CANCEL SERVER ]"
+theme_override_font_sizes/font_size = 11
+text = "FLIGHT CONTROL: [ ⌨ AZERTY ]"
+
+[node name="AlphaClaimPilotBtn" type="Button" parent="HostWaitingModal/Margin/VBox/PartiesHBox/AlphaPartyCard/VBox/PilotSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "[ FLY AS ALPHA MAIN PILOT ]"
+
+[node name="CrewSection" type="VBoxContainer" parent="HostWaitingModal/Margin/VBox/PartiesHBox/AlphaPartyCard/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="AlphaCrewLabel" type="Label" parent="HostWaitingModal/Margin/VBox/PartiesHBox/AlphaPartyCard/VBox/CrewSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 0.8)
+theme_override_font_sizes/font_size = 11
+text = "TACTICAL CREW: (NONE)"
+
+[node name="AlphaJoinCrewBtn" type="Button" parent="HostWaitingModal/Margin/VBox/PartiesHBox/AlphaPartyCard/VBox/CrewSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "[ JOIN SQUADRON ALPHA CREW ]"
+
+[node name="BravoPartyCard" type="PanelContainer" parent="HostWaitingModal/Margin/VBox/PartiesHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_bravo_card")
+
+[node name="VBox" type="VBoxContainer" parent="HostWaitingModal/Margin/VBox/PartiesHBox/BravoPartyCard"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="PartyHeader" type="Label" parent="HostWaitingModal/Margin/VBox/PartiesHBox/BravoPartyCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.35, 0.25, 1)
+theme_override_font_sizes/font_size = 15
+text = "◈ SQUADRON BRAVO (CRIMSON/RED)"
+
+[node name="PilotSection" type="VBoxContainer" parent="HostWaitingModal/Margin/VBox/PartiesHBox/BravoPartyCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="BravoPilotLabel" type="Label" parent="HostWaitingModal/Margin/VBox/PartiesHBox/BravoPartyCard/VBox/PilotSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 13
+text = "⭐ MAIN PILOT: [OPEN SEAT]"
+
+[node name="BravoInputBtn" type="Button" parent="HostWaitingModal/Margin/VBox/PartiesHBox/BravoPartyCard/VBox/PilotSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "FLIGHT CONTROL: [ ⌨ AZERTY ]"
+
+[node name="BravoClaimPilotBtn" type="Button" parent="HostWaitingModal/Margin/VBox/PartiesHBox/BravoPartyCard/VBox/PilotSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "[ FLY AS BRAVO MAIN PILOT ]"
+
+[node name="CrewSection" type="VBoxContainer" parent="HostWaitingModal/Margin/VBox/PartiesHBox/BravoPartyCard/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="BravoCrewLabel" type="Label" parent="HostWaitingModal/Margin/VBox/PartiesHBox/BravoPartyCard/VBox/CrewSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.75, 0.75, 0.8)
+theme_override_font_sizes/font_size = 11
+text = "TACTICAL CREW: (NONE)"
+
+[node name="BravoJoinCrewBtn" type="Button" parent="HostWaitingModal/Margin/VBox/PartiesHBox/BravoPartyCard/VBox/CrewSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "[ JOIN SQUADRON BRAVO CREW ]"
+
+[node name="FooterActions" type="HBoxContainer" parent="HostWaitingModal/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PairPhoneLobbyBtn" type="Button" parent="HostWaitingModal/Margin/VBox/FooterActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "📱 [F3] PAIR PHONE HOTAS"
+
+[node name="LaunchArenaBtn" type="Button" parent="HostWaitingModal/Margin/VBox/FooterActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.1, 0.95, 0.4, 1)
+theme_override_font_sizes/font_size = 13
+text = "🚀 [ENTER] LAUNCH SORTIE"
+
+[node name="CancelHostBtn" type="Button" parent="HostWaitingModal/Margin/VBox/FooterActions"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "[ ABORT ]"

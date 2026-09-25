@@ -1,0 +1,237 @@
+[gd_scene load_steps=5 format=3 uid="uid://mdsel77vanguard"]
+
+[ext_resource type="Script" path="res://mode_selector_dialog.gd" id="1_mod"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
+bg_color = Color(0.02, 0.05, 0.09, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.85, 1, 0.8)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0.85, 1, 0.3)
+shadow_size = 25
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_solo"]
+content_margin_left = 20.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+bg_color = Color(0.04, 0.12, 0.2, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.85, 1, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_online"]
+content_margin_left = 20.0
+content_margin_top = 20.0
+content_margin_right = 20.0
+content_margin_bottom = 20.0
+bg_color = Color(0.16, 0.1, 0.02, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.84, 0, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="ModeSelectorDialog" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_mod")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.82)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainPanel" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(820, 520)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
+
+[node name="Margin" type="MarginContainer" parent="CenterContainer/MainPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="HeaderBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HeaderTitle" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/HeaderBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "◈ VANGUARD COMMAND // SELECT OPERATIONAL THEATER"
+horizontal_alignment = 1
+
+[node name="PilotTagLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/HeaderBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.9)
+theme_override_font_sizes/font_size = 12
+text = "PILOT IDENTIFIED: VANGUARD-LEAD // 404TH WING"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/HeaderBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.8, 0.92, 0.85)
+theme_override_font_sizes/font_size = 11
+text = "Select your deployment directive. You may switch theaters at any time from the hangar."
+horizontal_alignment = 1
+
+[node name="Sep" type="HSeparator" parent="CenterContainer/MainPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="CardsHBox" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="SoloCard" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card_solo")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/SoloCard"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CardIcon" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/SoloCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 32
+text = "🤖"
+horizontal_alignment = 1
+
+[node name="CardTitle" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/SoloCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "SOLO SORTIE // VS AI"
+horizontal_alignment = 1
+
+[node name="CardDesc" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/SoloCard/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.75, 0.88, 0.95, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "• 8-Mission Campaign Narrative
+• AI Drone Combat & Dogfights
+• Prologue Cinematic Sortie
+• Direct Command of Primary Ship
+• Fly via AZERTY or Phone Gyro HOTAS"
+autowrap_mode = 2
+
+[node name="SoloBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/SoloCard/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 1, 0.85, 1)
+theme_override_font_sizes/font_size = 13
+text = "[ 1 ]  ENGAGE SOLO // VS AI"
+
+[node name="OnlineCard" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card_online")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/OnlineCard"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CardIcon" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/OnlineCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 32
+text = "🌐"
+horizontal_alignment = 1
+
+[node name="CardTitle" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/OnlineCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 15
+text = "SQUADRON LOBBIES // MULTIPLAYER"
+horizontal_alignment = 1
+
+[node name="CardDesc" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/OnlineCard/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.95, 0.9, 0.75, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "• LAN & Direct-IP Dogfight Arenas
+• Squadrons Configured into Parties
+• Designated Main Pilot per Party
+• Crew & Wingman Co-Op Roles
+• AZERTY, QWERTY, or Phone HOTAS"
+autowrap_mode = 2
+
+[node name="OnlineBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/OnlineCard/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 13
+text = "[ 2 ]  ENTER SQUADRON LOBBIES"
+
+[node name="Sep2" type="HSeparator" parent="CenterContainer/MainPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="BottomBarHBox" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="PairPhoneBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/BottomBarHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "📱 [F3] PAIR PHONE AS CONTROLLER 1 (GYRO HOTAS)"
+
+[node name="LayoutToggleBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/BottomBarHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 11
+text = "⌨ [F1] FLIGHT LAYOUT: AZERTY (ZQSD)"

@@ -25,6 +25,13 @@ extends Node3D
 @onready var update_badge_btn: Button = %UpdateBadgeBtn
 @onready var update_dialog: Control = %UpdateDialog
 @onready var login_dialog: Control = %LoginDialog
+@onready var mode_selector: Control = %ModeSelectorDialog
+@onready var combat_stats: Control = %CombatStatsDialog
+@onready var theater_badge_label: Label = %TheaterBadgeLabel
+@onready var switch_theater_btn: Button = %SwitchTheaterBtn
+@onready var stats_btn: Button = %StatsBtn
+@onready var layout_toggle_btn: Button = %LayoutToggleBtn
+
 @onready var pilot_dossier_box: PanelContainer = %PilotDossierBox
 @onready var pilot_label: Label = %PilotLabel
 @onready var pilot_rank_label: Label = %PilotRankLabel
@@ -45,6 +52,8 @@ var repair_percent: float = 84.0
 var initial_title_y: float = 28.0
 var is_launching: bool = false
 var qr_dialog: Control = null
+var current_theater: String = "SOLO"
+var has_chosen_theater: bool = false
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -64,7 +73,7 @@ func _ready() -> void:
 	if pvp_btn and not pvp_btn.pressed.is_connected(_on_pvp_pressed):
 		pvp_btn.pressed.connect(_on_pvp_pressed)
 	if mobile_hotas_btn and not mobile_hotas_btn.pressed.is_connected(_toggle_qr_dialog):
-		mobile_hotas_btn.pressed.connect(_toggle_qr_dialog)
+		mobile_hotas_btn.pressed.connect(func(): _toggle_qr_dialog(1))
 	if not config_btn.pressed.is_connected(_on_config_pressed):
 		config_btn.pressed.connect(_on_config_pressed)
 	if not specs_btn.pressed.is_connected(_on_specs_pressed):
@@ -73,6 +82,28 @@ func _ready() -> void:
 		quit_btn.pressed.connect(_on_quit_pressed)
 	if close_specs_btn and not close_specs_btn.pressed.is_connected(func(): specs_panel.hide()):
 		close_specs_btn.pressed.connect(func(): specs_panel.hide())
+	
+	if switch_theater_btn and not switch_theater_btn.pressed.is_connected(_show_mode_selector):
+		switch_theater_btn.pressed.connect(_show_mode_selector)
+	if stats_btn and not stats_btn.pressed.is_connected(_show_stats_dialog):
+		stats_btn.pressed.connect(_show_stats_dialog)
+	if layout_toggle_btn and not layout_toggle_btn.pressed.is_connected(_toggle_keyboard_layout):
+		layout_toggle_btn.pressed.connect(_toggle_keyboard_layout)
+
+	if mode_selector:
+		if not mode_selector.theater_selected.is_connected(_on_theater_selected):
+			mode_selector.theater_selected.connect(_on_theater_selected)
+		if not mode_selector.pair_controller1_requested.is_connected(_on_pair_controller1_requested):
+			mode_selector.pair_controller1_requested.connect(_on_pair_controller1_requested)
+		if not mode_selector.layout_toggled.is_connected(_on_layout_toggled):
+			mode_selector.layout_toggled.connect(_on_layout_toggled)
+
+	var net_ctrl = get_node_or_null("/root/NetworkControllerServer")
+	if net_ctrl:
+		if not net_ctrl.pilot_connected.is_connected(_on_mobile_pilot_joined):
+			net_ctrl.pilot_connected.connect(_on_mobile_pilot_joined)
+
+	_update_layout_ui()
 	
 	if update_badge_btn:
 		if not update_badge_btn.pressed.is_connected(_on_update_badge_pressed):
@@ -117,6 +148,8 @@ func _ready() -> void:
 		if auth_mgr.is_authenticated:
 			_update_pilot_dossier_ui()
 			if login_dialog: login_dialog.hide()
+			if not has_chosen_theater:
+				_show_mode_selector()
 		else:
 			_show_login_dialog()
 	else:
@@ -132,6 +165,66 @@ func _show_login_dialog() -> void:
 		if settings_modal: settings_modal.hide()
 		if specs_panel: specs_panel.hide()
 		if mission_selector: mission_selector.hide()
+		if mode_selector: mode_selector.hide_selector()
+		if combat_stats: combat_stats.hide_stats()
+
+func _show_mode_selector() -> void:
+	if mode_selector:
+		mode_selector.show_selector()
+		if settings_modal: settings_modal.hide()
+		if specs_panel: specs_panel.hide()
+		if mission_selector: mission_selector.hide()
+		if combat_stats: combat_stats.hide_stats()
+
+func _show_stats_dialog() -> void:
+	if combat_stats:
+		combat_stats.show_stats()
+		if settings_modal: settings_modal.hide()
+		if specs_panel: specs_panel.hide()
+		if mission_selector: mission_selector.hide()
+		if mode_selector: mode_selector.hide_selector()
+
+func _on_theater_selected(mode: String) -> void:
+	has_chosen_theater = true
+	current_theater = mode
+	var net_ctrl = get_node_or_null("/root/NetworkControllerServer")
+	if mode == "SOLO":
+		if theater_badge_label:
+			theater_badge_label.text = "THEATER: SOLO // VS AI"
+			theater_badge_label.add_theme_color_override("font_color", Color(0.0, 0.95, 1.0))
+		if net_ctrl:
+			net_ctrl.is_solo_mode = true
+			net_ctrl.default_player_id = 1
+	elif mode == "ONLINE":
+		if net_ctrl:
+			net_ctrl.is_solo_mode = false
+			net_ctrl.default_player_id = 1
+		get_tree().change_scene_to_file("res://pvp_menu.tscn")
+
+func _on_pair_controller1_requested() -> void:
+	_toggle_qr_dialog(1)
+
+func _on_layout_toggled(_is_az: bool) -> void:
+	_update_layout_ui()
+
+func _toggle_keyboard_layout() -> void:
+	var cfg = get_node_or_null("/root/ConfigManager")
+	if cfg:
+		cfg.reset_keybindings_preset(not cfg.is_azerty)
+		_update_layout_ui()
+		if mode_selector and mode_selector.has_method("_update_layout_button_text"):
+			mode_selector._update_layout_button_text()
+
+func _update_layout_ui() -> void:
+	var cfg = get_node_or_null("/root/ConfigManager")
+	var is_az = cfg.is_azerty if cfg else false
+	if layout_toggle_btn:
+		layout_toggle_btn.text = "  [ ⌨ ]  LAYOUT: %s" % ("AZERTY (ZQSD)" if is_az else "QWERTY (WASD)")
+
+func _on_mobile_pilot_joined(cs: String, pid: int) -> void:
+	if mobile_hotas_btn:
+		mobile_hotas_btn.text = "  [ 📱 ]  CONTROLLER %d: %s (LINKED)" % [pid, cs]
+		mobile_hotas_btn.add_theme_color_override("font_color", Color(0.1, 0.95, 0.4))
 
 func _update_pilot_dossier_ui() -> void:
 	var auth_mgr = get_node_or_null("/root/AuthManager")
@@ -144,9 +237,13 @@ func _update_pilot_dossier_ui() -> void:
 
 func _on_login_completed(_profile: Dictionary) -> void:
 	_update_pilot_dossier_ui()
+	if not has_chosen_theater:
+		_show_mode_selector()
 
 func _on_auth_success(_profile: Dictionary) -> void:
 	_update_pilot_dossier_ui()
+	if not has_chosen_theater:
+		_show_mode_selector()
 
 func _on_logged_out() -> void:
 	_update_pilot_dossier_ui()
@@ -417,17 +514,20 @@ func _on_update_badge_pressed() -> void:
 	if update_dialog:
 		update_dialog.show_update_prompt()
 
-func _toggle_qr_dialog() -> void:
+func _toggle_qr_dialog(target_pid: int = 1) -> void:
 	if not qr_dialog:
 		var scene = load("res://qr_join_dialog.tscn")
 		if scene:
 			qr_dialog = scene.instantiate()
 			$UI.add_child(qr_dialog)
 	if qr_dialog and qr_dialog.has_method("toggle_dialog"):
-		qr_dialog.toggle_dialog()
+		qr_dialog.toggle_dialog(target_pid)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_F3:
-		_toggle_qr_dialog()
+		_toggle_qr_dialog(1)
+		get_viewport().set_input_as_handled()
+	elif event is InputEventKey and event.pressed and event.keycode == KEY_F1:
+		_toggle_keyboard_layout()
 		get_viewport().set_input_as_handled()
 

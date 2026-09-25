@@ -55,16 +55,98 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Sound toggle button
+  // SFX sound toggle button
   const soundToggle = document.getElementById('sound-toggle');
   if (soundToggle) {
     soundToggle.addEventListener('click', () => {
       audio.muted = !audio.muted;
-      soundToggle.textContent = audio.muted ? '[ AUDIO: MUTED ]' : '[ AUDIO: TACTICAL ]';
+      soundToggle.textContent = audio.muted ? '[ SFX: MUTED ]' : '[ SFX: TACTICAL ]';
       soundToggle.classList.toggle('text-vanguard-textMuted', audio.muted);
       soundToggle.classList.toggle('text-vanguard-cyan', !audio.muted);
     });
   }
+
+  // --- Tactical Menu Soundtrack Engine (Auto-play with gesture fallback) ---
+  const bgm = new Audio('/audio/menu_soundscape.mp3');
+  bgm.loop = true;
+  bgm.volume = 0.35;
+  let bgmPlaying = false;
+  let bgmUserMuted = false;
+
+  const bgmToggle = document.getElementById('bgm-toggle');
+  const bgmLabel = document.getElementById('bgm-label');
+  const bgmIcon = document.getElementById('bgm-icon');
+  const bgmBars = document.getElementById('bgm-bars');
+
+  function updateBgmUI() {
+    if (!bgmToggle) return;
+    if (bgmPlaying && !bgm.paused) {
+      if (bgmLabel) bgmLabel.textContent = '[ BGM: PLAYING ]';
+      if (bgmIcon) bgmIcon.textContent = '🎵';
+      if (bgmBars) bgmBars.classList.remove('opacity-25', 'grayscale');
+      bgmToggle.classList.remove('text-vanguard-textMuted');
+      bgmToggle.classList.add('text-vanguard-cyan');
+    } else {
+      if (bgmLabel) bgmLabel.textContent = '[ BGM: MUTED ]';
+      if (bgmIcon) bgmIcon.textContent = '🔇';
+      if (bgmBars) bgmBars.classList.add('opacity-25', 'grayscale');
+      bgmToggle.classList.remove('text-vanguard-cyan');
+      bgmToggle.classList.add('text-vanguard-textMuted');
+    }
+  }
+
+  function startBgm() {
+    if (bgmUserMuted) return;
+    const playPromise = bgm.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          bgmPlaying = true;
+          updateBgmUI();
+        })
+        .catch(() => {
+          // Autoplay policy prevented immediate playback; wait for first user interaction
+          bgmPlaying = false;
+          updateBgmUI();
+          const unlockAudio = () => {
+            if (!bgmUserMuted && bgm.paused) {
+              bgm.play()
+                .then(() => {
+                  bgmPlaying = true;
+                  updateBgmUI();
+                })
+                .catch(() => {});
+            }
+            ['click', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+              window.removeEventListener(evt, unlockAudio);
+            });
+          };
+          ['click', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+            window.addEventListener(evt, unlockAudio, { passive: true, once: true });
+          });
+        });
+    }
+  }
+
+  if (bgmToggle) {
+    bgmToggle.addEventListener('click', () => {
+      audio.ping();
+      if (bgm.paused) {
+        bgmUserMuted = false;
+        bgm.play().then(() => {
+          bgmPlaying = true;
+          updateBgmUI();
+        });
+      } else {
+        bgmUserMuted = true;
+        bgm.pause();
+        bgmPlaying = false;
+        updateBgmUI();
+      }
+    });
+  }
+
+  startBgm();
 
   // --- Campaign Mission Dossier System ---
   let selectedMissionIndex = 0;
@@ -461,6 +543,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (tabDossierBtn) tabDossierBtn.classList.add('hidden');
     }
+
+    renderPilotStats();
   }
 
   function renderDossier() {
@@ -477,9 +561,218 @@ document.addEventListener('DOMContentLoaded', () => {
       const killsEl = document.getElementById('dossier-kills');
       const campEl = document.getElementById('dossier-campaign');
       if (sortiesEl) sortiesEl.textContent = stats.total_sorties || 0;
-      if (killsEl) killsEl.textContent = stats.total_kills || 0;
+      if (killsEl) killsEl.textContent = stats.total_kills || stats.dogfight_kills || 0;
       if (campEl) campEl.textContent = stats.highest_mission_unlocked || 'M01';
+
+      const won = stats.battles_won || 0;
+      const lost = stats.battles_lost || 0;
+      const total = won + lost;
+      const recordEl = document.getElementById('dossier-record');
+      const winRateEl = document.getElementById('dossier-win-rate');
+      const controlsEl = document.getElementById('dossier-controls');
+
+      if (recordEl) recordEl.textContent = `${won}W - ${lost}L`;
+      if (winRateEl) winRateEl.textContent = total > 0 ? `${((won / total) * 100).toFixed(1)}%` : '0.0%';
+      if (controlsEl) controlsEl.textContent = stats.preferred_controls || 'AZERTY';
     } catch {}
+  }
+
+  // --- Live Combat Stats & Battle History Engine ---
+  function renderPilotStats() {
+    let pilot = null;
+    try {
+      const raw = localStorage.getItem('vanguard_pilot_profile');
+      if (raw) pilot = JSON.parse(raw);
+    } catch {}
+
+    const callsign = pilot?.callsign || localStorage.getItem('vanguard_callsign') || 'VANGUARD-LEAD';
+    const rank = pilot?.rank || 'FLIGHT LIEUTENANT';
+    const squadron = pilot?.squadron || '404th Vanguard Strike Wing';
+    const stats = pilot?.stats || {};
+    const token = localStorage.getItem('vanguard_pilot_token');
+
+    // Header & identity
+    const pCallEl = document.getElementById('stats-pilot-callsign');
+    const pRankEl = document.getElementById('stats-pilot-rank-squadron');
+    const cloudStatusEl = document.getElementById('stats-cloud-status');
+    const cloudDotEl = document.getElementById('stats-cloud-dot');
+    const cloudBadgeEl = document.getElementById('stats-cloud-badge');
+    const authBtnLabel = document.getElementById('stats-auth-btn-label');
+
+    if (pCallEl) pCallEl.textContent = callsign;
+    if (pRankEl) pRankEl.textContent = `${rank} // ${squadron}`;
+
+    if (token) {
+      if (cloudStatusEl) cloudStatusEl.textContent = 'CLOUD SYNCED (D1)';
+      if (cloudDotEl) cloudDotEl.className = 'w-2 h-2 rounded-full bg-vanguard-emerald animate-pulse';
+      if (cloudBadgeEl) {
+        cloudBadgeEl.className = 'px-3 py-1.5 rounded bg-black/60 border border-vanguard-emerald/40 text-vanguard-emerald text-xs font-mono font-bold flex items-center gap-1.5';
+      }
+      if (authBtnLabel) authBtnLabel.textContent = 'PILOT PROFILE';
+    } else {
+      if (cloudStatusEl) cloudStatusEl.textContent = 'LOCAL TELEMETRY';
+      if (cloudDotEl) cloudDotEl.className = 'w-2 h-2 rounded-full bg-vanguard-cyan animate-pulse';
+      if (cloudBadgeEl) {
+        cloudBadgeEl.className = 'px-3 py-1.5 rounded bg-black/60 border border-vanguard-cyan/30 text-vanguard-cyan text-xs font-mono font-bold flex items-center gap-1.5';
+      }
+      if (authBtnLabel) authBtnLabel.textContent = 'COMMISSION / LOGIN';
+    }
+
+    // 8 Core Metrics
+    const sorties = stats.total_sorties || 0;
+    const wins = stats.battles_won || 0;
+    const losses = stats.battles_lost || 0;
+    const totalBattles = wins + losses;
+    const winRate = totalBattles > 0 ? ((wins / totalBattles) * 100).toFixed(1) + '%' : '0.0%';
+    const kills = stats.dogfight_kills || stats.total_kills || 0;
+    const flightSec = stats.total_flight_time_sec || 0;
+    const fHours = Math.floor(flightSec / 3600);
+    const fMins = Math.floor((flightSec % 3600) / 60);
+    const fSecs = Math.floor(flightSec % 60);
+    const flightTimeStr = fHours > 0 ? `${fHours}h ${fMins.toString().padStart(2, '0')}m` : `${fMins}m ${fSecs.toString().padStart(2, '0')}s`;
+    const controls = stats.preferred_controls || 'AZERTY';
+    const mission = stats.highest_mission_unlocked || 'M01';
+
+    const elSorties = document.getElementById('stats-total-sorties');
+    const elWins = document.getElementById('stats-battles-won');
+    const elLosses = document.getElementById('stats-battles-lost');
+    const elWinRate = document.getElementById('stats-win-rate');
+    const elKills = document.getElementById('stats-total-kills');
+    const elFlight = document.getElementById('stats-flight-time');
+    const elControls = document.getElementById('stats-preferred-controls');
+    const elMission = document.getElementById('stats-highest-mission');
+
+    if (elSorties) elSorties.textContent = sorties;
+    if (elWins) elWins.textContent = wins;
+    if (elLosses) elLosses.textContent = losses;
+    if (elWinRate) elWinRate.textContent = winRate;
+    if (elKills) elKills.textContent = kills;
+    if (elFlight) elFlight.textContent = flightTimeStr;
+    if (elControls) elControls.textContent = controls;
+    if (elMission) elMission.textContent = mission;
+
+    // Recent combat table
+    const historyTbody = document.getElementById('stats-history-tbody');
+    if (historyTbody) {
+      const history = Array.isArray(stats.battle_history) ? stats.battle_history : [];
+      if (history.length === 0) {
+        historyTbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="py-6 text-center text-slate-500 font-mono text-xs">
+              NO COMBAT SORTIES LOGGED YET. DEPLOY INTO COMBAT OR PAIR PHONE TO RECORD FLIGHT TELEMETRY.
+            </td>
+          </tr>
+        `;
+      } else {
+        const recent = history.slice(-10).reverse();
+        historyTbody.innerHTML = recent
+          .map(entry => {
+            const timeStr = entry.timestamp ? entry.timestamp.replace('T', ' ').substring(0, 16) : 'RECENT';
+            const theater = entry.theater || 'SOL ORBITAL // SORTIE';
+            const isWin = entry.outcome === 'VICTORY';
+            const outcomeBadge = isWin
+              ? `<span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-bold">VICTORY</span>`
+              : `<span class="px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/40 text-[10px] font-bold">DEFEAT</span>`;
+            const k = entry.kills || 0;
+            const dur = entry.duration_sec || 0;
+            const dM = Math.floor(dur / 60);
+            const dS = Math.round(dur % 60);
+            const durText = `${dM}m ${dS.toString().padStart(2, '0')}s`;
+            const ctrl = entry.controls || 'AZERTY';
+
+            return `
+              <tr class="hover:bg-white/5 transition-colors">
+                <td class="py-2.5 px-4 text-slate-400 text-[11px] whitespace-nowrap">${timeStr}</td>
+                <td class="py-2.5 px-4 font-bold text-white uppercase text-[11px]">${theater}</td>
+                <td class="py-2.5 px-4">${outcomeBadge}</td>
+                <td class="py-2.5 px-4 text-vanguard-cyan font-bold text-[11px]">${k} KILLS</td>
+                <td class="py-2.5 px-4 text-slate-300 text-[11px]">${durText}</td>
+                <td class="py-2.5 px-4 text-vanguard-amber font-mono font-bold text-[11px]">${ctrl}</td>
+              </tr>
+            `;
+          })
+          .join('');
+      }
+    }
+  }
+
+  // Synchronize stats from Cloudflare D1
+  async function syncStatsFromCloud(showFeedback = false) {
+    const token = localStorage.getItem('vanguard_pilot_token');
+    const syncBtn = document.getElementById('btn-sync-stats');
+    if (!token) {
+      if (showFeedback) openPilotModal();
+      return;
+    }
+
+    if (syncBtn) {
+      syncBtn.disabled = true;
+      syncBtn.innerHTML = `<span>⏳</span><span>SYNCING...</span>`;
+    }
+
+    try {
+      const res = await fetch('/api/pilot/sync', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          let rawProfile = localStorage.getItem('vanguard_pilot_profile');
+          let pilot = rawProfile ? JSON.parse(rawProfile) : { callsign: data.pilot.callsign, rank: data.pilot.rank };
+          const cloudStats = data.save_data?.stats || {};
+          const record = data.record || {};
+
+          pilot.stats = {
+            total_sorties: Math.max(pilot.stats?.total_sorties || 0, record.total_sorties || cloudStats.total_sorties || 0),
+            total_kills: Math.max(pilot.stats?.total_kills || 0, record.total_kills || cloudStats.total_kills || 0),
+            total_flight_time_sec: Math.max(pilot.stats?.total_flight_time_sec || 0, record.total_flight_time_sec || cloudStats.total_flight_time_sec || 0),
+            highest_mission_unlocked: cloudStats.highest_mission_unlocked || record.highest_mission_unlocked || pilot.stats?.highest_mission_unlocked || 'M01',
+            battles_won: Math.max(pilot.stats?.battles_won || 0, cloudStats.battles_won || 0),
+            battles_lost: Math.max(pilot.stats?.battles_lost || 0, cloudStats.battles_lost || 0),
+            dogfight_kills: Math.max(pilot.stats?.dogfight_kills || 0, cloudStats.dogfight_kills || 0),
+            preferred_controls: cloudStats.preferred_controls || pilot.stats?.preferred_controls || 'AZERTY',
+            battle_history: (cloudStats.battle_history && cloudStats.battle_history.length > 0)
+              ? cloudStats.battle_history
+              : (pilot.stats?.battle_history || [])
+          };
+
+          localStorage.setItem('vanguard_pilot_profile', JSON.stringify(pilot));
+          renderPilotStats();
+          renderDossier();
+          if (showFeedback) audio.lock();
+        }
+      }
+    } catch (err) {
+      console.warn('[Vanguard Portal] Cloud stats sync error:', err);
+    } finally {
+      if (syncBtn) {
+        syncBtn.disabled = false;
+        syncBtn.innerHTML = `<span>🔄</span><span>SYNC STATS</span>`;
+      }
+    }
+  }
+
+  // Connect stats buttons
+  const btnSyncStats = document.getElementById('btn-sync-stats');
+  if (btnSyncStats) {
+    btnSyncStats.addEventListener('click', () => {
+      audio.ping();
+      syncStatsFromCloud(true);
+    });
+  }
+
+  const btnPortalFromStats = document.getElementById('btn-portal-from-stats');
+  if (btnPortalFromStats) {
+    btnPortalFromStats.addEventListener('click', () => {
+      openPilotModal();
+    });
+  }
+
+  const dossierStatsLink = document.getElementById('dossier-stats-link');
+  if (dossierStatsLink) {
+    dossierStatsLink.addEventListener('click', () => {
+      closePilotModal();
+    });
   }
 
   // Handle Pilot Registration
@@ -515,6 +808,7 @@ document.addEventListener('DOMContentLoaded', () => {
           localStorage.setItem('vanguard_pilot_profile', JSON.stringify(data.pilot));
           localStorage.setItem('vanguard_callsign', data.pilot.callsign);
           updateAuthUI();
+          syncStatsFromCloud(false);
           switchTab('dossier');
         } else {
           audio.beep(300, 0.15, 'sawtooth');
@@ -567,6 +861,7 @@ document.addEventListener('DOMContentLoaded', () => {
           localStorage.setItem('vanguard_pilot_profile', JSON.stringify(data.pilot));
           localStorage.setItem('vanguard_callsign', data.pilot.callsign);
           updateAuthUI();
+          syncStatsFromCloud(false);
           switchTab('dossier');
         } else {
           audio.beep(300, 0.15, 'sawtooth');
@@ -659,5 +954,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   updateAuthUI();
+  syncStatsFromCloud(false);
   syncGitHubRelease();
 });

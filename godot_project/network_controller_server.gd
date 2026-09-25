@@ -27,6 +27,10 @@ var target_ships: Dictionary = {} # player_id -> SpaceshipController
 var queued_combat_events: Dictionary = {} # player_id -> Array[String]
 var telemetry_timer: float = 0.0
 var is_active: bool = false
+var is_solo_mode: bool = true
+var default_player_id: int = 1
+var use_web_gateway: bool = true
+const WEB_GATEWAY_BASE: String = "https://project-vanguard.pages.dev/controller.html"
 
 ## Enqueues a high-priority combat event for transmission to the player's mobile cockpit (e.g. HIT_CONFIRMED, KILL_CONFIRMED)
 func notify_combat_event(player_id: int, event_name: String) -> void:
@@ -151,15 +155,24 @@ func get_local_ip() -> String:
 	return "127.0.0.1"
 
 ## Formats the exact URL to encode in the QR code
-func get_controller_url() -> String:
-	var auth_mgr = get_node_or_null("/root/AuthManager")
+func get_controller_url(target_pid: int = 1, role_name: String = "pilot", gateway_mode: Variant = null) -> String:
+	var use_gw = use_web_gateway if gateway_mode == null else bool(gateway_mode)
+	var auth_mgr = get_node_or_null("/root/AuthManager") if is_inside_tree() else null
 	var host_callsign = auth_mgr.callsign if (auth_mgr and not auth_mgr.callsign.is_empty()) else "LEAD"
-	var wingman_cs = host_callsign + "-WING"
-	return "http://%s:%d/?ws=%d&room=%s&callsign=%s" % [get_local_ip(), http_port, port, session_room_code, wingman_cs]
+	var cs = host_callsign + ("-HOTAS" if target_pid == 1 else "-WING")
+	
+	if use_gw:
+		return "%s?host=%s:%d&http=%d&ws=%d&room=%s&callsign=%s&pid=%d&role=%s" % [
+			WEB_GATEWAY_BASE, get_local_ip(), port, http_port, port, session_room_code, cs, target_pid, role_name
+		]
+	else:
+		return "http://%s:%d/?ws=%d&room=%s&callsign=%s&pid=%d&role=%s" % [
+			get_local_ip(), http_port, port, session_room_code, cs, target_pid, role_name
+		]
 
 ## Generates a ready-to-display ImageTexture QR Code
-func get_qr_texture(scale: int = 8) -> ImageTexture:
-	return QRCodeScript.get_texture(get_controller_url(), scale, 4)
+func get_qr_texture(target_pid: int = 1, role_name: String = "pilot", gateway_mode: Variant = null, scale: int = 8) -> ImageTexture:
+	return QRCodeScript.get_texture(get_controller_url(target_pid, role_name, gateway_mode), scale, 4)
 
 ## Registers a SpaceshipController instance to be driven by a specific player_id
 func register_ship(player_id: int, ship: Node) -> void:
@@ -230,11 +243,11 @@ func _process(delta: float) -> void:
 					"peer": ws,
 					"tcp": conn,
 					"callsign": "GUEST-PILOT",
-					"player_id": 2, # Defaults to Player 2 (Wingman)
+					"player_id": default_player_id, # Defaults to Player 1 (Controller 1)
 					"last_seen": Time.get_ticks_msec() / 1000.0,
 				}
 				connected_clients.append(new_client)
-				print("[NetworkControllerServer] New mobile connection accepted from %s." % conn.get_connected_host())
+				print("[NetworkControllerServer] New mobile connection accepted from %s (Assigned to Controller %d)." % [conn.get_connected_host(), default_player_id])
 			else:
 				print("[NetworkControllerServer] WebSocket handshake failed: ", err)
 
@@ -259,9 +272,9 @@ func _process(delta: float) -> void:
 
 	for client in to_remove:
 		var cs = client.get("callsign", "PILOT")
-		var pid = client.get("player_id", 2)
+		var pid = client.get("player_id", default_player_id)
 		connected_clients.erase(client)
-		print("[NetworkControllerServer] Mobile pilot %s disconnected." % cs)
+		print("[NetworkControllerServer] Mobile pilot %s (Player %d) disconnected." % [cs, pid])
 		pilot_disconnected.emit(cs, pid)
 
 	# 4. 10Hz Reverse Telemetry Broadcast (Phone Instrument HUD)
@@ -282,16 +295,23 @@ func _handle_packet(client: Dictionary, raw_json: String) -> void:
 
 	# Handshake packet
 	if data.get("type") == "handshake":
-		var cs = data.get("callsign", "WINGMAN-2").strip_edges().to_upper()
-		if cs.is_empty(): cs = "WINGMAN-2"
+		var cs = data.get("callsign", "PILOT-1").strip_edges().to_upper()
+		if cs.is_empty(): cs = "PILOT-1"
 		client["callsign"] = cs
-		var pid = client.get("player_id", 2)
-		print(">>> [NetworkControllerServer] Mobile Pilot '%s' commissioned as Player %d!" % [cs, pid])
-		pilot_connected.emit(cs, pid)
+		
+		# Resolve player_id: explicit in packet, or solo_mode defaults to 1
+		var req_pid = int(data.get("player_id", 0))
+		if req_pid <= 0:
+			req_pid = 1 if is_solo_mode else 2
+		client["player_id"] = req_pid
+		
+		var role = data.get("role", "pilot" if req_pid == 1 else "wingman")
+		print(">>> [NetworkControllerServer] Mobile Pilot '%s' commissioned as Controller %d (%s)!" % [cs, req_pid, role])
+		pilot_connected.emit(cs, req_pid)
 		return
 
 	# Flight telemetry frame
-	var pid = client.get("player_id", 2)
+	var pid = client.get("player_id", default_player_id)
 	control_frame_received.emit(pid, data)
 
 	# Forward to registered spaceship

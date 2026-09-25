@@ -1,7 +1,8 @@
 extends Control
 
 ## PvPMenu: Main Portal for Project Vanguard PvP dogfights.
-## Provides Local Split-Screen launch and LAN Peer-to-Peer hosting/joining with auto-discovery.
+## Features Squadron Parties (Alpha vs Bravo), Main Pilot designation,
+## input selection (AZERTY / QWERTY / Phone HOTAS), Split-Screen, and LAN matchmaking.
 
 @onready var split_screen_btn: Button = %SplitScreenBtn
 @onready var host_btn: Button = %HostBtn
@@ -16,10 +17,27 @@ extends Control
 @onready var status_label: Label = %StatusLabel
 
 @onready var host_waiting_modal: Control = %HostWaitingModal
+@onready var lobby_title: Label = %LobbyTitle
 @onready var waiting_label: Label = %WaitingLabel
 @onready var cancel_host_btn: Button = %CancelHostBtn
 
+@onready var alpha_pilot_label: Label = %AlphaPilotLabel
+@onready var alpha_input_btn: Button = %AlphaInputBtn
+@onready var alpha_claim_pilot_btn: Button = %AlphaClaimPilotBtn
+@onready var alpha_crew_label: Label = %AlphaCrewLabel
+@onready var alpha_join_crew_btn: Button = %AlphaJoinCrewBtn
+
+@onready var bravo_pilot_label: Label = %BravoPilotLabel
+@onready var bravo_input_btn: Button = %BravoInputBtn
+@onready var bravo_claim_pilot_btn: Button = %BravoClaimPilotBtn
+@onready var bravo_crew_label: Label = %BravoCrewLabel
+@onready var bravo_join_crew_btn: Button = %BravoJoinCrewBtn
+
+@onready var pair_phone_lobby_btn: Button = %PairPhoneLobbyBtn
+@onready var launch_arena_btn: Button = %LaunchArenaBtn
+
 var network_manager: Node = null
+var qr_dialog: Control = null
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -38,19 +56,48 @@ func _ready() -> void:
 		back_btn.pressed.connect(_on_back_pressed)
 	if cancel_host_btn:
 		cancel_host_btn.pressed.connect(_on_cancel_host_pressed)
+	if launch_arena_btn:
+		launch_arena_btn.pressed.connect(_on_launch_arena_pressed)
+	if pair_phone_lobby_btn:
+		pair_phone_lobby_btn.pressed.connect(_on_pair_phone_lobby_pressed)
+		
+	# Party buttons
+	if alpha_input_btn:
+		alpha_input_btn.pressed.connect(func(): _cycle_input_mode("Alpha"))
+	if bravo_input_btn:
+		bravo_input_btn.pressed.connect(func(): _cycle_input_mode("Bravo"))
+	if alpha_claim_pilot_btn:
+		alpha_claim_pilot_btn.pressed.connect(func(): _claim_pilot_seat("Alpha"))
+	if bravo_claim_pilot_btn:
+		bravo_claim_pilot_btn.pressed.connect(func(): _claim_pilot_seat("Bravo"))
+	if alpha_join_crew_btn:
+		alpha_join_crew_btn.pressed.connect(func(): _join_crew("Alpha"))
+	if bravo_join_crew_btn:
+		bravo_join_crew_btn.pressed.connect(func(): _join_crew("Bravo"))
 	
 	if host_waiting_modal:
 		host_waiting_modal.hide()
 	
+	# Pre-fill host callsign from AuthManager
+	var auth_mgr = get_node_or_null("/root/AuthManager")
+	if auth_mgr and not auth_mgr.callsign.is_empty():
+		if callsign_input:
+			callsign_input.text = auth_mgr.callsign
+		if network_manager:
+			network_manager.player_callsign = auth_mgr.callsign
+
 	if network_manager:
 		network_manager.lan_server_found.connect(_on_lan_server_found)
 		network_manager.lan_server_lost.connect(_on_lan_server_lost)
 		network_manager.peer_connected.connect(_on_peer_connected)
 		network_manager.connected_to_server.connect(_on_connected_to_server)
 		network_manager.connection_failed.connect(_on_connection_failed)
+		if not network_manager.party_updated.is_connected(_on_party_updated):
+			network_manager.party_updated.connect(_on_party_updated)
 		network_manager.start_lan_discovery()
 	
 	_update_server_list()
+	_update_party_deck()
 	_set_status("READY // SELECT COMBAT SORTIE MODE")
 
 func _exit_tree() -> void:
@@ -70,18 +117,26 @@ func _on_host_pressed() -> void:
 	
 	var s_name = server_name_input.text.strip_edges()
 	if s_name.is_empty():
-		s_name = "VANGUARD PILOT'S SERVER"
+		s_name = "VANGUARD COMBAT LOBBY"
 	
 	var c_sign = callsign_input.text.strip_edges()
 	if not c_sign.is_empty():
 		network_manager.player_callsign = c_sign
 		
-	var err = network_manager.host_game(s_name, 7777, 1)
+	var err = network_manager.host_game(s_name, 7777, 4)
 	if err == OK:
 		_set_status("LISTEN SERVER ACTIVE // BROADCASTING ON SUBNET", Color(0.1, 0.95, 0.4))
+		if lobby_title:
+			lobby_title.text = "LOBBY: '%s'" % s_name
+		if waiting_label:
+			waiting_label.text = "LISTEN SERVER ACTIVE // SUBNET BROADCAST ACTIVE // WAITING FOR SQUADRON..."
 		if host_waiting_modal:
-			waiting_label.text = "LOBBY: '%s'\nWAITING FOR OPPONENT TO CONNECT ON LAN..." % s_name
 			host_waiting_modal.show()
+			
+		var cfg = get_node_or_null("/root/ConfigManager")
+		var is_az = cfg.is_azerty if cfg else false
+		network_manager.set_my_party_role("Alpha", "pilot", "AZERTY" if is_az else "QWERTY")
+		_update_party_deck()
 	else:
 		_set_status("ERROR CREATING SERVER (CODE %d)" % err, Color(1.0, 0.25, 0.2))
 
@@ -107,6 +162,10 @@ func _on_direct_connect_pressed() -> void:
 		ip = parts[0]
 		port = int(parts[1])
 		
+	var c_sign = callsign_input.text.strip_edges()
+	if not c_sign.is_empty():
+		network_manager.player_callsign = c_sign
+		
 	_set_status("CONNECTING TO %s:%d..." % [ip, port], Color(1.0, 0.85, 0.1))
 	var err = network_manager.join_game(ip, port)
 	if err != OK:
@@ -129,7 +188,6 @@ func _update_server_list() -> void:
 	if not server_list_container:
 		return
 		
-	# Clear old items
 	for child in server_list_container.get_children():
 		child.queue_free()
 		
@@ -174,6 +232,9 @@ func _update_server_list() -> void:
 		join_btn.custom_minimum_size = Vector2(100, 28)
 		join_btn.pressed.connect(func():
 			_set_status("CONNECTING TO %s..." % info["server_name"], Color(1.0, 0.85, 0.1))
+			var c_sign = callsign_input.text.strip_edges()
+			if not c_sign.is_empty():
+				network_manager.player_callsign = c_sign
 			network_manager.join_game(info["ip"], info["port"])
 		)
 		hbox.add_child(join_btn)
@@ -182,17 +243,123 @@ func _update_server_list() -> void:
 
 func _on_peer_connected(id: int) -> void:
 	if network_manager and network_manager.is_host:
-		_set_status("OPPONENT JOINED (PEER ID %d)! LAUNCHING ARENA..." % id, Color(0.1, 0.95, 0.4))
-		if host_waiting_modal:
-			host_waiting_modal.hide()
-		get_tree().change_scene_to_file("res://lan_arena.tscn")
+		_set_status("OPPONENT JOINED (PEER ID %d)!" % id, Color(0.1, 0.95, 0.4))
+		if waiting_label:
+			waiting_label.text = "SQUADRONS LINKED // READY TO LAUNCH ENGAGEMENT"
+		# Auto-assign opponent to Squadron Bravo Pilot if empty
+		if network_manager.parties["Bravo"]["pilot_callsign"] in ["EMPTY", "[OPEN SEAT]"]:
+			network_manager.parties["Bravo"]["pilot_callsign"] = "BANDIT-" + str(id)
+			network_manager.party_updated.emit(network_manager.parties)
+		_update_party_deck()
 
 func _on_connected_to_server() -> void:
-	_set_status("CONNECTED TO HOST! LAUNCHING ARENA...", Color(0.1, 0.95, 0.4))
-	get_tree().change_scene_to_file("res://lan_arena.tscn")
+	_set_status("CONNECTED TO HOST LOBBY!", Color(0.1, 0.95, 0.4))
+	if host_waiting_modal:
+		host_waiting_modal.show()
+	if waiting_label:
+		waiting_label.text = "CONNECTED // WAITING FOR SQUADRON COMMANDER TO LAUNCH..."
+	if launch_arena_btn:
+		launch_arena_btn.disabled = true
+	var cfg = get_node_or_null("/root/ConfigManager")
+	var is_az = cfg.is_azerty if cfg else false
+	network_manager.set_my_party_role("Bravo", "pilot", "AZERTY" if is_az else "QWERTY")
+	_update_party_deck()
 
 func _on_connection_failed() -> void:
 	_set_status("CONNECTION ATTEMPT FAILED // TIMEOUT OR REFUSED", Color(1.0, 0.25, 0.2))
+
+# -----------------------------------------------------------------------------
+# Squadron Party Controls & UI Sync
+# -----------------------------------------------------------------------------
+func _claim_pilot_seat(party_name: String) -> void:
+	if not network_manager:
+		return
+	var my_cs = network_manager.player_callsign
+	var cfg = get_node_or_null("/root/ConfigManager")
+	var is_az = cfg.is_azerty if cfg else false
+	network_manager.set_my_party_role(party_name, "pilot", "AZERTY" if is_az else "QWERTY")
+	_update_party_deck()
+
+func _join_crew(party_name: String) -> void:
+	if not network_manager:
+		return
+	network_manager.set_my_party_role(party_name, "crew")
+	_update_party_deck()
+
+func _cycle_input_mode(party_name: String) -> void:
+	if not network_manager:
+		return
+	var cur_mode = network_manager.parties[party_name].get("pilot_input", "AZERTY")
+	var next_mode = "AZERTY"
+	match cur_mode:
+		"AZERTY": next_mode = "QWERTY"
+		"QWERTY": next_mode = "PHONE HOTAS"
+		"PHONE HOTAS": next_mode = "GAMEPAD"
+		"GAMEPAD": next_mode = "AZERTY"
+		_: next_mode = "AZERTY"
+		
+	var cfg = get_node_or_null("/root/ConfigManager")
+	if cfg:
+		if next_mode == "AZERTY":
+			cfg.reset_keybindings_preset(true)
+		elif next_mode == "QWERTY":
+			cfg.reset_keybindings_preset(false)
+			
+	if next_mode == "PHONE HOTAS":
+		_on_pair_phone_lobby_pressed()
+		
+	network_manager.parties[party_name]["pilot_input"] = next_mode
+	_update_party_deck()
+
+func _on_party_updated(_parties: Dictionary) -> void:
+	_update_party_deck()
+
+func _update_party_deck() -> void:
+	if not network_manager:
+		return
+		
+	var p_alpha = network_manager.parties.get("Alpha", {})
+	var p_bravo = network_manager.parties.get("Bravo", {})
+	
+	if alpha_pilot_label:
+		alpha_pilot_label.text = "⭐ MAIN PILOT: %s" % p_alpha.get("pilot_callsign", "LEAD")
+	if alpha_input_btn:
+		alpha_input_btn.text = "FLIGHT CONTROL: [ %s ]" % p_alpha.get("pilot_input", "AZERTY")
+		
+	if bravo_pilot_label:
+		bravo_pilot_label.text = "⭐ MAIN PILOT: %s" % p_bravo.get("pilot_callsign", "[OPEN SEAT]")
+	if bravo_input_btn:
+		bravo_input_btn.text = "FLIGHT CONTROL: [ %s ]" % p_bravo.get("pilot_input", "AZERTY")
+		
+	var alpha_crew = p_alpha.get("crew", [])
+	if alpha_crew_label:
+		alpha_crew_label.text = "TACTICAL CREW: " + (", ".join(alpha_crew) if not alpha_crew.is_empty() else "(NONE)")
+		
+	var bravo_crew = p_bravo.get("crew", [])
+	if bravo_crew_label:
+		bravo_crew_label.text = "TACTICAL CREW: " + (", ".join(bravo_crew) if not bravo_crew.is_empty() else "(NONE)")
+
+func _on_pair_phone_lobby_pressed() -> void:
+	if not qr_dialog:
+		var scene = load("res://qr_join_dialog.tscn")
+		if scene:
+			qr_dialog = scene.instantiate()
+			add_child(qr_dialog)
+	if qr_dialog and qr_dialog.has_method("show_dialog"):
+		# In lobby, target Controller 1 for Main Pilot!
+		qr_dialog.show_dialog(1)
+
+func _on_launch_arena_pressed() -> void:
+	if network_manager and network_manager.is_host:
+		_set_status("COMMAND SQUADRON DEPLOYING TO ARENA...", Color(0.1, 0.95, 0.4))
+		if multiplayer and multiplayer.has_multiplayer_peer():
+			rpc("rpc_start_arena")
+		else:
+			get_tree().change_scene_to_file("res://lan_arena.tscn")
+
+@rpc("authority", "call_local", "reliable")
+func rpc_start_arena() -> void:
+	get_tree().change_scene_to_file("res://lan_arena.tscn")
 
 func _set_status(msg: String, col: Color = Color(0.0, 0.85, 1.0)) -> void:
 	if status_label:
@@ -203,3 +370,12 @@ func _on_back_pressed() -> void:
 	if network_manager:
 		network_manager.stop_network()
 	get_tree().change_scene_to_file("res://home_menu.tscn")
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed:
+		if event.keycode == KEY_F3:
+			_on_pair_phone_lobby_pressed()
+			get_viewport().set_input_as_handled()
+		elif event.keycode == KEY_ENTER and host_waiting_modal and host_waiting_modal.visible:
+			_on_launch_arena_pressed()
+			get_viewport().set_input_as_handled()

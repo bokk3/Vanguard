@@ -13,6 +13,8 @@
 [ext_resource type="PackedScene" path="res://mission_selector.tscn" id="11_selector"]
 [ext_resource type="PackedScene" path="res://update_dialog.tscn" id="12_updater"]
 [ext_resource type="PackedScene" path="res://login_dialog.tscn" id="13_login"]
+[ext_resource type="PackedScene" path="res://mode_selector_dialog.tscn" id="14_mode_sel"]
+[ext_resource type="PackedScene" path="res://combat_stats_dialog.tscn" id="15_stats"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_eerie"]
 sky_top_color = Color(0.95, 0.96, 0.98, 1)
@@ -378,6 +380,29 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_badge")
 text = "◈ UPDATE AVAILABLE // v0.8.0"
 alignment = 0
 
+[node name="TheaterModeBox" type="PanelContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
+
+[node name="HBox" type="HBoxContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons/TheaterModeBox"]
+layout_mode = 2
+
+[node name="TheaterBadgeLabel" type="Label" parent="UI/Sidebar/Margin/VBox/MenuButtons/TheaterModeBox/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "THEATER: SOLO // VS AI"
+
+[node name="SwitchTheaterBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/TheaterModeBox/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 22)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "SWITCH"
+
 [node name="ContinueBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 42)
@@ -430,6 +455,17 @@ icon = ExtResource("5_icon_deploy")
 alignment = 0
 expand_icon = true
 
+[node name="StatsBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1, 0.95, 0.4, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "  [ 📊 ]  COMBAT RECORDS & STATS"
+alignment = 0
+
 [node name="MobileHotasBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 42)
@@ -438,10 +474,21 @@ theme_override_colors/font_color = Color(0, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 14
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  [ 📱 ]  MOBILE HOTAS (QR / F3)"
+text = "  [ 📱 ]  CONTROLLER 1: PHONE HOTAS"
 icon = ExtResource("6_icon_config")
 alignment = 0
 expand_icon = true
+
+[node name="LayoutToggleBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 12
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "  [ ⌨ ]  LAYOUT: AZERTY (ZQSD)"
+alignment = 0
 
 [node name="ConfigBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
 unique_name_in_owner = true
@@ -610,6 +657,14 @@ unique_name_in_owner = true
 visible = false
 
 [node name="LoginDialog" parent="UI" instance=ExtResource("13_login")]
+unique_name_in_owner = true
+visible = false
+
+[node name="ModeSelectorDialog" parent="UI" instance=ExtResource("14_mode_sel")]
+unique_name_in_owner = true
+visible = false
+
+[node name="CombatStatsDialog" parent="UI" instance=ExtResource("15_stats")]
 unique_name_in_owner = true
 visible = false
 
