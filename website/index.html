@@ -34,7 +34,7 @@
           <button id="sound-toggle" class="hover:text-vanguard-cyan transition-colors text-vanguard-cyan">
             [ AUDIO: TACTICAL ]
           </button>
-          <span class="px-2 py-0.5 rounded bg-vanguard-cyan/10 text-vanguard-cyan border border-vanguard-cyan/30 text-[10px] font-bold tracking-widest uppercase">
+          <span id="top-version-badge" class="px-2 py-0.5 rounded bg-vanguard-cyan/10 text-vanguard-cyan border border-vanguard-cyan/30 text-[10px] font-bold tracking-widest uppercase">
             v0.8.0-ALPHA
           </span>
         </div>
@@ -121,9 +121,10 @@
         <!-- Left Hero Copy -->
         <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
           
-          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-vanguard-cyan/30 bg-vanguard-cyan/10 text-vanguard-cyan text-xs font-mono tracking-wider">
-            <span class="w-1.5 h-1.5 rounded-full bg-vanguard-cyan animate-ping"></span>
-            <span>ASCENSION WAR SORTIE READINESS</span>
+          <div id="release-announcement" class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full border border-vanguard-cyan/40 bg-vanguard-cyan/10 text-vanguard-cyan text-xs font-mono tracking-wider transition-all">
+            <span class="w-2 h-2 rounded-full bg-vanguard-cyan animate-ping"></span>
+            <span id="release-status-text">DISPATCH: <strong id="hero-tag-name">v0.8.0-alpha</strong> // LIVE ON GITHUB</span>
+            <a id="release-notes-link" href="https://github.com/bokk3/Vanguard/releases" target="_blank" rel="noopener noreferrer" class="hidden sm:inline text-white hover:underline ml-1 font-bold">[NOTES]</a>
           </div>
 
           <h1 class="text-4xl sm:text-6xl xl:text-7xl font-bold font-display tracking-tight text-white leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
@@ -139,9 +140,9 @@
 
           <!-- Action Buttons -->
           <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
-            <a href="https://github.com/bokk3/Vanguard/releases" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-3.5 bg-vanguard-cyan text-black font-display font-bold text-lg uppercase tracking-wider rounded hover:bg-white hover:shadow-cyan-glow transition-all text-center flex items-center justify-center gap-2">
+            <a id="hero-download-btn" href="https://github.com/bokk3/Vanguard/releases" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-3.5 bg-vanguard-cyan text-black font-display font-bold text-lg uppercase tracking-wider rounded hover:bg-white hover:shadow-cyan-glow transition-all text-center flex items-center justify-center gap-2">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-              <span>Download v0.8.0-Alpha</span>
+              <span id="hero-download-text">Download v0.8.0-Alpha (Win64)</span>
             </a>
             <a href="#multiplayer" class="w-full sm:w-auto px-6 py-3.5 border border-vanguard-border bg-vanguard-panel/90 text-slate-200 font-mono text-sm uppercase tracking-wider rounded hover:border-vanguard-cyan hover:text-vanguard-cyan transition-all text-center">
               Explore Multiplayer
@@ -722,9 +723,9 @@
       </p>
 
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-        <a href="https://github.com/bokk3/Vanguard/releases/latest" target="_blank" rel="noopener noreferrer" class="px-10 py-4 bg-vanguard-cyan text-black font-display font-bold text-xl uppercase tracking-wider rounded hover:bg-white hover:shadow-cyan-glow transition-all flex items-center gap-3">
+        <a id="download-section-btn" href="https://github.com/bokk3/Vanguard/releases/latest" target="_blank" rel="noopener noreferrer" class="px-10 py-4 bg-vanguard-cyan text-black font-display font-bold text-xl uppercase tracking-wider rounded hover:bg-white hover:shadow-cyan-glow transition-all flex items-center gap-3">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          <span>Download v0.8.0-Alpha (Win64)</span>
+          <span id="download-section-text">Download v0.8.0-Alpha (Win64)</span>
         </a>
         <a href="https://github.com/bokk3/Vanguard" target="_blank" rel="noopener noreferrer" class="px-8 py-4 border border-vanguard-border bg-vanguard-panel text-slate-200 font-mono text-sm uppercase tracking-wider rounded hover:border-vanguard-cyan hover:text-vanguard-cyan transition-all">
           Browse Source on GitHub

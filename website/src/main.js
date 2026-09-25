@@ -247,4 +247,114 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
   }
+
+  // --- Live GitHub Release & Tag Sync Engine ---
+  async function syncGitHubRelease() {
+    const defaultVersion = typeof __APP_VERSION__ !== 'undefined' ? `v${__APP_VERSION__}` : 'v0.8.0';
+    const repo = 'bokk3/Vanguard';
+    const CACHE_KEY = 'vanguard_github_release_cache';
+    const CACHE_TIME_KEY = 'vanguard_github_release_cache_time';
+    const CACHE_TTL = 10 * 60 * 1000; // 10 minutes cache
+
+    // Check cached response first
+    try {
+      const cachedData = sessionStorage.getItem(CACHE_KEY);
+      const cachedTime = sessionStorage.getItem(CACHE_TIME_KEY);
+      if (cachedData && cachedTime && (Date.now() - parseInt(cachedTime, 10) < CACHE_TTL)) {
+        applyReleaseData(JSON.parse(cachedData));
+        return;
+      }
+    } catch (e) {}
+
+    try {
+      // 1. Try fetching latest release
+      let res = await fetch(`https://api.github.com/repos/${repo}/releases/latest`, {
+        headers: { 'Accept': 'application/vnd.github.v3+json' }
+      });
+
+      let data = null;
+      if (res.ok) {
+        data = await res.json();
+      } else {
+        // 2. Fallback to tags endpoint if no official release object published yet
+        const tagsRes = await fetch(`https://api.github.com/repos/${repo}/tags?per_page=1`);
+        if (tagsRes.ok) {
+          const tags = await tagsRes.json();
+          if (tags && tags.length > 0) {
+            data = {
+              tag_name: tags[0].name,
+              html_url: `https://github.com/${repo}/releases/tag/${tags[0].name}`,
+              published_at: null,
+              assets: []
+            };
+          }
+        }
+      }
+
+      if (data && data.tag_name) {
+        try {
+          sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
+          sessionStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+        } catch (e) {}
+        applyReleaseData(data);
+      }
+    } catch (err) {
+      console.warn('[Vanguard Portal] GitHub release sync fallback to build version:', defaultVersion, err);
+    }
+  }
+
+  function applyReleaseData(data) {
+    const tagName = data.tag_name || 'v0.8.0';
+    const releaseUrl = data.html_url || 'https://github.com/bokk3/Vanguard/releases';
+
+    // Find direct binary download asset if attached
+    let directDownloadUrl = releaseUrl;
+    let assetSizeText = '';
+    if (data.assets && data.assets.length > 0) {
+      const winAsset = data.assets.find(a => 
+        a.name.toLowerCase().includes('win') || 
+        a.name.toLowerCase().endsWith('.zip') || 
+        a.name.toLowerCase().endsWith('.exe')
+      ) || data.assets[0];
+
+      if (winAsset) {
+        directDownloadUrl = winAsset.browser_download_url;
+        const sizeMb = (winAsset.size / (1024 * 1024)).toFixed(1);
+        assetSizeText = ` (${sizeMb} MB)`;
+      }
+    }
+
+    // Update DOM elements
+    const topBadge = document.getElementById('top-version-badge');
+    if (topBadge) topBadge.textContent = `${tagName.toUpperCase()}`;
+
+    const heroTag = document.getElementById('hero-tag-name');
+    if (heroTag) heroTag.textContent = tagName;
+
+    const notesLink = document.getElementById('release-notes-link');
+    if (notesLink) notesLink.href = releaseUrl;
+
+    const heroBtn = document.getElementById('hero-download-btn');
+    const heroBtnText = document.getElementById('hero-download-text');
+    if (heroBtn) heroBtn.href = directDownloadUrl;
+    if (heroBtnText) heroBtnText.textContent = `Download ${tagName} (Win64)${assetSizeText}`;
+
+    const downloadSectionBtn = document.getElementById('download-section-btn');
+    const downloadSectionText = document.getElementById('download-section-text');
+    if (downloadSectionBtn) downloadSectionBtn.href = directDownloadUrl;
+    if (downloadSectionText) downloadSectionText.textContent = `Download ${tagName} (Win64)${assetSizeText}`;
+
+    // Announcement status formatting
+    const releaseStatusText = document.getElementById('release-status-text');
+    if (releaseStatusText) {
+      let dateStr = '';
+      if (data.published_at) {
+        const d = new Date(data.published_at);
+        dateStr = ` // ${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}`;
+      }
+      releaseStatusText.innerHTML = `DISPATCH: <strong class="text-white">${tagName}</strong>${dateStr} // LIVE ON GITHUB`;
+    }
+  }
+
+  syncGitHubRelease();
 });
