@@ -6,26 +6,28 @@
 
 @layer base {
   body {
-    @apply bg-vanguard-dark text-slate-200 font-sans antialiased overflow-x-hidden selection:bg-vanguard-cyan/30 selection:text-vanguard-cyan;
+    @apply bg-vanguard-dark text-slate-100 font-sans antialiased overflow-x-hidden selection:bg-vanguard-cyan/30 selection:text-vanguard-cyan;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-wider uppercase;
+    @apply font-display tracking-wider uppercase text-slate-100;
   }
 }
 
-/* Tactical Sci-Fi HUD Scanline Effect */
-.scanline-bg {
-  background: linear-gradient(
-    rgba(10, 15, 24, 0) 50%, 
-    rgba(0, 0, 0, 0.25) 50%
-  ), linear-gradient(
-    90deg,
-    rgba(255, 0, 0, 0.03),
-    rgba(0, 255, 0, 0.01),
-    rgba(0, 0, 255, 0.03)
-  );
-  background-size: 100% 4px, 6px 100%;
+/* Localized Micro Scanline for CRT/Monitor Viewports (Never over body text) */
+.crt-viewport {
+  position: relative;
+}
+.crt-viewport::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.35) 50%);
+  background-size: 100% 4px;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0.6;
 }
 
 /* Tactical Corner Brackets */
