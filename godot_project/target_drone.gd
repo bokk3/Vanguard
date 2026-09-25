@@ -253,6 +253,11 @@ func take_damage(amount: float) -> void:
 		if hud.has_method("notify_combat_event"):
 			hud.notify_combat_event("// DIRECT HIT: -" + str(int(amount)) + " HP //", Color(1.0, 0.45, 0.2))
 	
+	var net_server = get_tree().root.get_node_or_null("NetworkControllerServer") if (is_inside_tree() and get_tree() and get_tree().root) else null
+	if net_server and net_server.has_method("notify_combat_event"):
+		net_server.notify_combat_event(1, "HIT_CONFIRMED")
+		net_server.notify_combat_event(2, "HIT_CONFIRMED")
+	
 	if health <= 0.0:
 		_on_destroyed()
 
@@ -294,6 +299,10 @@ func _on_destroyed() -> void:
 		var hud = get_tree().root.find_child("TacticalOverlay", true, false)
 		if hud and hud.has_method("notify_combat_event"):
 			hud.notify_combat_event("// TARGET DESTROYED // SORTIE OBJECTIVE UPDATED //", Color(1.0, 0.85, 0.0))
+		var net_server = get_tree().root.get_node_or_null("NetworkControllerServer")
+		if net_server and net_server.has_method("notify_combat_event"):
+			net_server.notify_combat_event(1, "KILL_CONFIRMED")
+			net_server.notify_combat_event(2, "KILL_CONFIRMED")
 	
 	# Hide mesh, disable hitbox, remove from radar group
 	if mesh_instance:

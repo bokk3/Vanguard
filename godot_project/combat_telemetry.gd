@@ -74,13 +74,25 @@ func _process(delta: float) -> void:
 func apply_damage(amount: float) -> void:
 	time_since_damage = 0.0
 	
+	# Shields divert absorbs 30% of incoming kinetic damage
+	var effective_damage = amount
+	if ship and "power_divert_mode" in ship and ship.power_divert_mode == "SHIELDS":
+		effective_damage *= 0.70
+	
+	var had_shield = current_shield > 0.0
 	if current_shield > 0.0:
-		current_shield -= amount
+		current_shield -= effective_damage
 		if current_shield < 0.0:
 			current_hull += current_shield # Apply overflow to hull
 			current_shield = 0.0
 	else:
-		current_hull = max(0.0, current_hull - amount)
+		current_hull = max(0.0, current_hull - effective_damage)
+	
+	# Notify mobile cockpit if shields broken
+	if had_shield and current_shield <= 0.0:
+		var net_server = get_tree().root.get_node_or_null("NetworkControllerServer") if (is_inside_tree() and get_tree() and get_tree().root) else null
+		if net_server and net_server.has_method("notify_combat_event") and ship:
+			net_server.notify_combat_event(ship.player_id, "SHIELD_BROKEN")
 	
 	shield_changed.emit(current_shield, max_shield)
 	hull_changed.emit(current_hull, max_hull)
@@ -90,8 +102,16 @@ func apply_damage(amount: float) -> void:
 
 func _process_shield_recharge(delta: float) -> void:
 	time_since_damage += delta
-	if time_since_damage >= shield_recharge_delay and current_shield < max_shield:
-		current_shield = min(max_shield, current_shield + shield_recharge_rate * delta)
+	var delay = shield_recharge_delay
+	var rate = shield_recharge_rate
+	
+	# Shields Divert: cuts delay to 1s and boosts recharge rate 2.5x
+	if ship and "power_divert_mode" in ship and ship.power_divert_mode == "SHIELDS":
+		delay = 1.0
+		rate *= 2.5
+		
+	if time_since_damage >= delay and current_shield < max_shield:
+		current_shield = min(max_shield, current_shield + rate * delta)
 		shield_changed.emit(current_shield, max_shield)
 
 # --------------------------------------------------------
@@ -101,8 +121,12 @@ func request_afterburner(delta: float) -> bool:
 	if is_overheated:
 		return false
 	
+	var drain = nitro_drain_rate
+	if ship and "power_divert_mode" in ship and ship.power_divert_mode == "ENGINES":
+		drain *= 0.65 # 35% less nitro consumption in Engines mode
+	
 	if current_nitro > 0.0:
-		current_nitro = max(0.0, current_nitro - nitro_drain_rate * delta)
+		current_nitro = max(0.0, current_nitro - drain * delta)
 		if current_nitro <= 0.0:
 			is_overheated = true
 			overheat_timer = overheat_lockout_time
@@ -222,12 +246,22 @@ func _scan_radar_targets() -> void:
 	current_target = best_candidate
 
 func _update_target_lock(delta: float) -> void:
+	var was_locked = is_locked
+	var duration = lock_duration
+	if ship and "power_divert_mode" in ship and ship.power_divert_mode == "WEAPONS":
+		duration *= 0.5 # 2x faster missile lock acquisition
+		
 	if current_target != null:
-		lock_progress = min(1.0, lock_progress + (delta / lock_duration))
+		lock_progress = min(1.0, lock_progress + (delta / duration))
 		is_locked = (lock_progress >= 1.0)
 	else:
 		lock_progress = max(0.0, lock_progress - (delta * 2.0))
 		is_locked = false
+	
+	if not was_locked and is_locked:
+		var net_server = get_tree().root.get_node_or_null("NetworkControllerServer") if (is_inside_tree() and get_tree() and get_tree().root) else null
+		if net_server and net_server.has_method("notify_combat_event") and ship:
+			net_server.notify_combat_event(ship.player_id, "TARGET_LOCKED")
 	
 	lock_state_changed.emit(current_target, lock_progress, is_locked)
 

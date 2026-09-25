@@ -31,6 +31,9 @@
 </head>
 <body class="h-full w-full text-slate-100 font-mono flex flex-col bg-[#06090E] bg-hud-grid bg-[length:32px_32px]">
 
+  <!-- Tactical Feedback Flash Overlay (Screen border pulses on hits, kills, damage) -->
+  <div id="tacticalFlashOverlay" class="pointer-events-none fixed inset-0 z-40 transition-opacity duration-150 opacity-0"></div>
+
   <!-- ===================================================================== -->
   <!-- 1. TOP STATUS & TELEMETRY BAR                                         -->
   <!-- ===================================================================== -->
@@ -107,6 +110,27 @@
         <span class="pylon px-1 rounded bg-vanguard-amber/20 border border-vanguard-amber/40">M3</span>
         <span class="pylon px-1 rounded bg-vanguard-amber/20 border border-vanguard-amber/40">M4</span>
       </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 2b. POWER ROUTING TRI-DIVERT (Engines / Shields / Weapons / Balanced) -->
+  <!-- ===================================================================== -->
+  <div class="w-full px-3 py-1 bg-black/70 border-b border-vanguard-border/50 flex items-center justify-between gap-1.5 shrink-0 z-20">
+    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest hidden sm:inline">POWER:</span>
+    <div class="flex-1 grid grid-cols-4 gap-1.5 max-w-xl mx-auto">
+      <button id="pwrEngBtn" class="py-1 px-1 rounded border border-vanguard-cyan/40 bg-vanguard-cyan/10 hover:bg-vanguard-cyan/20 text-vanguard-cyan text-[10px] font-bold tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all">
+        <span>⚡</span> <span class="truncate">ENGINES</span>
+      </button>
+      <button id="pwrShdBtn" class="py-1 px-1 rounded border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 text-[10px] font-bold tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all">
+        <span>🛡️</span> <span class="truncate">SHIELDS</span>
+      </button>
+      <button id="pwrWpnBtn" class="py-1 px-1 rounded border border-vanguard-crimson/40 bg-vanguard-crimson/10 hover:bg-vanguard-crimson/20 text-vanguard-crimson text-[10px] font-bold tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all">
+        <span>🔥</span> <span class="truncate">WEAPONS</span>
+      </button>
+      <button id="pwrBalBtn" class="py-1 px-1 rounded border-2 border-white/60 bg-white/20 text-white text-[10px] font-bold tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all">
+        <span>⚖️</span> <span class="truncate">BALANCED</span>
+      </button>
     </div>
   </div>
 

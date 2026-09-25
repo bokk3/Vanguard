@@ -93,7 +93,7 @@ func _process(delta: float) -> bool:
 			
 		# Step 1: Wait for Handshake confirmation and send 30Hz control frame
 		elif step == 1 and handshake_received and timer > 0.05:
-			print("[PASS] Handshake verified! Sending high-frequency control frame...")
+			print("[PASS] Handshake verified! Sending high-frequency control frame with Power Divert...")
 			var control_frame = JSON.stringify({
 				"t": Time.get_ticks_msec(),
 				"pitch": 0.85,
@@ -103,7 +103,8 @@ func _process(delta: float) -> bool:
 				"boost": true,
 				"fire_primary": true,
 				"fire_missile": false,
-				"target_lock": false
+				"target_lock": false,
+				"power_divert": "ENGINES"
 			})
 			test_client.send_text(control_frame)
 			step = 2
@@ -136,7 +137,15 @@ func _process(delta: float) -> bool:
 				quit(1)
 				return true
 				
-			print("[PASS] Dummy ship verified: Pitch=0.85, Roll=-0.60, Throttle=0.95, Boost=TRUE, Fire=TRUE!")
+			if dummy_ship.power_divert_mode != "ENGINES":
+				push_error("Power divert mode mismatch: expected ENGINES, got %s" % dummy_ship.power_divert_mode)
+				quit(1)
+				return true
+				
+			print("[PASS] Dummy ship verified: Pitch=0.85, Roll=-0.60, Throttle=0.95, Boost=TRUE, Fire=TRUE, Power=ENGINES!")
+			
+			# Enqueue a combat event to verify reverse telemetry event delivery
+			server.notify_combat_event(2, "HIT_CONFIRMED")
 			step = 3
 			timer = 0.0
 			
@@ -146,11 +155,13 @@ func _process(delta: float) -> bool:
 				var telem_raw = test_client.get_packet().get_string_from_utf8()
 				var telem_data = JSON.parse_string(telem_raw)
 				if typeof(telem_data) == TYPE_DICTIONARY and telem_data.has("shield"):
-					print("[PASS] Mobile client received reverse telemetry packet: Shield=%d, Hull=%d" % [telem_data.shield, telem_data.hull])
+					print("[PASS] Mobile client received reverse telemetry packet: Shield=%d, Hull=%d, Power=%s" % [telem_data.shield, telem_data.hull, telem_data.get("power_mode", "UNKNOWN")])
+					var events = telem_data.get("events", [])
+					if "HIT_CONFIRMED" in events:
+						print("[PASS] Reverse telemetry verified queued event delivery: 'HIT_CONFIRMED' received!")
 					step = 4
 					break
 			if timer > 1.0 and step == 3:
-				# Even if telemetry didn't fire in 1 sec, step 2 proved bidirectional readiness
 				step = 4
 				
 		# Step 4: Complete test

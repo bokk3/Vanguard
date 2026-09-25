@@ -18,6 +18,7 @@ const state = {
   fire_primary: false,
   fire_missile: false,
   target_lock: false,
+  power_divert: 'BALANCED', // 'ENGINES', 'SHIELDS', 'WEAPONS', 'BALANCED'
 
   // Mode & connection settings
   steerMode: 'touch', // 'touch' or 'gyro'
@@ -42,6 +43,7 @@ let audioCtx = null;
 // ============================================================================
 
 const els = {
+  tacticalFlashOverlay: document.getElementById('tacticalFlashOverlay'),
   connectionPill: document.getElementById('connectionPill'),
   connectionDot: document.getElementById('connectionDot'),
   connectionText: document.getElementById('connectionText'),
@@ -61,6 +63,12 @@ const els = {
   threatBanner: document.getElementById('threatBanner'),
   speedDisplay: document.getElementById('speedDisplay'),
   missilePylons: document.querySelectorAll('.pylon'),
+
+  // Power Management Tri-Divert
+  pwrEngBtn: document.getElementById('pwrEngBtn'),
+  pwrShdBtn: document.getElementById('pwrShdBtn'),
+  pwrWpnBtn: document.getElementById('pwrWpnBtn'),
+  pwrBalBtn: document.getElementById('pwrBalBtn'),
 
   // Throttle
   throttleTrack: document.getElementById('throttleTrack'),
@@ -119,6 +127,94 @@ function playSynthTone(freq, duration = 0.05, type = 'sine') {
     osc.start();
     osc.stop(audioCtx.currentTime + duration);
   } catch {}
+}
+
+let flashTimeout = null;
+function triggerScreenFlash(ringClass, duration = 180) {
+  if (!els.tacticalFlashOverlay) return;
+  if (flashTimeout) clearTimeout(flashTimeout);
+  els.tacticalFlashOverlay.className = `pointer-events-none fixed inset-0 z-40 transition-opacity duration-75 opacity-100 ring-inset ring-8 ${ringClass}`;
+  flashTimeout = setTimeout(() => {
+    els.tacticalFlashOverlay.className = 'pointer-events-none fixed inset-0 z-40 transition-opacity duration-150 opacity-0';
+  }, duration);
+}
+
+function playRadioSquelch(isOpening = true) {
+  if (!state.audioEnabled || !audioCtx) return;
+  try {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const now = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'triangle';
+    if (isOpening) {
+      osc.frequency.setValueAtTime(1400, now);
+      osc.frequency.exponentialRampToValueAtTime(750, now + 0.04);
+    } else {
+      osc.frequency.setValueAtTime(800, now);
+      osc.frequency.exponentialRampToValueAtTime(1550, now + 0.04);
+    }
+    gain.gain.setValueAtTime(0.06, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + 0.05);
+  } catch {}
+}
+
+let lastSpeechTime = 0;
+let lastSpeechText = '';
+
+function speakBetty(text, priority = false) {
+  if (!state.audioEnabled || !('speechSynthesis' in window)) return;
+  const now = Date.now();
+  if (!priority && (now - lastSpeechTime < 2200 || (lastSpeechText === text && now - lastSpeechTime < 6000))) {
+    return;
+  }
+  lastSpeechTime = now;
+  lastSpeechText = text;
+
+  try {
+    playRadioSquelch(true);
+    if (priority) {
+      window.speechSynthesis.cancel();
+    }
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = 1.15;
+    utter.pitch = 1.12;
+    utter.volume = 0.95;
+    
+    const voices = window.speechSynthesis.getVoices();
+    const enVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Female') || v.name.includes('Zira') || v.name.includes('Samantha')));
+    if (enVoice) utter.voice = enVoice;
+
+    utter.onend = () => {
+      playRadioSquelch(false);
+    };
+    window.speechSynthesis.speak(utter);
+  } catch {}
+}
+
+let cannonRecoilInterval = null;
+function startCannonRecoil() {
+  if (cannonRecoilInterval) return;
+  haptic([18, 22]);
+  cannonRecoilInterval = setInterval(() => {
+    if (state.fire_primary) {
+      haptic([18, 22]);
+      playSynthTone(520, 0.035, 'sawtooth');
+    } else {
+      stopCannonRecoil();
+    }
+  }, 50);
+}
+
+function stopCannonRecoil() {
+  if (cannonRecoilInterval) {
+    clearInterval(cannonRecoilInterval);
+    cannonRecoilInterval = null;
+  }
 }
 
 function haptic(pattern = 15) {
@@ -272,6 +368,47 @@ function handleIncomingTelemetry(telem) {
     els.threatBanner.textContent = '// TACTICAL: MISSILE LOCK ACQUIRED //';
     els.threatBanner.className = 'text-vanguard-amber font-black tracking-widest truncate';
   }
+
+  // 6. High-Priority Combat Telemetry Events
+  if (Array.isArray(telem.events) && telem.events.length > 0) {
+    for (const ev of telem.events) {
+      if (ev === 'HIT_CONFIRMED') {
+        playSynthTone(1450, 0.04, 'sine');
+        haptic(30);
+        triggerScreenFlash('ring-vanguard-cyan', 130);
+        els.threatBanner.textContent = '// DIRECT HIT CONFIRMED // TARGET INTEGRITY DAMAGED //';
+        els.threatBanner.className = 'text-vanguard-cyan font-black tracking-widest truncate';
+      } else if (ev === 'KILL_CONFIRMED') {
+        playSynthTone(580, 0.16, 'triangle');
+        haptic([80, 40, 80, 40, 160]);
+        triggerScreenFlash('ring-vanguard-gold', 450);
+        speakBetty('Splash one, bandit down!', true);
+        els.threatBanner.textContent = '★ TARGET DESTROYED ★ CONFIRMED KILL ★';
+        els.threatBanner.className = 'text-vanguard-gold font-black tracking-widest animate-bounce truncate';
+      } else if (ev === 'SHIELD_BROKEN') {
+        playSynthTone(180, 0.35, 'sawtooth');
+        haptic([100, 50, 150, 50, 250]);
+        triggerScreenFlash('ring-vanguard-crimson', 350);
+        speakBetty('Warning: Shields down!', true);
+        els.threatBanner.textContent = '⚠ SHIELDS COLLAPSED ⚠ STRUCTURAL DAMAGE IMMINENT ⚠';
+        els.threatBanner.className = 'text-vanguard-crimson font-black tracking-widest animate-pulse truncate';
+      } else if (ev === 'TARGET_LOCKED') {
+        playSynthTone(1200, 0.12, 'square');
+        haptic([40, 25, 40]);
+        triggerScreenFlash('ring-vanguard-amber', 180);
+        speakBetty('Target locked.');
+        els.threatBanner.textContent = '⌖ MISSILE LOCK CONFIRMED ⌖ FOX TWO READY ⌖';
+        els.threatBanner.className = 'text-vanguard-amber font-black tracking-widest truncate';
+      }
+    }
+  }
+
+  // 7. Sync Server Power Mode if reported
+  if (telem.power_mode && telem.power_mode !== state.power_divert) {
+    if (typeof updatePowerUI === 'function') {
+      updatePowerUI(telem.power_mode);
+    }
+  }
 }
 
 function startTransmitLoop() {
@@ -291,6 +428,7 @@ function startTransmitLoop() {
       fire_primary: state.fire_primary,
       fire_missile: state.fire_missile,
       target_lock: state.target_lock,
+      power_divert: state.power_divert,
     };
 
     ws.send(JSON.stringify(packet));
@@ -508,49 +646,69 @@ function setupGyroscope() {
 // ============================================================================
 
 function setupCombatTriggers() {
-  // Primary Photon Cannon (Hold to fire)
-  els.primaryFireBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
+  // Primary Photon Cannon (Hold to fire + Rotary Autocannon Recoil)
+  function onFirePrimaryStart(e) {
+    if (e.cancelable) e.preventDefault();
     initAudio();
     state.fire_primary = true;
-    haptic(20);
-    playSynthTone(440, 0.06, 'sawtooth');
-  }, { passive: false });
+    startCannonRecoil();
+    playSynthTone(480, 0.05, 'sawtooth');
+  }
 
-  els.primaryFireBtn.addEventListener('touchend', () => {
+  function onFirePrimaryEnd() {
     state.fire_primary = false;
-  });
+    stopCannonRecoil();
+  }
+
+  els.primaryFireBtn.addEventListener('touchstart', onFirePrimaryStart, { passive: false });
+  els.primaryFireBtn.addEventListener('touchend', onFirePrimaryEnd);
+  els.primaryFireBtn.addEventListener('touchcancel', onFirePrimaryEnd);
+  els.primaryFireBtn.addEventListener('mousedown', onFirePrimaryStart);
+  els.primaryFireBtn.addEventListener('mouseup', onFirePrimaryEnd);
+  els.primaryFireBtn.addEventListener('mouseleave', onFirePrimaryEnd);
 
   // Secondary Strike Missile
-  els.missileFireBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
+  function onFireMissile(e) {
+    if (e.cancelable) e.preventDefault();
     initAudio();
     state.fire_missile = true;
-    haptic([40, 30, 40]);
-    playSynthTone(220, 0.15, 'triangle');
-  }, { passive: false });
+    haptic([100, 35, 60]);
+    playSynthTone(180, 0.22, 'triangle');
+    triggerScreenFlash('ring-vanguard-amber', 250);
+    speakBetty('Fox Two away!');
+  }
+
+  els.missileFireBtn.addEventListener('touchstart', onFireMissile, { passive: false });
+  els.missileFireBtn.addEventListener('mousedown', onFireMissile);
 
   // Target Lock Button
   els.targetLockBtn.addEventListener('click', () => {
     initAudio();
     state.target_lock = true;
-    haptic(30);
+    haptic(35);
     playSynthTone(1200, 0.08, 'sine');
+    triggerScreenFlash('ring-vanguard-amber', 120);
   });
 
   // Nitro Boost Button
-  els.nitroBoostBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
+  function onBoostStart(e) {
+    if (e.cancelable) e.preventDefault();
     state.boost = true;
     haptic(25);
     playSynthTone(300, 0.1, 'sawtooth');
-  }, { passive: false });
+    triggerScreenFlash('ring-vanguard-cyan', 180);
+  }
 
-  els.nitroBoostBtn.addEventListener('touchend', () => {
+  function onBoostEnd() {
     if (state.throttle <= 0.90) {
       state.boost = false;
     }
-  });
+  }
+
+  els.nitroBoostBtn.addEventListener('touchstart', onBoostStart, { passive: false });
+  els.nitroBoostBtn.addEventListener('mousedown', onBoostStart);
+  els.nitroBoostBtn.addEventListener('touchend', onBoostEnd);
+  els.nitroBoostBtn.addEventListener('mouseup', onBoostEnd);
 
   // Yaw Pedals
   els.yawLeftBtn.addEventListener('touchstart', (e) => {
@@ -579,6 +737,57 @@ function setupCombatTriggers() {
     els.toggleAudioBtn.textContent = state.audioEnabled ? '🔊' : '🔇';
     haptic(10);
   });
+}
+
+// ============================================================================
+// 9b. Power Management Tri-Divert
+// ============================================================================
+
+let updatePowerUI = null;
+
+function setupPowerDivert() {
+  const modes = [
+    { id: 'pwrEngBtn', mode: 'ENGINES', callout: 'Power diverted to engines.', ring: 'ring-vanguard-cyan', activeClass: 'border-2 border-vanguard-cyan bg-vanguard-cyan/30 text-white shadow-[0_0_15px_#00e5ff]' },
+    { id: 'pwrShdBtn', mode: 'SHIELDS', callout: 'Power diverted to shields.', ring: 'ring-emerald-400', activeClass: 'border-2 border-emerald-400 bg-emerald-500/30 text-white shadow-[0_0_15px_#00e676]' },
+    { id: 'pwrWpnBtn', mode: 'WEAPONS', callout: 'Power diverted to weapons.', ring: 'ring-vanguard-crimson', activeClass: 'border-2 border-vanguard-crimson bg-vanguard-crimson/30 text-white shadow-[0_0_15px_#ff2a4d]' },
+    { id: 'pwrBalBtn', mode: 'BALANCED', callout: 'Power balanced.', ring: 'ring-slate-300', activeClass: 'border-2 border-white/80 bg-white/20 text-white shadow-sm' },
+  ];
+
+  updatePowerUI = function(selectedMode) {
+    state.power_divert = selectedMode;
+    const defaultClasses = {
+      pwrEngBtn: 'py-1 px-1 rounded border border-vanguard-cyan/40 bg-vanguard-cyan/10 text-vanguard-cyan text-[10px] font-bold tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all',
+      pwrShdBtn: 'py-1 px-1 rounded border border-emerald-500/40 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all',
+      pwrWpnBtn: 'py-1 px-1 rounded border border-vanguard-crimson/40 bg-vanguard-crimson/10 text-vanguard-crimson text-[10px] font-bold tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all',
+      pwrBalBtn: 'py-1 px-1 rounded border border-slate-700 bg-slate-900/60 text-slate-400 text-[10px] font-bold tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all',
+    };
+
+    modes.forEach(m => {
+      const btn = els[m.id];
+      if (!btn) return;
+      if (m.mode === selectedMode) {
+        btn.className = `py-1 px-1 rounded ${m.activeClass} text-[10px] font-black tracking-wider flex items-center justify-center gap-1 active:scale-95 transition-all`;
+      } else {
+        btn.className = defaultClasses[m.id];
+      }
+    });
+  };
+
+  modes.forEach(m => {
+    const btn = els[m.id];
+    if (btn) {
+      btn.addEventListener('click', () => {
+        initAudio();
+        haptic(25);
+        playSynthTone(m.mode === 'ENGINES' ? 950 : m.mode === 'SHIELDS' ? 620 : m.mode === 'WEAPONS' ? 1250 : 750, 0.08);
+        triggerScreenFlash(m.ring, 220);
+        speakBetty(m.callout);
+        updatePowerUI(m.mode);
+      });
+    }
+  });
+
+  updatePowerUI('BALANCED');
 }
 
 // ============================================================================
@@ -637,6 +846,7 @@ function init() {
   setupThrottle();
   setupGyroscope();
   setupCombatTriggers();
+  setupPowerDivert();
   setupConfig();
   startTransmitLoop();
 

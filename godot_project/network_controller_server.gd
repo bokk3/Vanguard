@@ -17,8 +17,15 @@ var session_room_code: String = "VNG-77"
 var connected_clients: Array[Dictionary] = [] # Array of { peer: WebSocketPeer, tcp: StreamPeerTCP, callsign: String, player_id: int, last_seen: float }
 
 var target_ships: Dictionary = {} # player_id -> SpaceshipController
+var queued_combat_events: Dictionary = {} # player_id -> Array[String]
 var telemetry_timer: float = 0.0
 var is_active: bool = false
+
+## Enqueues a high-priority combat event for transmission to the player's mobile cockpit (e.g. HIT_CONFIRMED, KILL_CONFIRMED)
+func notify_combat_event(player_id: int, event_name: String) -> void:
+	if not queued_combat_events.has(player_id):
+		queued_combat_events[player_id] = []
+	queued_combat_events[player_id].append(event_name)
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -212,8 +219,17 @@ func _broadcast_telemetry_to_phones() -> void:
 			"speed": 60.0,
 			"missiles": 4,
 			"target_locked": false,
-			"under_fire": false
+			"under_fire": false,
+			"power_mode": "BALANCED",
+			"events": []
 		}
+		
+		# Flush any combat events queued for this player
+		if queued_combat_events.has(pid):
+			var ev_list = queued_combat_events[pid]
+			if not ev_list.is_empty():
+				telem_payload["events"] = ev_list.duplicate()
+				ev_list.clear()
 		
 		if is_instance_valid(ship):
 			var telem_node = ship.get_node_or_null("CombatTelemetry")
@@ -221,8 +237,14 @@ func _broadcast_telemetry_to_phones() -> void:
 				telem_payload["shield"] = telem_node.current_shield
 				telem_payload["hull"] = telem_node.current_hull
 				telem_payload["missiles"] = telem_node.missiles_remaining
+				if "current_target" in telem_node and telem_node.current_target != null:
+					telem_payload["target_locked"] = true
 			if "current_speed" in ship:
 				telem_payload["speed"] = ship.current_speed
+			if "power_divert_mode" in ship:
+				telem_payload["power_mode"] = ship.power_divert_mode
+			if "target_locked" in ship and ship.target_locked:
+				telem_payload["target_locked"] = true
 				
 		var msg = JSON.stringify(telem_payload)
 		peer.send_text(msg)

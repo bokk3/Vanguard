@@ -57,6 +57,10 @@ var mobile_throttle: float = -1.0
 var mobile_boost: bool = false
 var mobile_fire_primary: bool = false
 
+# Power Management Tri-Divert
+var power_divert_mode: String = "BALANCED" # ENGINES, SHIELDS, WEAPONS, BALANCED
+var base_camera_fov: float = 75.0
+
 @export_group("Collision & Damage")
 @export var terrain_floor_y: float = 0.0 ## Lowest ground elevation (fail-safe clamped)
 
@@ -137,6 +141,29 @@ func _apply_p2_visuals() -> void:
 	glow_light.position = Vector3(0, 0.2, 0)
 	add_child(glow_light)
 
+func set_power_divert(mode: String) -> void:
+	var upper_mode = mode.to_upper()
+	if upper_mode not in ["ENGINES", "SHIELDS", "WEAPONS", "BALANCED"]:
+		upper_mode = "BALANCED"
+	if power_divert_mode == upper_mode:
+		return
+	power_divert_mode = upper_mode
+	print(">>> [Pilot %d] POWER DIVERT ENGAGED: %s" % [player_id, power_divert_mode])
+	
+	# Notify HUD
+	var hud = custom_hud if custom_hud else (get_tree().current_scene.find_child("TacticalOverlay", true, false) if (is_inside_tree() and get_tree() and get_tree().current_scene) else null)
+	if hud and hud.has_method("notify_combat_event"):
+		var col = Color(0.0, 0.9, 1.0)
+		if power_divert_mode == "SHIELDS": col = Color(0.0, 0.9, 0.4)
+		elif power_divert_mode == "WEAPONS": col = Color(1.0, 0.3, 0.2)
+		hud.notify_combat_event("// POWER ROUTED: " + power_divert_mode + " //", col)
+		
+	# Notify Mobile Controller
+	var net_server = get_node_or_null("/root/NetworkControllerServer")
+	if net_server and net_server.has_method("notify_combat_event"):
+		net_server.notify_combat_event(player_id, "POWER_DIVERT_" + power_divert_mode)
+
+
 func apply_mobile_inputs(data: Dictionary) -> void:
 	mobile_control_active = true
 	if data.has("pitch"): mobile_pitch = float(data["pitch"])
@@ -152,6 +179,8 @@ func apply_mobile_inputs(data: Dictionary) -> void:
 	if data.has("target_lock") and bool(data["target_lock"]):
 		if telemetry and telemetry.has_method("cycle_target"):
 			telemetry.cycle_target()
+	if data.has("power_divert"):
+		set_power_divert(str(data["power_divert"]))
 
 func _ready() -> void:
 	if not telemetry and has_node("CombatTelemetry"):
@@ -165,6 +194,9 @@ func _ready() -> void:
 		camera = custom_camera
 	elif not camera and has_node("../Camera3D"):
 		camera = get_node("../Camera3D")
+	
+	if camera:
+		base_camera_fov = camera.fov
 	
 	if player_id == 2:
 		_apply_p2_visuals()
@@ -274,14 +306,25 @@ func _unhandled_input(event: InputEvent) -> void:
 	if player_id == 1 and not is_network_remote and event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		mouse_input = event.relative
 	
-	if event is InputEventKey and event.pressed and event.keycode == KEY_F1:
-		if not is_split_screen or player_id == 1:
-			is_azerty = not is_azerty
-			var cfg = get_node_or_null("/root/ConfigManager")
-			if cfg:
-				cfg.reset_keybindings_preset(is_azerty)
-			layout_changed.emit(is_azerty)
-			print("Keyboard layout switched to: ", "AZERTY" if is_azerty else "QWERTY")
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F1:
+			if not is_split_screen or player_id == 1:
+				is_azerty = not is_azerty
+				var cfg = get_node_or_null("/root/ConfigManager")
+				if cfg:
+					cfg.reset_keybindings_preset(is_azerty)
+				layout_changed.emit(is_azerty)
+				print("Keyboard layout switched to: ", "AZERTY" if is_azerty else "QWERTY")
+		elif not is_split_screen or player_id == 1:
+			match event.keycode:
+				KEY_1:
+					set_power_divert("ENGINES")
+				KEY_2:
+					set_power_divert("SHIELDS")
+				KEY_3:
+					set_power_divert("WEAPONS")
+				KEY_4:
+					set_power_divert("BALANCED")
 	
 	var is_pause_key = event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE
 	var is_pause_pad = event is InputEventJoypadButton and event.pressed and event.button_index == JOY_BUTTON_START
@@ -336,13 +379,22 @@ func _physics_process(delta: float) -> void:
 	if wants_boost and telemetry:
 		can_boost = telemetry.request_afterburner(delta)
 	
-	var target_top_speed = boost_speed if can_boost else cruise_speed
+	# Power Divert speed & acceleration multipliers
+	var speed_mult: float = 1.0
+	var accel_mult: float = 1.0
+	if power_divert_mode == "ENGINES":
+		speed_mult = 1.35
+		accel_mult = 1.5
+	elif power_divert_mode == "SHIELDS":
+		speed_mult = 0.90 # slight speed reduction for fortress shields
+	
+	var target_top_speed = (boost_speed * speed_mult) if can_boost else (cruise_speed * speed_mult)
 
 	if mobile_control_active and mobile_throttle >= 0.0:
 		var target_mobile_speed = lerp(min_speed, target_top_speed, mobile_throttle)
-		current_speed = move_toward(current_speed, target_mobile_speed, acceleration * delta * 2.0)
+		current_speed = move_toward(current_speed, target_mobile_speed, acceleration * accel_mult * delta * 2.0)
 	elif throttle_up:
-		current_speed = move_toward(current_speed, target_top_speed, acceleration * delta)
+		current_speed = move_toward(current_speed, target_top_speed, acceleration * accel_mult * delta)
 	elif throttle_down:
 		current_speed = move_toward(current_speed, min_speed, braking * delta)
 
@@ -462,6 +514,14 @@ func _process_camera_follow(delta: float) -> void:
 		active_cam.global_position = active_cam.global_position.lerp(target_cam_pos + shake_offset, camera_lerp_speed * delta)
 		var look_target = global_position + (forward_dir * 8.0)
 		active_cam.look_at(look_target, global_transform.basis.y)
+		
+		# Dynamic FOV Expansion
+		var target_fov = base_camera_fov
+		if was_boosting:
+			target_fov += (18.0 if power_divert_mode == "ENGINES" else 10.0)
+		elif power_divert_mode == "ENGINES":
+			target_fov += 6.0
+		active_cam.fov = lerp(active_cam.fov, target_fov, 4.0 * delta)
 
 # -----------------------------------------------------------------------------
 # Weapon Hardpoints & Missile Launch System
@@ -675,13 +735,14 @@ func _process_machine_gun(delta: float) -> void:
 			if gun_audio_player and not gun_audio_player.playing:
 				gun_audio_player.play()
 
-		# Fire kinetic rounds according to fire rate
+		# Fire kinetic rounds according to fire rate (Weapons divert cycles 40% faster)
+		var effective_fire_rate = gun_fire_rate * (1.40 if power_divert_mode == "WEAPONS" else 1.0)
 		var max_burst_per_frame = 4
 		while gun_timer <= 0.0 and max_burst_per_frame > 0:
 			_fire_machine_gun_round()
 			if is_inside_tree() and multiplayer and multiplayer.has_multiplayer_peer() and not is_network_remote:
 				rpc("rpc_fire_gun_burst")
-			gun_timer += (1.0 / gun_fire_rate)
+			gun_timer += (1.0 / effective_fire_rate)
 			max_burst_per_frame -= 1
 
 		# Subtle camera recoil vibration & controller haptics
@@ -753,6 +814,9 @@ func trigger_hitmarker() -> void:
 		var hud = get_tree().current_scene.find_child("TacticalOverlay", true, false)
 		if hud and hud.has_method("trigger_hitmarker"):
 			hud.trigger_hitmarker()
+	var net_server = get_node_or_null("/root/NetworkControllerServer")
+	if net_server and net_server.has_method("notify_combat_event"):
+		net_server.notify_combat_event(player_id, "HIT_CONFIRMED")
 
 func take_damage_from(amount: float, attacker: Node = null) -> void:
 	take_damage(amount, attacker)
