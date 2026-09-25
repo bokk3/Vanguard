@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import fs from 'fs';
 import path from 'path';
 
-let version = '0.8.0';
+let version = '0.8.1';
 try {
   const versionPath = path.resolve(__dirname, '../VERSION');
   if (fs.existsSync(versionPath)) {
