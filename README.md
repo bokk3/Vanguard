@@ -10,6 +10,7 @@
 *"Precision in the Void. Firepower in the Envelope."*
 
 [![404th Vanguard](https://img.shields.io/badge/Wing-404th_Vanguard-00E5FF?style=for-the-badge)](docs/lore/README.md)
+[![Live Portal](https://img.shields.io/badge/Live_Portal-project--vanguard.pages.dev-00E5FF?style=for-the-badge&logo=cloudflare)](https://project-vanguard.pages.dev)
 [![Status](https://img.shields.io/badge/Status-Combat_Ready-00C853?style=for-the-badge)](godot_project/)
 [![Engine](https://img.shields.io/badge/Engine-Godot_4_%7C_UE5-0D47A1?style=for-the-badge)](docs/PIPELINE_WORKFLOW.md)
 [![Multiplayer](https://img.shields.io/badge/Multiplayer-Split--Screen_%7C_LAN_P2P-7C4DFF?style=for-the-badge)](docs/MULTIPLAYER_AND_COOP_SYSTEM.md)
