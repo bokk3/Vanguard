@@ -64,29 +64,47 @@ static func _gf_mul(x: int, y: int) -> int:
 		return 0
 	return _gf_exp[_gf_log[x] + _gf_log[y]]
 
-static func _rs_generator_poly(degree: int) -> PackedByteArray:
+static func _poly_mul(p1: PackedByteArray, p2: PackedByteArray) -> PackedByteArray:
+	var coeff = PackedByteArray()
+	coeff.resize(p1.size() + p2.size() - 1)
+	for i in range(p1.size()):
+		for j in range(p2.size()):
+			coeff[i + j] ^= _gf_mul(p1[i], p2[j])
+	return coeff
+
+static func _gen_poly(degree: int) -> PackedByteArray:
 	var poly = PackedByteArray([1])
 	for i in range(degree):
-		var next_poly = PackedByteArray()
-		next_poly.resize(poly.size() + 1)
-		for j in range(poly.size()):
-			next_poly[j] ^= _gf_mul(poly[j], _gf_exp[i])
-			next_poly[j + 1] ^= poly[j]
-		poly = next_poly
+		var term = PackedByteArray([1, _gf_exp[i]])
+		poly = _poly_mul(poly, term)
 	return poly
 
-static func _rs_encode(data: PackedByteArray, ec_len: int) -> PackedByteArray:
+static func _poly_mod(divident: PackedByteArray, divisor: PackedByteArray) -> PackedByteArray:
+	var result = divident.duplicate()
+	while (result.size() - divisor.size()) >= 0:
+		var coeff = result[0]
+		for i in range(divisor.size()):
+			result[i] ^= _gf_mul(divisor[i], coeff)
+		var offset = 0
+		while offset < result.size() and result[offset] == 0:
+			offset += 1
+		result = result.slice(offset)
+	return result
+
+static func _rs_encode(data: PackedByteArray, degree: int) -> PackedByteArray:
 	_init_gf_tables()
-	var gen = _rs_generator_poly(ec_len)
-	var res = PackedByteArray()
-	res.resize(ec_len)
-	
-	for b in data:
-		var factor = b ^ res[0]
-		for i in range(ec_len - 1):
-			res[i] = res[i + 1] ^ _gf_mul(gen[i + 1], factor)
-		res[ec_len - 1] = _gf_mul(gen[ec_len], factor)
-	return res
+	var gen_poly = _gen_poly(degree)
+	var padded = PackedByteArray()
+	padded.resize(data.size() + degree)
+	for i in range(data.size()):
+		padded[i] = data[i]
+	var remainder = _poly_mod(padded, gen_poly)
+	var buff = PackedByteArray()
+	buff.resize(degree)
+	var start = degree - remainder.size()
+	for i in range(remainder.size()):
+		buff[start + i] = remainder[i]
+	return buff
 
 ## Generates a Godot ImageTexture containing the QR Code
 static func get_texture(text: String, scale: int = 8, border: int = 4) -> ImageTexture:
@@ -120,6 +138,7 @@ static func get_image(text: String, scale: int = 8, border: int = 4) -> Image:
 
 ## Generates the 2D boolean array [y][x] for the QR Code
 static func generate_matrix(text: String) -> Array:
+	_init_gf_tables()
 	var raw_bytes = text.to_utf8_buffer()
 	var data_len = raw_bytes.size()
 	
@@ -141,29 +160,23 @@ static func generate_matrix(text: String) -> Array:
 	
 	# 2. Build bitstream (Byte mode: 0100)
 	var bitstream: Array[int] = []
-	# Mode indicator (4 bits: 0100 for Byte mode)
 	bitstream.append_array([0, 1, 0, 0])
 	
-	# Character count (8 bits for versions 1-9, 16 bits for version 10+)
 	var count_bits = 8 if version < 10 else 16
 	for i in range(count_bits - 1, -1, -1):
 		bitstream.append((data_len >> i) & 1)
 		
-	# Payload bytes
 	for b in raw_bytes:
 		for i in range(7, -1, -1):
 			bitstream.append((b >> i) & 1)
 			
-	# Terminator (up to 4 zeroes)
 	var term_bits = min(4, total_data_cap * 8 - bitstream.size())
 	for i in range(term_bits):
 		bitstream.append(0)
 		
-	# Pad to byte boundary
 	while bitstream.size() % 8 != 0:
 		bitstream.append(0)
 		
-	# Pad bytes (0xEC, 0x11)
 	var pad_bytes = [0xEC, 0x11]
 	var pad_idx = 0
 	while bitstream.size() < total_data_cap * 8:
@@ -172,7 +185,6 @@ static func generate_matrix(text: String) -> Array:
 			bitstream.append((pb >> i) & 1)
 		pad_idx += 1
 		
-	# Convert bitstream to data bytes
 	var data_codewords = PackedByteArray()
 	for i in range(0, bitstream.size(), 8):
 		var byte_val = 0
@@ -209,7 +221,6 @@ static func generate_matrix(text: String) -> Array:
 		for blk in ec_blocks:
 			final_stream.append(blk[i])
 			
-	# Convert interleaved bytes to flat bit array
 	var final_bits: Array[int] = []
 	for b in final_stream:
 		for i in range(7, -1, -1):
@@ -247,15 +258,13 @@ static func generate_matrix(text: String) -> Array:
 	var align_coords = ALIGNMENT_LOCATIONS[version]
 	for cy in align_coords:
 		for cx in align_coords:
-			# Avoid finder corners
 			if (cx <= 8 and cy <= 8) or (cx >= matrix_size - 9 and cy <= 8) or (cx <= 8 and cy >= matrix_size - 9):
 				continue
 			_place_alignment(modules, is_function, cx, cy)
 			
-	# Dark module (row 4 * version + 9, col 8)
-	var dark_y = 4 * version + 9
-	modules[dark_y][8] = true
-	is_function[dark_y][8] = true
+	# Dark module (row matrix_size - 8, col 8)
+	modules[matrix_size - 8][8] = true
+	is_function[matrix_size - 8][8] = true
 	
 	# Reserve Format Info modules
 	_reserve_format_info(is_function, matrix_size)
@@ -281,12 +290,11 @@ static func generate_matrix(text: String) -> Array:
 		upward = not upward
 		right -= 2
 		
-	# 6. Apply Best Mask (Standard Mask 0: (row + col) % 2 == 0)
+	# 6. Apply Standard Mask 0: (row + col) % 2 == 0
 	var mask_id = 0
 	for y in range(matrix_size):
 		for x in range(matrix_size):
 			if not is_function[y][x]:
-				# Mask 0 condition: (x + y) % 2 == 0
 				if (x + y) % 2 == 0:
 					modules[y][x] = not modules[y][x]
 					
@@ -326,30 +334,23 @@ static func _reserve_format_info(is_func: Array, size: int) -> void:
 		is_func[size - 1 - i][8] = true
 
 static func _write_format_info(modules: Array, format_val: int, size: int) -> void:
-	# Format info is 15 bits
-	var bits: Array[bool] = []
 	for i in range(15):
-		bits.append(((format_val >> i) & 1) == 1)
-		
-	# Around top-left finder
-	modules[8][0] = bits[0]
-	modules[8][1] = bits[1]
-	modules[8][2] = bits[2]
-	modules[8][3] = bits[3]
-	modules[8][4] = bits[4]
-	modules[8][5] = bits[5]
-	modules[8][7] = bits[6]
-	modules[8][8] = bits[7]
-	modules[7][8] = bits[8]
-	modules[5][8] = bits[9]
-	modules[4][8] = bits[10]
-	modules[3][8] = bits[11]
-	modules[2][8] = bits[12]
-	modules[1][8] = bits[13]
-	modules[0][8] = bits[14]
-	
-	# Split between bottom-left and top-right
-	for i in range(7):
-		modules[size - 1 - i][8] = bits[i]
-	for i in range(8):
-		modules[8][size - 8 + i] = bits[7 + i]
+		var mod = ((format_val >> i) & 1) == 1
+		# Vertical placement
+		if i < 6:
+			modules[i][8] = mod
+		elif i < 8:
+			modules[i + 1][8] = mod
+		else:
+			modules[size - 15 + i][8] = mod
+			
+		# Horizontal placement
+		if i < 8:
+			modules[8][size - i - 1] = mod
+		elif i < 9:
+			modules[8][15 - i - 1 + 1] = mod
+		else:
+			modules[8][15 - i - 1] = mod
+			
+	# Dark module (always dark)
+	modules[size - 8][8] = true

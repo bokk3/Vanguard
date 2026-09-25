@@ -99,8 +99,8 @@ func get_controller_url() -> String:
 	return "https://project-vanguard.pages.dev/controller?host=%s:%d&room=%s" % [get_local_ip(), port, session_room_code]
 
 ## Generates a ready-to-display ImageTexture QR Code
-func get_qr_texture(scale: int = 6) -> ImageTexture:
-	return QRCodeScript.get_texture(get_controller_url(), scale, 3)
+func get_qr_texture(scale: int = 8) -> ImageTexture:
+	return QRCodeScript.get_texture(get_controller_url(), scale, 4)
 
 ## Registers a SpaceshipController instance to be driven by a specific player_id
 func register_ship(player_id: int, ship: Node) -> void:
