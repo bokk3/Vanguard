@@ -1,0 +1,28 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Deflector Shield Halo Arc -->
+  <path d="M128 20C68 20 20 68 20 128C20 188 68 236 128 236C188 236 236 188 236 128C236 68 188 20 128 20Z" stroke="#00E5FF" stroke-width="4" stroke-dasharray="14 8" opacity="0.85"/>
+
+  <!-- Spaceship Sculpted V-Hull Top-Down Silhouette -->
+  <!-- Nose & Radome -->
+  <path d="M128 40L140 85H116L128 40Z" fill="#00E5FF" fill-opacity="0.3" stroke="#00E5FF" stroke-width="2"/>
+  
+  <!-- Center Fuselage & Canopy -->
+  <path d="M116 85L110 170H146L140 85H116Z" fill="#00E5FF" fill-opacity="0.25" stroke="#00E5FF" stroke-width="2"/>
+  <ellipse cx="128" cy="115" rx="8" ry="18" fill="#FFD700" fill-opacity="0.6" stroke="#FFD700" stroke-width="1.5"/>
+
+  <!-- Left Delta Wing (Port) -->
+  <path d="M110 110L32 175V190L110 170V110Z" fill="#00E5FF" fill-opacity="0.2" stroke="#00E5FF" stroke-width="2"/>
+
+  <!-- Right Delta Wing (Starboard) -->
+  <path d="M146 110L224 175V190L146 170V110Z" fill="#00E5FF" fill-opacity="0.2" stroke="#00E5FF" stroke-width="2"/>
+
+  <!-- Twin Thruster Engine Nacelles -->
+  <rect x="112" y="170" width="12" height="35" rx="3" fill="#00E5FF" fill-opacity="0.4" stroke="#00E5FF" stroke-width="2"/>
+  <rect x="132" y="170" width="12" height="35" rx="3" fill="#00E5FF" fill-opacity="0.4" stroke="#00E5FF" stroke-width="2"/>
+
+  <!-- Hardpoint Missiles Mounted -->
+  <rect x="52" y="155" width="4" height="24" rx="2" fill="#FFD700"/>
+  <rect x="76" y="145" width="4" height="24" rx="2" fill="#FFD700"/>
+  <rect x="176" y="145" width="4" height="24" rx="2" fill="#FFD700"/>
+  <rect x="200" y="155" width="4" height="24" rx="2" fill="#FFD700"/>
+</svg>

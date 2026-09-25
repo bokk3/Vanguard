@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Vanguard | Combat Flight Simulator & Aerospace CAD Pipeline</title>
+  <meta name="description" content="Autonomous Sci-Fi 3D Asset Pipeline & Combat Flight Simulator. Featuring drop-in split-screen co-op, LAN dogfighting, 8 campaign sorties, and precision hard-surface CAD engineering.">
+  <link rel="icon" type="image/svg+xml" href="/images/vanguard_vector_emblem.svg">
+  <meta property="og:title" content="Project Vanguard | Combat Flight Simulator">
+  <meta property="og:description" content="Precision in the Void. Firepower in the Envelope. Fully automated $0-cost CAD to Godot 4 & UE5 pipeline.">
+  <meta property="og:image" content="/images/vanguard_hero_fighter.jpg">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body class="bg-vanguard-dark text-slate-100 scanline-bg">
+
+  <!-- Top Tactical Telemetry Ticker -->
+  <header class="bg-vanguard-deep/90 border-b border-vanguard-border/80 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-9 text-xs font-mono border-b border-vanguard-border/40 text-vanguard-textMuted">
+        <div class="flex items-center space-x-4 overflow-hidden">
+          <span class="flex items-center space-x-1.5 text-vanguard-emerald">
+            <span class="inline-block w-2 h-2 rounded-full bg-vanguard-emerald animate-pulse"></span>
+            <span class="font-bold">SYSTEMS: ONLINE</span>
+          </span>
+          <span class="hidden md:inline text-slate-500">|</span>
+          <span class="hidden md:inline">SPEED: <span id="ticker-speed" class="text-vanguard-cyan">62.4 m/s</span></span>
+          <span class="hidden lg:inline text-slate-500">|</span>
+          <span class="hidden lg:inline">ALTITUDE: <span id="ticker-alt" class="text-vanguard-cyan">3,450 m</span></span>
+          <span class="hidden xl:inline text-slate-500">|</span>
+          <span class="hidden xl:inline">LIFT RATIO: <span id="ticker-lift" class="text-vanguard-cyan">100% (OPTIMAL)</span></span>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button id="sound-toggle" class="hover:text-vanguard-cyan transition-colors text-vanguard-cyan">
+            [ AUDIO: TACTICAL ]
+          </button>
+          <span class="px-2 py-0.5 rounded bg-vanguard-cyan/10 text-vanguard-cyan border border-vanguard-cyan/30 text-[10px] font-bold tracking-widest uppercase">
+            v0.8.0-ALPHA
+          </span>
+        </div>
+      </div>
+
+      <!-- Main Navigation -->
+      <div class="flex items-center justify-between h-16">
+        <a href="#" class="flex items-center space-x-3 group">
+          <img src="/images/vanguard_squadron_patch_cropped.png" alt="404th Vanguard Strike Wing" class="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(0,229,255,0.4)] group-hover:scale-105 transition-transform">
+          <div>
+            <span class="font-display font-bold text-xl tracking-wider text-slate-100 group-hover:text-vanguard-cyan transition-colors flex items-center gap-1.5">
+              PROJECT VANGUARD
+            </span>
+            <span class="block text-[10px] font-mono text-vanguard-textMuted tracking-widest uppercase -mt-1">
+              404th Strike Wing // Godot 4.7
+            </span>
+          </div>
+        </a>
+
+        <!-- Desktop Menu Links -->
+        <nav class="hidden lg:flex items-center space-x-8 text-xs font-mono uppercase tracking-wider">
+          <a href="#multiplayer" class="text-slate-300 hover:text-vanguard-cyan transition-colors flex items-center gap-1">
+            <span class="text-vanguard-cyan">01.</span> Multiplayer
+          </a>
+          <a href="#campaign" class="text-slate-300 hover:text-vanguard-cyan transition-colors flex items-center gap-1">
+            <span class="text-vanguard-cyan">02.</span> Campaign
+          </a>
+          <a href="#fighter" class="text-slate-300 hover:text-vanguard-cyan transition-colors flex items-center gap-1">
+            <span class="text-vanguard-cyan">03.</span> Fighter CAD
+          </a>
+          <a href="#controls" class="text-slate-300 hover:text-vanguard-cyan transition-colors flex items-center gap-1">
+            <span class="text-vanguard-cyan">04.</span> Controls
+          </a>
+          <a href="#pipeline" class="text-slate-300 hover:text-vanguard-cyan transition-colors flex items-center gap-1">
+            <span class="text-vanguard-cyan">05.</span> Pipeline
+          </a>
+        </nav>
+
+        <!-- CTA GitHub Button -->
+        <div class="hidden sm:flex items-center space-x-3">
+          <a href="https://github.com/bokk3/Vanguard" target="_blank" rel="noopener noreferrer" class="px-4 py-2 text-xs font-mono uppercase tracking-wider border border-vanguard-border bg-vanguard-panel hover:border-vanguard-cyan hover:text-vanguard-cyan hover:shadow-cyan-glow transition-all rounded">
+            GitHub Repo
+          </a>
+          <a href="#downloads" class="px-4 py-2 text-xs font-mono uppercase tracking-wider bg-vanguard-cyan text-black font-bold hover:bg-white hover:shadow-cyan-glow transition-all rounded">
+            Deploy Sortie
+          </a>
+        </div>
+
+        <!-- Mobile Drawer Hamburger -->
+        <div class="lg:hidden">
+          <button id="mobile-menu-btn" class="p-2 text-slate-400 hover:text-vanguard-cyan">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Navigation Drawer -->
+      <div id="mobile-nav" class="hidden lg:hidden border-t border-vanguard-border py-4 font-mono text-sm space-y-3">
+        <a href="#multiplayer" class="block py-1 text-slate-300 hover:text-vanguard-cyan">01. Multiplayer & Co-Op</a>
+        <a href="#campaign" class="block py-1 text-slate-300 hover:text-vanguard-cyan">02. 8-Mission Campaign</a>
+        <a href="#fighter" class="block py-1 text-slate-300 hover:text-vanguard-cyan">03. Fighter Specifications</a>
+        <a href="#controls" class="block py-1 text-slate-300 hover:text-vanguard-cyan">04. Flight Controls</a>
+        <a href="#pipeline" class="block py-1 text-slate-300 hover:text-vanguard-cyan">05. CAD Pipeline</a>
+        <a href="#downloads" class="block py-2 text-vanguard-cyan font-bold">Deploy Sortie v0.8.0</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="relative pt-12 pb-24 overflow-hidden border-b border-vanguard-border/50">
+    <div class="absolute inset-0 bg-hud-grid opacity-60 pointer-events-none"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <!-- Left Hero Copy -->
+        <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
+          
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-vanguard-cyan/30 bg-vanguard-cyan/10 text-vanguard-cyan text-xs font-mono tracking-wider">
+            <span class="w-1.5 h-1.5 rounded-full bg-vanguard-cyan animate-ping"></span>
+            <span>ASCENSION WAR SORTIE READINESS</span>
+          </div>
+
+          <h1 class="text-4xl sm:text-6xl xl:text-7xl font-bold font-display tracking-tight text-white leading-none">
+            PRECISION IN THE VOID. <br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-vanguard-cyan via-vanguard-cyanDim to-white glow-cyan">
+              FIREPOWER IN THE ENVELOPE.
+            </span>
+          </h1>
+
+          <p class="text-base sm:text-lg text-slate-300 font-light max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+            An autonomous, <strong>$0-cost end-to-end 3D aerospace asset pipeline</strong> and military combat flight simulator. Parametric CAD solids in Fusion 360 engineered directly into game-ready fighters with procedural lift physics, split-screen co-op, and LAN dogfights in <strong>Godot 4</strong> and <strong>Unreal Engine 5</strong>.
+          </p>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+            <a href="https://github.com/bokk3/Vanguard/releases" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-3.5 bg-vanguard-cyan text-black font-display font-bold text-lg uppercase tracking-wider rounded hover:bg-white hover:shadow-cyan-glow transition-all text-center flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <span>Download v0.8.0-Alpha</span>
+            </a>
+            <a href="#multiplayer" class="w-full sm:w-auto px-6 py-3.5 border border-vanguard-border bg-vanguard-panel/90 text-slate-200 font-mono text-sm uppercase tracking-wider rounded hover:border-vanguard-cyan hover:text-vanguard-cyan transition-all text-center">
+              Explore Multiplayer
+            </a>
+          </div>
+
+          <!-- Feature Pills -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 text-left">
+            <div class="p-3 tactical-box rounded">
+              <span class="block text-[10px] font-mono text-vanguard-textMuted uppercase">Flight Engine</span>
+              <span class="font-display font-bold text-slate-100 text-sm">Godot 4.7.2</span>
+            </div>
+            <div class="p-3 tactical-box rounded">
+              <span class="block text-[10px] font-mono text-vanguard-textMuted uppercase">Campaign</span>
+              <span class="font-display font-bold text-slate-100 text-sm">8 Full Sorties</span>
+            </div>
+            <div class="p-3 tactical-box tactical-box-amber rounded">
+              <span class="block text-[10px] font-mono text-vanguard-amber uppercase">Multiplayer</span>
+              <span class="font-display font-bold text-slate-100 text-sm">Split-Screen & LAN</span>
+            </div>
+            <div class="p-3 tactical-box rounded">
+              <span class="block text-[10px] font-mono text-vanguard-textMuted uppercase">Port Ready</span>
+              <span class="font-display font-bold text-slate-100 text-sm">Unreal Engine 5</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Right Hero 3D Fighter Showcase -->
+        <div class="lg:col-span-5 relative">
+          <div class="relative mx-auto max-w-md lg:max-w-none">
+            <!-- Glowing Backing Halo -->
+            <div class="absolute -inset-1 bg-gradient-to-r from-vanguard-cyan to-vanguard-amber rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
+            
+            <div class="relative tactical-box rounded-xl p-2 overflow-hidden border border-vanguard-cyan/30 shadow-hud-box">
+              <div class="relative rounded-lg overflow-hidden bg-black aspect-video sm:aspect-4/3 flex items-center justify-center">
+                <img src="/images/vanguard_hero_fighter.jpg" alt="Vanguard Sculpted V-Hull Interceptor" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700">
+                
+                <!-- Laser Scan Overlay Line -->
+                <div class="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-vanguard-cyan to-transparent animate-laser-scan opacity-70 pointer-events-none"></div>
+
+                <!-- HUD Overlays on top of image -->
+                <div class="absolute top-3 left-3 font-mono text-[10px] text-vanguard-cyan bg-black/60 px-2 py-1 rounded border border-vanguard-cyan/40">
+                  ACQUISITION // V-HULL 7-STATION
+                </div>
+                <div class="absolute bottom-3 right-3 font-mono text-[10px] text-vanguard-amber bg-black/60 px-2 py-1 rounded border border-vanguard-amber/40">
+                  4X WING STRIKE MISSILES
+                </div>
+              </div>
+
+              <!-- Sub-bar Specs -->
+              <div class="p-3 font-mono text-xs flex justify-between items-center text-vanguard-textMuted border-t border-vanguard-border mt-2">
+                <span>SOL ORBITAL DIRECTORATE</span>
+                <span class="text-vanguard-cyan font-bold">404TH WING // AIRFRAME READY</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 1: Multiplayer & Split-Screen Suite -->
+  <section id="multiplayer" class="py-20 border-b border-vanguard-border/50 relative bg-vanguard-deep/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
+        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-amber">[ TACTICAL COMBAT EXPANSION // v0.8.0 ]</span>
+        <h2 class="text-3xl sm:text-5xl font-bold text-white tracking-wide">
+          MULTIPLAYER, DROP-IN CO-OP & LAN ARENA
+        </h2>
+        <p class="text-slate-300 font-light text-sm sm:text-base">
+          Dogfight locally with dual controllers or fly wingman formation in the full campaign. Zero router port forwarding, seamless drop-in verification, and dual-viewport rendering.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        
+        <!-- Feature 1: Campaign Drop-In Co-Op -->
+        <div class="tactical-box tactical-box-amber p-6 rounded-lg space-y-4 hover:border-vanguard-amber transition-colors">
+          <div class="w-12 h-12 rounded bg-vanguard-amber/10 border border-vanguard-amber/40 flex items-center justify-center text-vanguard-amber font-display font-bold text-xl">
+            01
+          </div>
+          <h3 class="text-xl font-bold text-white">Campaign Drop-In Co-Op</h3>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            Every sortie starts in full screen. Player 2 joins dynamically in real time when secondary controls (Gamepad 2, NumPad, or IJKL) are pressed.
+          </p>
+          <ul class="text-xs font-mono text-vanguard-textMuted space-y-2 pt-2 border-t border-vanguard-border">
+            <li class="flex items-center gap-2"><span class="text-vanguard-amber">▶</span> Solar Amber wingman livery</li>
+            <li class="flex items-center gap-2"><span class="text-vanguard-amber">▶</span> Starboard wingman formation spawn</li>
+            <li class="flex items-center gap-2"><span class="text-vanguard-amber">▶</span> 5-second field repair respawn loop</li>
+            <li class="flex items-center gap-2"><span class="text-vanguard-amber">▶</span> Dynamic threat AI target distribution</li>
+          </ul>
+        </div>
+
+        <!-- Feature 2: Local Split-Screen Dogfight -->
+        <div class="tactical-box p-6 rounded-lg space-y-4 hover:border-vanguard-cyan transition-colors">
+          <div class="w-12 h-12 rounded bg-vanguard-cyan/10 border border-vanguard-cyan/40 flex items-center justify-center text-vanguard-cyan font-display font-bold text-xl">
+            02
+          </div>
+          <h3 class="text-xl font-bold text-white">1v1 Split-Screen Arena</h3>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            First-to-5 confirmed kills dogfight arena. Switch layout between Horizontal (Top/Bottom) and Vertical (Left/Right) on the fly via <kbd class="px-1.5 py-0.5 rounded bg-black/60 border border-vanguard-border text-vanguard-cyan">F2</kbd>.
+          </p>
+          <ul class="text-xs font-mono text-vanguard-textMuted space-y-2 pt-2 border-t border-vanguard-border">
+            <li class="flex items-center gap-2"><span class="text-vanguard-cyan">▶</span> Dual independent cameras & HUDs</li>
+            <li class="flex items-center gap-2"><span class="text-vanguard-cyan">▶</span> Mutual radar lock & missile seeker cone</li>
+            <li class="flex items-center gap-2"><span class="text-vanguard-cyan">▶</span> Isolated device haptic rumble</li>
+            <li class="flex items-center gap-2"><span class="text-vanguard-cyan">▶</span> Shared World3D zero-overhead physics</li>
+          </ul>
+        </div>
+
+        <!-- Feature 3: LAN Matchmaker & P2P -->
+        <div class="tactical-box tactical-box-crimson p-6 rounded-lg space-y-4 hover:border-vanguard-crimson transition-colors">
+          <div class="w-12 h-12 rounded bg-vanguard-crimson/10 border border-vanguard-crimson/40 flex items-center justify-center text-vanguard-crimson font-display font-bold text-xl">
+            03
+          </div>
+          <h3 class="text-xl font-bold text-white">Zero-Config LAN P2P</h3>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            High-performance ENet multiplayer architecture on UDP port 7779 with autonomous background UDP discovery beacons on port 7778.
+          </p>
+          <ul class="text-xs font-mono text-vanguard-textMuted space-y-2 pt-2 border-t border-vanguard-border">
+            <li class="flex items-center gap-2"><span class="text-vanguard-crimson">▶</span> Zero port forwarding needed on LAN</li>
+            <li class="flex items-center gap-2"><span class="text-vanguard-crimson">▶</span> 20Hz snapshot interpolation</li>
+            <li class="flex items-center gap-2"><span class="text-vanguard-crimson">▶</span> Synchronized RPC gunfire & missiles</li>
+            <li class="flex items-center gap-2"><span class="text-vanguard-crimson">▶</span> Dedicated in-game LAN server browser</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Interactive Split Screen Layout Simulator (F2 Demonstration) -->
+      <div class="tactical-box p-6 rounded-xl max-w-4xl mx-auto border border-vanguard-border bg-vanguard-panel/90">
+        <div class="flex flex-col sm:flex-row items-center justify-between pb-4 border-b border-vanguard-border gap-4">
+          <div>
+            <span class="text-xs font-mono text-vanguard-cyan uppercase tracking-wider block">Interactive Viewport Simulator</span>
+            <h4 id="split-layout-label" class="text-lg font-bold text-white">LAYOUT: HORIZONTAL (TOP / BOTTOM)</h4>
+          </div>
+          <button id="btn-toggle-split" class="px-5 py-2 rounded bg-vanguard-panel border border-vanguard-cyan text-vanguard-cyan font-mono text-xs uppercase tracking-wider hover:bg-vanguard-cyan hover:text-black transition-all flex items-center gap-2 shadow-cyan-glow">
+            <span class="font-bold">[ PRESS F2 ]</span>
+            <span>Toggle Orientation</span>
+          </button>
+        </div>
+
+        <div id="split-sim-container" class="grid grid-rows-2 h-72 border border-vanguard-border rounded-lg overflow-hidden bg-black/80 mt-4 transition-all">
+          
+          <!-- Viewport P1 -->
+          <div id="split-p1" class="relative border-b border-vanguard-border/80 flex items-center justify-center p-4 bg-gradient-to-b from-vanguard-cyan/10 to-transparent">
+            <div class="absolute top-2 left-2 text-[10px] font-mono text-vanguard-cyan bg-black/60 px-2 py-0.5 rounded border border-vanguard-cyan/30">
+              VIEWPORT 1 // PLAYER 1 (FLIGHT LEAD)
+            </div>
+            <div class="text-center space-y-1">
+              <span class="text-vanguard-cyan font-display text-lg font-bold tracking-widest block">CYAN TACTICAL OVERLAY</span>
+              <span class="text-xs font-mono text-slate-400">Heading 045° | Cruise 65 m/s | Lock Ready</span>
+            </div>
+          </div>
+
+          <!-- Viewport P2 -->
+          <div id="split-p2" class="relative flex items-center justify-center p-4 bg-gradient-to-t from-vanguard-amber/10 to-transparent">
+            <div class="absolute bottom-2 left-2 text-[10px] font-mono text-vanguard-amber bg-black/60 px-2 py-0.5 rounded border border-vanguard-amber/30">
+              VIEWPORT 2 // PLAYER 2 (WINGMAN / AGGRESSOR)
+            </div>
+            <div class="text-center space-y-1">
+              <span class="text-vanguard-amber font-display text-lg font-bold tracking-widest block">SOLAR AMBER AVIONICS</span>
+              <span class="text-xs font-mono text-slate-400">Wingman Formation Established | Armed</span>
+            </div>
+          </div>
+
+        </div>
+        <p class="text-xs font-mono text-vanguard-textMuted text-center mt-3">
+          Both viewports share the native World3D rendering context without duplicating entity nodes.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 2: 8-Mission Campaign Recon Hub -->
+  <section id="campaign" class="py-20 border-b border-vanguard-border/50 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
+        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-cyan">[ THE ASCENSION WAR OPERATIONS ]</span>
+        <h2 class="text-3xl sm:text-5xl font-bold text-white tracking-wide">
+          8-MISSION CAMPAIGN DOSSIER
+        </h2>
+        <p class="text-slate-300 font-light text-sm sm:text-base">
+          From atmospheric defense against reconnaissance swarms to deep trench conduits and orbital dreadnought strikes. Inspect tactical reconnaissance cards, mission objectives, and atmospheric flight envelopes.
+        </p>
+      </div>
+
+      <!-- Interactive Campaign Dossier Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left: Mission Selector Tabs -->
+        <div class="lg:col-span-4 space-y-2">
+          <div class="text-xs font-mono text-vanguard-textMuted uppercase tracking-wider mb-2 flex justify-between">
+            <span>SELECT SORTIE CARD</span>
+            <span>8 MISSIONS</span>
+          </div>
+          <div id="mission-tabs" class="space-y-2 max-h-[580px] overflow-y-auto pr-1">
+            <!-- Populated dynamically by missions.js -->
+          </div>
+        </div>
+
+        <!-- Right: Active Mission Recon Card Display -->
+        <div class="lg:col-span-8 tactical-box p-6 rounded-xl border border-vanguard-cyan/40 bg-vanguard-panel shadow-hud-box">
+          
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-vanguard-border gap-2">
+            <div>
+              <span id="mission-id-badge" class="text-xs font-mono text-vanguard-cyan tracking-wider font-bold">// OPERATION M01 //</span>
+              <h3 id="mission-codename" class="text-2xl sm:text-3xl font-bold font-display text-white tracking-wide">CLOUDBURST</h3>
+              <p id="mission-title" class="text-xs font-mono text-slate-300">Atmospheric Scramble</p>
+            </div>
+            <div class="text-left sm:text-right">
+              <span id="mission-act" class="text-xs font-mono px-2.5 py-1 rounded bg-black/60 border border-vanguard-border text-vanguard-cyanDim font-bold">Chapter I: Iron Canopy</span>
+              <span id="mission-threat" class="block text-xs font-mono text-vanguard-crimson mt-1 font-bold">CADET / TACTICAL</span>
+            </div>
+          </div>
+
+          <!-- Recon Card Image & Details -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mt-6 items-center">
+            
+            <div class="md:col-span-6 relative rounded-lg overflow-hidden border border-vanguard-border/80 bg-black aspect-video flex items-center justify-center">
+              <img id="mission-card-img" src="/images/mission_card_m01.png" alt="Mission Reconnaissance Card" class="w-full h-full object-cover">
+              <div class="absolute bottom-2 left-2 text-[10px] font-mono text-white/90 bg-black/70 px-2 py-0.5 rounded border border-vanguard-border">
+                TACTICAL RECON CARD
+              </div>
+            </div>
+
+            <div class="md:col-span-6 space-y-4">
+              <div>
+                <span class="text-xs font-mono text-vanguard-textMuted uppercase block">Operational Theater</span>
+                <p id="mission-theater" class="text-sm font-mono text-slate-200">Southern Stratospheric Defense Grid // Alt: 8,500m</p>
+              </div>
+
+              <div>
+                <span class="text-xs font-mono text-vanguard-textMuted uppercase block">Atmospheric Conditions</span>
+                <p id="mission-sky" class="text-sm font-mono text-vanguard-cyanDim">Cloudburst Dawn // Sun Elevation 32°</p>
+              </div>
+
+              <div>
+                <span class="text-xs font-mono text-vanguard-textMuted uppercase block">Primary Objectives</span>
+                <ul id="mission-objectives" class="space-y-1.5 mt-1 font-mono">
+                  <!-- Injected via JS -->
+                </ul>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Mission Briefing Text -->
+          <div class="mt-6 pt-6 border-t border-vanguard-border/60">
+            <span class="text-xs font-mono text-vanguard-cyan uppercase tracking-wider block mb-1">AWACS Command Tactical Briefing</span>
+            <p id="mission-briefing" class="text-sm text-slate-300 leading-relaxed font-light">
+              Hostile Helion Combine reconnaissance UCAV swarms have breached the troposphere perimeter. Scramble from Alert-1 readiness, intercept advance patrol bogeys, and eliminate the target drones before their telemetry relays fire.
+            </p>
+            <div class="mt-4 flex justify-between items-center text-xs font-mono text-vanguard-textMuted pt-2 border-t border-vanguard-border/30">
+              <span id="mission-reward">Rank S: 10,000 PTS // Unlocks M02 Iron Canyon</span>
+              <span class="text-vanguard-emerald">100% ASSET FEASIBILITY CERTIFIED</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 3: Aerospace Fighter & Ordnance Dossier -->
+  <section id="fighter" class="py-20 border-b border-vanguard-border/50 relative bg-vanguard-deep/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
+        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-cyan">[ HARD-SURFACE AIRFRAME SPECIFICATIONS ]</span>
+        <h2 class="text-3xl sm:text-5xl font-bold text-white tracking-wide">
+          SCULPTED V-HULL INTERCEPTOR
+        </h2>
+        <p class="text-slate-300 font-light text-sm sm:text-base">
+          Engineered in Autodesk Fusion 360 using 7-station transverse 3D lofting with a compound V-keel and twin-engine ventral weapons tunnel (0% flat underside).
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        
+        <!-- Left: Top-Down CAD Blueprint -->
+        <div class="lg:col-span-6 tactical-box p-4 rounded-xl border border-vanguard-border bg-vanguard-panel">
+          <div class="relative rounded-lg overflow-hidden bg-black/90 p-4 flex items-center justify-center">
+            <img src="/images/fighter_blueprint_topdown.png" alt="Top-down CAD Blueprint" class="max-h-[420px] object-contain drop-shadow-[0_0_15px_rgba(0,229,255,0.3)]">
+            <div class="absolute top-3 left-3 text-[10px] font-mono text-vanguard-cyan bg-black/80 px-2 py-1 rounded border border-vanguard-cyan/30">
+              CAD SCHEMATIC // TOP-DOWN
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-2 mt-4 text-center font-mono text-xs">
+            <div class="p-2 bg-black/40 rounded border border-vanguard-border">
+              <span class="block text-slate-500 text-[10px]">LENGTH</span>
+              <span class="text-vanguard-cyan font-bold">10.30 m</span>
+            </div>
+            <div class="p-2 bg-black/40 rounded border border-vanguard-border">
+              <span class="block text-slate-500 text-[10px]">WINGSPAN</span>
+              <span class="text-vanguard-cyan font-bold">9.78 m</span>
+            </div>
+            <div class="p-2 bg-black/40 rounded border border-vanguard-border">
+              <span class="block text-slate-500 text-[10px]">HEIGHT</span>
+              <span class="text-vanguard-cyan font-bold">2.70 m</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Technical Avionics & Weapons Breakdown -->
+        <div class="lg:col-span-6 space-y-6">
+          
+          <div class="tactical-box p-5 rounded-lg border-l-4 border-l-vanguard-cyan">
+            <h4 class="text-lg font-bold text-white font-display uppercase tracking-wide">Aerodynamic Lift & Keel Geometry</h4>
+            <p class="text-xs sm:text-sm text-slate-300 font-light mt-1 leading-relaxed">
+              Continuous compound dihedral angles with dual under-fuselage longitudinal stringers. Ventral FLIR/EOTS diamond targeting pod flush with forward nose assembly.
+            </p>
+          </div>
+
+          <div class="tactical-box p-5 rounded-lg border-l-4 border-l-vanguard-amber">
+            <h4 class="text-lg font-bold text-white font-display uppercase tracking-wide">4x Under-Wing Pylon Missile Racks</h4>
+            <p class="text-xs sm:text-sm text-slate-300 font-light mt-1 leading-relaxed">
+              Equipped with 4 aerodynamic swept pylons holding <strong>Vanguard Precision Strike Missiles</strong>. Features alternating launch balance (1 &rarr; 4 &rarr; 2 &rarr; 3), proportional navigation homing, and active contrail particles.
+            </p>
+          </div>
+
+          <div class="tactical-box p-5 rounded-lg border-l-4 border-l-vanguard-crimson">
+            <h4 class="text-lg font-bold text-white font-display uppercase tracking-wide">Avionics & High-G Tactical HUD</h4>
+            <p class="text-xs sm:text-sm text-slate-300 font-light mt-1 leading-relaxed">
+              Top compass horizon ribbon (0&deg;..360&deg;), 350m polar radar disc with altitude carrots, timed missile seeker acquisition ring, and dynamic 3-second nitro afterburner capacitor.
+            </p>
+          </div>
+
+          <div class="tactical-box p-5 rounded-lg border-l-4 border-l-vanguard-emerald">
+            <h4 class="text-lg font-bold text-white font-display uppercase tracking-wide">Dual Rotary Autocannons (20mm)</h4>
+            <p class="text-xs sm:text-sm text-slate-300 font-light mt-1 leading-relaxed">
+              High-velocity kinetic cannons firing at 600 RPM with tracer illumination, screen-space target lead prediction reticles, and spatialized 3D cannon audio.
+            </p>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 4: Flight Controls & Physics Engine -->
+  <section id="controls" class="py-20 border-b border-vanguard-border/50 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
+        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-cyan">[ ZERO-LATENCY ERGONOMIC INPUT ]</span>
+        <h2 class="text-3xl sm:text-5xl font-bold text-white tracking-wide">
+          CONTROLS & FLIGHT ENVELOPE
+        </h2>
+        <p class="text-slate-300 font-light text-sm sm:text-base">
+          Balanced arcade flight physics modeled after <em>Ace Combat</em>. Aerodynamic lift counters gravity proportionally to forward airspeed, with dynamic stall recovery and seamless keyboard layout auto-detection.
+        </p>
+      </div>
+
+      <!-- Controls Switcher Card -->
+      <div class="tactical-box p-6 rounded-xl border border-vanguard-border max-w-5xl mx-auto bg-vanguard-panel">
+        
+        <div class="flex flex-col sm:flex-row items-center justify-between pb-6 border-b border-vanguard-border gap-4">
+          <div>
+            <span class="text-xs font-mono text-vanguard-textMuted uppercase tracking-wider block">KEYBOARD LAYOUT AUTO-DETECTION</span>
+            <span id="layout-indicator" class="text-sm font-mono text-vanguard-cyan font-bold">AUTODETECT: BE / FR AZERTY</span>
+          </div>
+
+          <div class="flex items-center space-x-2 bg-black/60 p-1 rounded border border-vanguard-border">
+            <button id="btn-azerty" class="px-4 py-1.5 rounded font-mono text-xs font-bold transition-all bg-vanguard-cyan text-black">
+              AZERTY (BE/FR)
+            </button>
+            <button id="btn-qwerty" class="px-4 py-1.5 rounded font-mono text-xs font-bold transition-all bg-vanguard-panel text-slate-300 hover:text-white">
+              QWERTY (US/UK)
+            </button>
+          </div>
+        </div>
+
+        <!-- Keybinding Comparison Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
+          <div class="p-4 bg-black/50 rounded border border-vanguard-border text-center">
+            <span class="block text-xs font-mono text-slate-500 uppercase">THROTTLE UP / DOWN</span>
+            <span id="key-throttle" class="text-lg font-mono font-bold text-vanguard-cyan mt-1 block">Z / S</span>
+          </div>
+          <div class="p-4 bg-black/50 rounded border border-vanguard-border text-center">
+            <span class="block text-xs font-mono text-slate-500 uppercase">BANK / ROLL</span>
+            <span class="text-lg font-mono font-bold text-vanguard-cyan mt-1 block">
+              <span id="key-roll-l">Q</span> / <span id="key-roll-r">D</span>
+            </span>
+          </div>
+          <div class="p-4 bg-black/50 rounded border border-vanguard-border text-center">
+            <span class="block text-xs font-mono text-slate-500 uppercase">YAW / RUDDER</span>
+            <span class="text-lg font-mono font-bold text-vanguard-cyan mt-1 block">
+              <span id="key-yaw-l">A</span> / <span id="key-yaw-r">E</span>
+            </span>
+          </div>
+          <div class="p-4 bg-black/50 rounded border border-vanguard-border text-center">
+            <span class="block text-xs font-mono text-slate-500 uppercase">AFTERBURNER BOOST</span>
+            <span class="text-lg font-mono font-bold text-vanguard-amber mt-1 block">LEFT SHIFT</span>
+          </div>
+          <div class="p-4 bg-black/50 rounded border border-vanguard-border text-center">
+            <span class="block text-xs font-mono text-slate-500 uppercase">FIRE ROTARY CANNON</span>
+            <span class="text-lg font-mono font-bold text-white mt-1 block">SPACE / L-CLICK</span>
+          </div>
+          <div class="p-4 bg-black/50 rounded border border-vanguard-border text-center">
+            <span class="block text-xs font-mono text-slate-500 uppercase">FIRE STRIKE MISSILE</span>
+            <span class="text-lg font-mono font-bold text-vanguard-crimson mt-1 block">R / R-CLICK</span>
+          </div>
+          <div class="p-4 bg-black/50 rounded border border-vanguard-border text-center">
+            <span class="block text-xs font-mono text-slate-500 uppercase">STEERING & PITCH</span>
+            <span class="text-lg font-mono font-bold text-white mt-1 block">MOUSE 6-DOF</span>
+          </div>
+          <div class="p-4 bg-black/50 rounded border border-vanguard-border text-center">
+            <span class="block text-xs font-mono text-slate-500 uppercase">LAYOUT / SPLIT TOGGLE</span>
+            <span class="text-lg font-mono font-bold text-vanguard-gold mt-1 block">F1 / F2</span>
+          </div>
+        </div>
+
+        <!-- Gamepad Diagram Box -->
+        <div class="mt-8 p-4 bg-black/40 rounded border border-vanguard-border/80 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-mono">
+          <div class="flex items-center space-x-3">
+            <span class="text-vanguard-emerald font-bold text-sm">🎮 DUAL CONTROLLER READY:</span>
+            <span class="text-slate-300">PlayStation DualSense & Xbox Wireless controllers automatically route to Player 1 & Player 2 with dedicated motor haptics.</span>
+          </div>
+          <span class="text-vanguard-cyanDim font-bold shrink-0">DEVICE 0 = LEAD // DEVICE 1 = WINGMAN</span>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 5: Autonomous CAD Pipeline -->
+  <section id="pipeline" class="py-20 border-b border-vanguard-border/50 relative bg-vanguard-deep/40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
+        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-cyan">[ OPEN SOURCE AUTOMATION ]</span>
+        <h2 class="text-3xl sm:text-5xl font-bold text-white tracking-wide">
+          AUTONOMOUS CAD-TO-ENGINE PIPELINE
+        </h2>
+        <p class="text-slate-300 font-light text-sm sm:text-base">
+          A completely free, $0-cost bridge connecting parametric CAD solids with real-time DCC tools and game engines.
+        </p>
+      </div>
+
+      <!-- Pipeline Flowchart -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        
+        <div class="tactical-box p-5 rounded-lg space-y-3 border-t-2 border-t-vanguard-cyan">
+          <span class="text-xs font-mono text-vanguard-cyan font-bold uppercase block">STAGE 01 // CAD</span>
+          <h4 class="text-lg font-bold text-white font-display">Autodesk Fusion 360</h4>
+          <p class="text-xs text-slate-300 leading-relaxed font-light">
+            Parametric sketches, compound 3D lofts, and precision solid modeling. STEP and STL export via local HTTP bridge on port 9876.
+          </p>
+        </div>
+
+        <div class="tactical-box p-5 rounded-lg space-y-3 border-t-2 border-t-vanguard-amber">
+          <span class="text-xs font-mono text-vanguard-amber font-bold uppercase block">STAGE 02 // DCC</span>
+          <h4 class="text-lg font-bold text-white font-display">Blender 4.2 LTS</h4>
+          <p class="text-xs text-slate-300 leading-relaxed font-light">
+            Automated Smart UV unwrapping, custom split normals, weapon socket placement (<code class="text-vanguard-amber">SOCKET_</code>), and convex collision hull generation (<code class="text-vanguard-amber">UCX_</code>).
+          </p>
+        </div>
+
+        <div class="tactical-box p-5 rounded-lg space-y-3 border-t-2 border-t-vanguard-emerald">
+          <span class="text-xs font-mono text-vanguard-emerald font-bold uppercase block">STAGE 03 // TESTBED</span>
+          <h4 class="text-lg font-bold text-white font-display">Godot 4 Engine</h4>
+          <p class="text-xs text-slate-300 leading-relaxed font-light">
+            Native glTF .glb import, procedural lift vs gravity physics, 6-DOF controls, split-screen co-op, and ENet multiplayer networking.
+          </p>
+        </div>
+
+        <div class="tactical-box p-5 rounded-lg space-y-3 border-t-2 border-t-vanguard-crimson">
+          <span class="text-xs font-mono text-vanguard-crimson font-bold uppercase block">STAGE 04 // TARGET</span>
+          <h4 class="text-lg font-bold text-white font-display">Unreal Engine 5</h4>
+          <p class="text-xs text-slate-300 leading-relaxed font-light">
+            Remote execution socket bridge, Nanite auto-import, Lumen PBR materials, and Chaos destruction physics ready.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 6: Downloads & System Specs -->
+  <section id="downloads" class="py-24 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
+      
+      <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-vanguard-emerald/30 bg-vanguard-emerald/10 text-vanguard-emerald text-xs font-mono tracking-wider">
+        <span class="w-1.5 h-1.5 rounded-full bg-vanguard-emerald animate-ping"></span>
+        <span>STABLE COMPILED ALPHA READY</span>
+      </div>
+
+      <h2 class="text-4xl sm:text-6xl font-bold font-display text-white tracking-wide">
+        DEPLOY INTO THE BATTLESPACE
+      </h2>
+
+      <p class="text-base sm:text-lg text-slate-300 font-light max-w-2xl mx-auto leading-relaxed">
+        Download the compiled Windows 64-bit binaries for <strong>Project Vanguard v0.8.0-alpha</strong>. Includes all 8 campaign missions, split-screen co-op, and LAN multiplayer.
+      </p>
+
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+        <a href="https://github.com/bokk3/Vanguard/releases/latest" target="_blank" rel="noopener noreferrer" class="px-10 py-4 bg-vanguard-cyan text-black font-display font-bold text-xl uppercase tracking-wider rounded hover:bg-white hover:shadow-cyan-glow transition-all flex items-center gap-3">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          <span>Download v0.8.0-Alpha (Win64)</span>
+        </a>
+        <a href="https://github.com/bokk3/Vanguard" target="_blank" rel="noopener noreferrer" class="px-8 py-4 border border-vanguard-border bg-vanguard-panel text-slate-200 font-mono text-sm uppercase tracking-wider rounded hover:border-vanguard-cyan hover:text-vanguard-cyan transition-all">
+          Browse Source on GitHub
+        </a>
+      </div>
+
+      <!-- System Requirements Card -->
+      <div class="tactical-box p-6 rounded-xl border border-vanguard-border max-w-2xl mx-auto mt-12 text-left font-mono text-xs text-slate-300 space-y-2">
+        <span class="text-vanguard-cyan font-bold uppercase tracking-wider block border-b border-vanguard-border pb-2">RECOMMENDED FLIGHT HARDWARE</span>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <div><strong class="text-white">OS:</strong> Windows 10/11 (64-bit) or Linux</div>
+          <div><strong class="text-white">GPU:</strong> Vulkan 1.2+ Compatible (GTX 1060 / RX 580+)</div>
+          <div><strong class="text-white">CPU:</strong> Quad-Core 2.8GHz or higher</div>
+          <div><strong class="text-white">Memory:</strong> 8 GB RAM / 500 MB Storage</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-vanguard-dark border-t border-vanguard-border py-12 text-xs font-mono text-vanguard-textMuted">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+      
+      <div class="flex items-center space-x-3">
+        <img src="/images/vanguard_squadron_patch_cropped.png" alt="404th Wing" class="w-8 h-8 object-contain">
+        <div>
+          <span class="text-white font-display font-bold text-sm tracking-wider">PROJECT VANGUARD</span>
+          <p class="text-[10px] text-slate-500">Autonomous Sci-Fi 3D Asset Pipeline & Combat Flight Simulator</p>
+        </div>
+      </div>
+
+      <div class="text-center md:text-right space-y-1">
+        <p>&copy; 2026 Sol Orbital Directorate // 404th Vanguard Strike Wing.</p>
+        <p class="text-slate-500">Open source licensed under MIT. Engineered for Cloudflare Pages deployment.</p>
+      </div>
+
+    </div>
+  </footer>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
