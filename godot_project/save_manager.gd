@@ -64,16 +64,19 @@ func save_game(slot_name: String = DEFAULT_SLOT) -> bool:
 	var cur_mission_id = mm.current_mission_id if mm else "M01"
 	var cur_mission_data = mm.get_mission(cur_mission_id) if mm else {}
 	
+	var auth_mgr = get_node_or_null("/root/AuthManager")
+	var pilot_profile = {
+		"callsign": auth_mgr.callsign if (auth_mgr and not auth_mgr.callsign.is_empty()) else "VANGUARD-LEAD",
+		"squadron": auth_mgr.squadron if auth_mgr else "404th Vanguard Strike Wing",
+		"rank": auth_mgr.rank if auth_mgr else "LIEUTENANT"
+	}
+
 	var save_data = {
 		"format_version": 1,
 		"game_version": ProjectSettings.get_setting("application/config/version", "0.8.0"),
 		"timestamp": Time.get_datetime_string_from_system(true),
 		"display_date": Time.get_datetime_string_from_system(false, true).replace("T", " "),
-		"profile": {
-			"callsign": "VANGUARD-LEAD",
-			"squadron": "404th Vanguard Strike Wing",
-			"rank": "FLIGHT LIEUTENANT"
-		},
+		"profile": pilot_profile,
 		"sortie": {
 			"mission_id": cur_mission_id,
 			"mission_title": cur_mission_data.get("codename", "Operation CLOUDBURST"),

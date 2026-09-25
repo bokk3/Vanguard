@@ -152,7 +152,10 @@ func get_local_ip() -> String:
 
 ## Formats the exact URL to encode in the QR code
 func get_controller_url() -> String:
-	return "http://%s:%d/?ws=%d&room=%s" % [get_local_ip(), http_port, port, session_room_code]
+	var auth_mgr = get_node_or_null("/root/AuthManager")
+	var host_callsign = auth_mgr.callsign if (auth_mgr and not auth_mgr.callsign.is_empty()) else "LEAD"
+	var wingman_cs = host_callsign + "-WING"
+	return "http://%s:%d/?ws=%d&room=%s&callsign=%s" % [get_local_ip(), http_port, port, session_room_code, wingman_cs]
 
 ## Generates a ready-to-display ImageTexture QR Code
 func get_qr_texture(scale: int = 8) -> ImageTexture:

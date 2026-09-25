@@ -24,6 +24,11 @@ extends Node3D
 @onready var mission_selector: Control = %MissionSelector
 @onready var update_badge_btn: Button = %UpdateBadgeBtn
 @onready var update_dialog: Control = %UpdateDialog
+@onready var login_dialog: Control = %LoginDialog
+@onready var pilot_dossier_box: PanelContainer = %PilotDossierBox
+@onready var pilot_label: Label = %PilotLabel
+@onready var pilot_rank_label: Label = %PilotRankLabel
+@onready var switch_pilot_btn: Button = %SwitchPilotBtn
 @onready var fade_overlay: ColorRect = %FadeOverlay
 @onready var warp_audio: AudioStreamPlayer = %WarpAudio
 @onready var menu_music_player: AudioStreamPlayer = %MenuMusicPlayer
@@ -96,9 +101,63 @@ func _ready() -> void:
 	if title_box_right:
 		initial_title_y = title_box_right.position.y
 	
+	if switch_pilot_btn and not switch_pilot_btn.pressed.is_connected(_on_switch_pilot_pressed):
+		switch_pilot_btn.pressed.connect(_on_switch_pilot_pressed)
+
+	if login_dialog and not login_dialog.login_completed.is_connected(_on_login_completed):
+		login_dialog.login_completed.connect(_on_login_completed)
+
+	var auth_mgr = get_node_or_null("/root/AuthManager")
+	if auth_mgr:
+		if not auth_mgr.auth_success.is_connected(_on_auth_success):
+			auth_mgr.auth_success.connect(_on_auth_success)
+		if not auth_mgr.logged_out.is_connected(_on_logged_out):
+			auth_mgr.logged_out.connect(_on_logged_out)
+			
+		if auth_mgr.is_authenticated:
+			_update_pilot_dossier_ui()
+			if login_dialog: login_dialog.hide()
+		else:
+			_show_login_dialog()
+	else:
+		if login_dialog: login_dialog.hide()
+
 	_setup_turntable_hardpoints()
 	_check_save_game_state()
 	_setup_menu_music()
+
+func _show_login_dialog() -> void:
+	if login_dialog:
+		login_dialog.show()
+		if settings_modal: settings_modal.hide()
+		if specs_panel: specs_panel.hide()
+		if mission_selector: mission_selector.hide()
+
+func _update_pilot_dossier_ui() -> void:
+	var auth_mgr = get_node_or_null("/root/AuthManager")
+	if not auth_mgr:
+		return
+	if pilot_label:
+		pilot_label.text = "PILOT: %s" % (auth_mgr.callsign if not auth_mgr.callsign.is_empty() else "UNAUTHENTICATED")
+	if pilot_rank_label:
+		pilot_rank_label.text = "RANK: %s // %s" % [auth_mgr.rank, auth_mgr.squadron]
+
+func _on_login_completed(_profile: Dictionary) -> void:
+	_update_pilot_dossier_ui()
+
+func _on_auth_success(_profile: Dictionary) -> void:
+	_update_pilot_dossier_ui()
+
+func _on_logged_out() -> void:
+	_update_pilot_dossier_ui()
+	_show_login_dialog()
+
+func _on_switch_pilot_pressed() -> void:
+	var auth_mgr = get_node_or_null("/root/AuthManager")
+	if auth_mgr:
+		auth_mgr.logout()
+	else:
+		_show_login_dialog()
 
 func _setup_menu_music() -> void:
 	if not menu_music_player:

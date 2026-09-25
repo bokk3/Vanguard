@@ -12,6 +12,7 @@
 [ext_resource type="Texture2D" path="res://ui/project_vanguard_title_cropped.png" id="10_title"]
 [ext_resource type="PackedScene" path="res://mission_selector.tscn" id="11_selector"]
 [ext_resource type="PackedScene" path="res://update_dialog.tscn" id="12_updater"]
+[ext_resource type="PackedScene" path="res://login_dialog.tscn" id="13_login"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_eerie"]
 sky_top_color = Color(0.95, 0.96, 0.98, 1)
@@ -285,6 +286,40 @@ text = "AVIONICS DOCK // HANGAR 07"
 
 [node name="Sep1" type="HSeparator" parent="UI/Sidebar/Margin/VBox"]
 layout_mode = 2
+
+[node name="PilotDossierBox" type="PanelContainer" parent="UI/Sidebar/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_status")
+
+[node name="VBox" type="VBoxContainer" parent="UI/Sidebar/Margin/VBox/PilotDossierBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HBox" type="HBoxContainer" parent="UI/Sidebar/Margin/VBox/PilotDossierBox/VBox"]
+layout_mode = 2
+
+[node name="PilotLabel" type="Label" parent="UI/Sidebar/Margin/VBox/PilotDossierBox/VBox/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0.92, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "PILOT: VANGUARD-LEAD"
+
+[node name="SwitchPilotBtn" type="Button" parent="UI/Sidebar/Margin/VBox/PilotDossierBox/VBox/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(54, 20)
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "SWITCH"
+
+[node name="PilotRankLabel" type="Label" parent="UI/Sidebar/Margin/VBox/PilotDossierBox/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 0.9)
+theme_override_font_sizes/font_size = 10
+text = "RANK: LIEUTENANT // 404TH WING"
 
 [node name="StatusBox" type="PanelContainer" parent="UI/Sidebar/Margin/VBox"]
 layout_mode = 2
@@ -571,6 +606,10 @@ unique_name_in_owner = true
 visible = false
 
 [node name="UpdateDialog" parent="UI" instance=ExtResource("12_updater")]
+unique_name_in_owner = true
+visible = false
+
+[node name="LoginDialog" parent="UI" instance=ExtResource("13_login")]
 unique_name_in_owner = true
 visible = false
 
