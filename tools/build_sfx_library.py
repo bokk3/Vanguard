@@ -97,17 +97,33 @@ def gen_flight_high_g_whoosh():
     """High-G turn aerodynamic wind rush: Bandpass pink noise with smooth swell and decay."""
     duration = 1.2
     n_samples = int(SAMPLE_RATE * duration)
-    # Pinkish noise via integrated white noise
-    white = np.random.randn(n_samples)
-    b = [0.049922035, -0.095993537, 0.050612699, -0.004408786]
-    pink = np.cumsum(white) * 0.02
-    # Swell envelope (bell curve peaking around 0.5s)
     t = np.linspace(0, duration, n_samples)
+
+    # Proper zero-DC pink noise via IIR approximation (Paul Kellet filter)
+    white = np.random.randn(n_samples)
+    b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0
+    pink = np.empty(n_samples)
+    for i, w in enumerate(white):
+        b0 = 0.99886 * b0 + w * 0.0555179
+        b1 = 0.99332 * b1 + w * 0.0750759
+        b2 = 0.96900 * b2 + w * 0.1538520
+        b3 = 0.86650 * b3 + w * 0.3104856
+        b4 = 0.55000 * b4 + w * 0.5329522
+        b5 = -0.7616 * b5 - w * 0.0168980
+        pink[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + w * 0.5362
+        b6 = w * 0.115926
+    # Remove any residual DC
+    pink -= np.mean(pink)
+    pink /= np.max(np.abs(pink) + 1e-9)
+
+    # Swell envelope (bell curve peaking around 0.5s)
     env = np.sin(np.pi * (t / duration)) ** 2
     # Modulate frequency sweep
     sweep = np.sin(2 * np.pi * (120.0 + 80.0 * env) * t) * 0.3
     whoosh = (pink * env * 0.8) + (sweep * env * 0.2)
+    whoosh -= np.mean(whoosh)
     save_wav("sfx_flight_high_g_whoosh.wav", whoosh)
+
 
 def gen_flyby_enemy_doppler():
     """High-speed enemy craft screaming past the camera with Doppler pitch shift."""
@@ -178,7 +194,10 @@ def gen_weapon_cannon_burst():
         end_idx = min(n_samples, start_idx + shot_len)
         sound[start_idx:end_idx] += shot[:end_idx - start_idx]
         
+    # Remove DC offset accumulated from asymmetric impulse stacking
+    sound -= np.mean(sound)
     save_wav("sfx_weapon_cannon_burst.wav", sound)
+
 
 def gen_weapon_missile_launch():
     """Missile launch: Pneumatic ejector clunk + solid rocket ignition plume."""

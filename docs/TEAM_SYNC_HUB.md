@@ -15,7 +15,8 @@
 | **Campaign Sorties** | 8 Sorties (M01 – M08) | 🟢 100% PASS | All 8 missions spawn & validate |
 | **Cinematic Interludes**| 9 In-Engine Cutscenes | 🟢 100% PASS | Audio, letterbox & camera paths OK |
 | **Recon Briefing Cards**| 8 Cards (M01 – M08) | 🟢 100% PASS | In `godot_project/ui/` |
-| **Active Sprint Goal** | **Sprint 3: Asset High-Fidelity Polish & Audio Bus Mixing** | 🟡 IN PROGRESS | Elevating procedural assets to studio grade |
+| **Active Sprint Goal** | **Sprint 3: Asset High-Fidelity Polish & Audio Bus Mixing** | 🟢 SFX-01 PASSED | Audio buses, limiter, ducking sidechain, all 28 SFX verified |
+
 
 ---
 
@@ -62,7 +63,8 @@
      - Insert `AudioEffectLimiter` on `Master` (Ceiling: $-0.5\text{ dB}$, Soft clip).
      - Configure ducking sidechain on `SFX` bus so radio comms cleanly cut through intense cannon fire without clipping.
   2. Run `tools/build_sfx_library.py` to confirm all 14 combat WAV files have seamless loop points and zero DC offset.
-- **Status:** `[QUEUED]` // Ready for SFX Director pickup
+- **Status:** `[PASSED_QA]` // 2026-09-25 — Audio buses confirmed, limiter on Master (−0.5 dB ceiling), ducking compressor on SFX (sidechain: Voice, −18 dB threshold, 6:1 ratio). All 28 WAV files: DC < 0.005, zero clipping.
+
 
 ---
 
