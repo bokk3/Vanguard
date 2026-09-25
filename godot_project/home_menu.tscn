@@ -395,6 +395,19 @@ icon = ExtResource("5_icon_deploy")
 alignment = 0
 expand_icon = true
 
+[node name="MobileHotasBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "  [ 📱 ]  MOBILE HOTAS (QR / F3)"
+icon = ExtResource("6_icon_config")
+alignment = 0
+expand_icon = true
+
 [node name="ConfigBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 42)

@@ -13,6 +13,7 @@ extends Node3D
 @onready var deploy_btn: Button = %DeployBtn
 @onready var prologue_btn: Button = %PrologueBtn
 @onready var pvp_btn: Button = %PvPBtn
+@onready var mobile_hotas_btn: Button = %MobileHotasBtn
 @onready var config_btn: Button = %ConfigBtn
 @onready var specs_btn: Button = %SpecsBtn
 @onready var quit_btn: Button = %QuitBtn
@@ -38,6 +39,7 @@ var anim_time: float = 0.0
 var repair_percent: float = 84.0
 var initial_title_y: float = 28.0
 var is_launching: bool = false
+var qr_dialog: Control = null
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -56,6 +58,8 @@ func _ready() -> void:
 		prologue_btn.pressed.connect(_on_prologue_pressed)
 	if pvp_btn and not pvp_btn.pressed.is_connected(_on_pvp_pressed):
 		pvp_btn.pressed.connect(_on_pvp_pressed)
+	if mobile_hotas_btn and not mobile_hotas_btn.pressed.is_connected(_toggle_qr_dialog):
+		mobile_hotas_btn.pressed.connect(_toggle_qr_dialog)
 	if not config_btn.pressed.is_connected(_on_config_pressed):
 		config_btn.pressed.connect(_on_config_pressed)
 	if not specs_btn.pressed.is_connected(_on_specs_pressed):
@@ -251,6 +255,10 @@ func _launch_game_animation(mission_id: String, is_resume: bool) -> void:
 		prologue_btn.disabled = true
 	if pvp_btn:
 		pvp_btn.disabled = true
+	if mobile_hotas_btn:
+		mobile_hotas_btn.disabled = true
+	if qr_dialog:
+		qr_dialog.hide()
 	config_btn.disabled = true
 	specs_btn.disabled = true
 	quit_btn.disabled = true
@@ -349,4 +357,18 @@ func _show_update_notification(version: String) -> void:
 func _on_update_badge_pressed() -> void:
 	if update_dialog:
 		update_dialog.show_update_prompt()
+
+func _toggle_qr_dialog() -> void:
+	if not qr_dialog:
+		var scene = load("res://qr_join_dialog.tscn")
+		if scene:
+			qr_dialog = scene.instantiate()
+			$UI.add_child(qr_dialog)
+	if qr_dialog and qr_dialog.has_method("toggle_dialog"):
+		qr_dialog.toggle_dialog()
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.keycode == KEY_F3:
+		_toggle_qr_dialog()
+		get_viewport().set_input_as_handled()
 
