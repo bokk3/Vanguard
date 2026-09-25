@@ -266,6 +266,24 @@ function updateConnectionUI(status, label) {
   }
 }
 
+function isPrivateHost(h) {
+  if (!h) return false;
+  const hostOnly = h.split(':')[0];
+  return /^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|127\.|localhost)/.test(hostOnly);
+}
+
+function handleMixedContentBlock() {
+  if (window.location.protocol === 'https:' && isPrivateHost(state.host)) {
+    const ipOnly = state.host.split(':')[0];
+    const wsPort = state.host.split(':')[1] || '8081';
+    const httpPort = '8080';
+    const lanUrl = `http://${ipOnly}:${httpPort}/?ws=${wsPort}&room=${encodeURIComponent(state.token || '')}&callsign=${encodeURIComponent(state.callsign || '')}`;
+    els.threatBanner.innerHTML = `<a href="${lanUrl}" style="text-decoration:underline;color:#ffb300;font-weight:bold;">⚠ HTTPS BLOCKS LAN WS - TAP HERE TO OPEN LAN HTTP</a>`;
+    els.threatBanner.className = 'text-amber-400 font-bold tracking-widest truncate cursor-pointer';
+    els.threatBanner.onclick = () => { window.location.href = lanUrl; };
+  }
+}
+
 function connectWebSocket() {
   if (!state.host) {
     updateConnectionUI('disconnected');
@@ -315,10 +333,12 @@ function connectWebSocket() {
     ws.onerror = () => {
       state.connected = false;
       updateConnectionUI('disconnected');
+      handleMixedContentBlock();
     };
   } catch (e) {
     state.connected = false;
     updateConnectionUI('disconnected');
+    handleMixedContentBlock();
   }
 }
 
@@ -833,10 +853,18 @@ function init() {
   // Read URL query parameters from QR code scan
   const params = new URLSearchParams(window.location.search);
   const paramHost = params.get('host');
+  const paramWs = params.get('ws') || '8081';
   const paramCallsign = params.get('callsign') || params.get('pilot');
   const paramToken = params.get('token') || params.get('room');
 
-  state.host = paramHost || localStorage.getItem('vanguard_last_host') || '';
+  if (paramHost) {
+    state.host = paramHost;
+  } else if (window.location.hostname && window.location.hostname !== '' && !window.location.hostname.includes('pages.dev')) {
+    state.host = `${window.location.hostname}:${paramWs}`;
+  } else {
+    state.host = localStorage.getItem('vanguard_last_host') || '';
+  }
+
   state.callsign = (paramCallsign || localStorage.getItem('vanguard_callsign') || 'WINGMAN-2').toUpperCase();
   state.token = paramToken || '';
 
@@ -853,6 +881,7 @@ function init() {
   // If host parameter exists from QR scan, auto-connect immediately!
   if (state.host) {
     connectWebSocket();
+    handleMixedContentBlock();
   } else {
     updateConnectionUI('disconnected');
     openConfig();

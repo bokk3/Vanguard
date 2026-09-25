@@ -1,18 +1,25 @@
 extends Node
 
-## NetworkControllerServer: In-Engine WebSocket Server for Mobile Web HOTAS
-## Listens on local LAN port (default 8080) for incoming phone connections from project-vanguard.pages.dev/controller.
+## NetworkControllerServer: In-Engine Dual HTTP + WebSocket Server for Mobile Web HOTAS
+## Hosts local HTTP server (default port 8080) for zero-friction browser UI delivery over LAN.
+## Hosts high-performance WebSocket server (default port 8081) for 30Hz controls and 10Hz telemetry.
 ## Translates 30Hz mobile frames into spaceship controls and broadcasts 10Hz flight telemetry to phones.
 
 signal pilot_connected(callsign: String, player_id: int)
 signal pilot_disconnected(callsign: String, player_id: int)
 signal control_frame_received(player_id: int, frame: Dictionary)
 
-const DEFAULT_PORT = 8080
+const DEFAULT_HTTP_PORT = 8080
+const DEFAULT_WS_PORT = 8081
 const QRCodeScript = preload("res://qr_code.gd")
 
-var port: int = DEFAULT_PORT
-var tcp_server: TCPServer = null
+var http_port: int = DEFAULT_HTTP_PORT
+var port: int = DEFAULT_WS_PORT # WebSocket port (exposed as `port` for backwards compatibility)
+var http_server: TCPServer = null
+var tcp_server: TCPServer = null # WebSocket TCPServer
+var http_clients: Array[Dictionary] = [] # Array of { tcp: StreamPeerTCP, time: int }
+var html_bytes: PackedByteArray = PackedByteArray()
+
 var session_room_code: String = "VNG-77"
 var connected_clients: Array[Dictionary] = [] # Array of { peer: WebSocketPeer, tcp: StreamPeerTCP, callsign: String, player_id: int, last_seen: float }
 
@@ -30,6 +37,8 @@ func notify_combat_event(player_id: int, event_name: String) -> void:
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_generate_room_code()
+	_load_standalone_html()
+	start_server()
 
 func _generate_room_code() -> void:
 	var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
@@ -38,46 +47,93 @@ func _generate_room_code() -> void:
 		session_room_code += chars[randi() % chars.length()]
 	session_room_code += str(randi_range(10, 99))
 
-## Starts listening on the specified port (tries next port if busy)
-func start_server(desired_port: int = DEFAULT_PORT) -> bool:
-	if tcp_server and tcp_server.is_listening():
+func _load_standalone_html() -> void:
+	if not html_bytes.is_empty():
+		return
+	if FileAccess.file_exists("res://controller_standalone.html"):
+		var f = FileAccess.open("res://controller_standalone.html", FileAccess.READ)
+		if f:
+			html_bytes = f.get_as_text().to_utf8_buffer()
+			f.close()
+			print("[NetworkControllerServer] Loaded standalone controller HTML (%d bytes)" % html_bytes.size())
+			return
+	push_warning("[NetworkControllerServer] res://controller_standalone.html not found! Using fallback.")
+	html_bytes = "<html><body><h1>Project Vanguard Controller</h1><p>Please build controller_standalone.html.</p></body></html>".to_utf8_buffer()
+
+## Starts listening for both HTTP (browser UI) and WebSocket (telemetry) connections
+func start_server(desired_http_port: int = DEFAULT_HTTP_PORT, desired_ws_port: int = DEFAULT_WS_PORT) -> bool:
+	if is_active:
 		return true
-		
-	tcp_server = TCPServer.new()
-	var current_port = desired_port
-	var max_attempts = 5
-	var started = false
-	
-	for i in range(max_attempts):
-		var err = tcp_server.listen(current_port)
+
+	_load_standalone_html()
+
+	# 1. Bind HTTP Web Server (default 8080)
+	http_server = TCPServer.new()
+	var curr_http = desired_http_port
+	var started_http = false
+	for i in range(5):
+		var err = http_server.listen(curr_http)
 		if err == OK:
-			port = current_port
-			started = true
+			http_port = curr_http
+			started_http = true
 			break
 		else:
-			print("[NetworkControllerServer] Port %d busy, trying next..." % current_port)
-			current_port += 1
-			
-	if not started:
-		push_error("[NetworkControllerServer] Failed to bind TCP server on ports %d-%d." % [desired_port, current_port - 1])
-		is_active = false
+			print("[NetworkControllerServer] HTTP Port %d busy, trying next..." % curr_http)
+			curr_http += 1
+
+	if not started_http:
+		push_error("[NetworkControllerServer] Failed to bind HTTP server on ports %d-%d." % [desired_http_port, curr_http - 1])
 		return false
-		
+
+	# 2. Bind WebSocket Game Streamer (default 8081)
+	tcp_server = TCPServer.new()
+	var curr_ws = desired_ws_port
+	if curr_ws == http_port:
+		curr_ws = http_port + 1
+	var started_ws = false
+	for i in range(5):
+		var err = tcp_server.listen(curr_ws)
+		if err == OK:
+			port = curr_ws
+			started_ws = true
+			break
+		else:
+			print("[NetworkControllerServer] WS Port %d busy, trying next..." % curr_ws)
+			curr_ws += 1
+
+	if not started_ws:
+		push_error("[NetworkControllerServer] Failed to bind WS server on ports %d-%d." % [desired_ws_port, curr_ws - 1])
+		http_server.stop()
+		http_server = null
+		return false
+
 	is_active = true
-	print(">>> [NetworkControllerServer] Listening on ws://%s:%d (Room: %s)" % [get_local_ip(), port, session_room_code])
+	print(">>> [NetworkControllerServer] DUAL SERVER ACTIVE!")
+	print("    [HTTP] Serving Controller UI: http://%s:%d/" % [get_local_ip(), http_port])
+	print("    [WS]   Streaming Flight HOTAS: ws://%s:%d/ (Room: %s)" % [get_local_ip(), port, session_room_code])
 	return true
 
-## Stops the server and disconnects any connected mobile controllers
+## Stops both servers and disconnects any connected mobile controllers
 func stop_server() -> void:
 	for client in connected_clients:
 		var peer: WebSocketPeer = client.get("peer")
 		if peer:
 			peer.close(1000, "Server stopping")
 	connected_clients.clear()
-	
+
+	for item in http_clients:
+		var conn: StreamPeerTCP = item.get("tcp")
+		if conn:
+			conn.disconnect_from_host()
+	http_clients.clear()
+
 	if tcp_server:
 		tcp_server.stop()
 		tcp_server = null
+	if http_server:
+		http_server.stop()
+		http_server = null
+
 	is_active = false
 	print(">>> [NetworkControllerServer] Stopped.")
 
@@ -96,7 +152,7 @@ func get_local_ip() -> String:
 
 ## Formats the exact URL to encode in the QR code
 func get_controller_url() -> String:
-	return "https://project-vanguard.pages.dev/controller?host=%s:%d&room=%s" % [get_local_ip(), port, session_room_code]
+	return "http://%s:%d/?ws=%d&room=%s" % [get_local_ip(), http_port, port, session_room_code]
 
 ## Generates a ready-to-display ImageTexture QR Code
 func get_qr_texture(scale: int = 8) -> ImageTexture:
@@ -117,11 +173,51 @@ func unregister_ship(player_id: int) -> void:
 		target_ships.erase(player_id)
 
 func _process(delta: float) -> void:
-	if not is_active or not tcp_server:
+	if not is_active:
 		return
-		
-	# 1. Accept new incoming TCP connections and upgrade to WebSockets
-	if tcp_server.is_connection_available():
+
+	# 1. Process HTTP Server requests (serving standalone mobile controller to smartphones)
+	if http_server and http_server.is_connection_available():
+		var conn = http_server.take_connection()
+		if conn:
+			http_clients.append({
+				"tcp": conn,
+				"time": Time.get_ticks_msec()
+			})
+
+	var to_remove_http = []
+	for item in http_clients:
+		var conn: StreamPeerTCP = item.get("tcp")
+		if not conn:
+			to_remove_http.append(item)
+			continue
+
+		conn.poll()
+		var status = conn.get_status()
+		if status == StreamPeerTCP.STATUS_CONNECTED:
+			var avail = conn.get_available_bytes()
+			if avail > 0:
+				var req = conn.get_utf8_string(avail)
+				if req.find(" /favicon.ico") != -1:
+					var resp_favicon = "HTTP/1.1 204 No Content\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n"
+					conn.put_data(resp_favicon.to_utf8_buffer())
+				else:
+					var headers = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: %d\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n" % html_bytes.size()
+					conn.put_data(headers.to_utf8_buffer())
+					conn.put_data(html_bytes)
+				conn.disconnect_from_host()
+				to_remove_http.append(item)
+		elif status != StreamPeerTCP.STATUS_CONNECTING:
+			to_remove_http.append(item)
+		elif Time.get_ticks_msec() - item.get("time", 0) > 4000:
+			conn.disconnect_from_host()
+			to_remove_http.append(item)
+
+	for item in to_remove_http:
+		http_clients.erase(item)
+
+	# 2. Process WebSocket Server connections (30Hz flight controls stream)
+	if tcp_server and tcp_server.is_connection_available():
 		var conn = tcp_server.take_connection()
 		if conn:
 			var ws = WebSocketPeer.new()
@@ -139,17 +235,17 @@ func _process(delta: float) -> void:
 			else:
 				print("[NetworkControllerServer] WebSocket handshake failed: ", err)
 
-	# 2. Process connected clients
+	# 3. Process connected WebSocket clients
 	var to_remove = []
 	for client in connected_clients:
 		var peer: WebSocketPeer = client.get("peer")
 		if not peer:
 			to_remove.append(client)
 			continue
-			
+
 		peer.poll()
 		var state = peer.get_ready_state()
-		
+
 		if state == WebSocketPeer.STATE_OPEN:
 			while peer.get_available_packet_count() > 0:
 				var raw = peer.get_packet().get_string_from_utf8()
@@ -157,15 +253,15 @@ func _process(delta: float) -> void:
 				_handle_packet(client, raw)
 		elif state == WebSocketPeer.STATE_CLOSED or state == WebSocketPeer.STATE_CLOSING:
 			to_remove.append(client)
-			
+
 	for client in to_remove:
 		var cs = client.get("callsign", "PILOT")
 		var pid = client.get("player_id", 2)
 		connected_clients.erase(client)
 		print("[NetworkControllerServer] Mobile pilot %s disconnected." % cs)
 		pilot_disconnected.emit(cs, pid)
-		
-	# 3. 10Hz Reverse Telemetry Broadcast (Phone Instrument HUD)
+
+	# 4. 10Hz Reverse Telemetry Broadcast (Phone Instrument HUD)
 	telemetry_timer += delta
 	if telemetry_timer >= 0.10: # 100ms
 		telemetry_timer = 0.0
@@ -174,13 +270,13 @@ func _process(delta: float) -> void:
 func _handle_packet(client: Dictionary, raw_json: String) -> void:
 	if raw_json.is_empty():
 		return
-		
+
 	var parsed = JSON.parse_string(raw_json)
 	if typeof(parsed) != TYPE_DICTIONARY:
 		return
-		
+
 	var data: Dictionary = parsed
-	
+
 	# Handshake packet
 	if data.get("type") == "handshake":
 		var cs = data.get("callsign", "WINGMAN-2").strip_edges().to_upper()
@@ -190,11 +286,11 @@ func _handle_packet(client: Dictionary, raw_json: String) -> void:
 		print(">>> [NetworkControllerServer] Mobile Pilot '%s' commissioned as Player %d!" % [cs, pid])
 		pilot_connected.emit(cs, pid)
 		return
-		
+
 	# Flight telemetry frame
 	var pid = client.get("player_id", 2)
 	control_frame_received.emit(pid, data)
-	
+
 	# Forward to registered spaceship
 	if target_ships.has(pid):
 		var ship = target_ships[pid]
@@ -204,15 +300,15 @@ func _handle_packet(client: Dictionary, raw_json: String) -> void:
 func _broadcast_telemetry_to_phones() -> void:
 	if connected_clients.is_empty():
 		return
-		
+
 	for client in connected_clients:
 		var peer: WebSocketPeer = client.get("peer")
 		if not peer or peer.get_ready_state() != WebSocketPeer.STATE_OPEN:
 			continue
-			
+
 		var pid = client.get("player_id", 2)
 		var ship = target_ships.get(pid)
-		
+
 		var telem_payload = {
 			"shield": 100.0,
 			"hull": 100.0,
@@ -223,14 +319,14 @@ func _broadcast_telemetry_to_phones() -> void:
 			"power_mode": "BALANCED",
 			"events": []
 		}
-		
+
 		# Flush any combat events queued for this player
 		if queued_combat_events.has(pid):
 			var ev_list = queued_combat_events[pid]
 			if not ev_list.is_empty():
 				telem_payload["events"] = ev_list.duplicate()
 				ev_list.clear()
-		
+
 		if is_instance_valid(ship):
 			var telem_node = ship.get_node_or_null("CombatTelemetry")
 			if telem_node:
@@ -245,6 +341,6 @@ func _broadcast_telemetry_to_phones() -> void:
 				telem_payload["power_mode"] = ship.power_divert_mode
 			if "target_locked" in ship and ship.target_locked:
 				telem_payload["target_locked"] = true
-				
+
 		var msg = JSON.stringify(telem_payload)
 		peer.send_text(msg)

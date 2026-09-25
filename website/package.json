@@ -6,7 +6,8 @@
   "description": "Official website for Project Vanguard - Autonomous Sci-Fi 3D Asset Pipeline & Combat Flight Simulator",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/bundle-standalone-controller.js",
+    "bundle:standalone": "node scripts/bundle-standalone-controller.js",
     "preview": "vite preview",
     "setup-hooks": "git config core.hooksPath .githooks"
   },
