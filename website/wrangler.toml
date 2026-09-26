@@ -4,7 +4,7 @@ pages_build_output_dir = "dist"
 
 [vars]
 ENVIRONMENT = "production"
-VERSION = "0.8.4"
+VERSION = "0.8.5"
 GAME_TITLE = "Project Vanguard"
 REPOSITORY = "https://github.com/bokk3/Vanguard"
 AUTH_SECRET = "vanguard-strike-wing-404th-secret-key-2026"

@@ -83,28 +83,28 @@ func _update_mode_ui() -> void:
 	if is_cloud_mode:
 		if password_container: password_container.show()
 		if cloud_help_label: cloud_help_label.show()
-		if cloud_toggle_btn: cloud_toggle_btn.text = "📂 LOCAL DOSSIER"
+		if cloud_toggle_btn: cloud_toggle_btn.text = "📂 LOCAL PLAY"
 		if is_register_mode:
-			if register_toggle_btn: register_toggle_btn.text = "🔑 LOGIN EXISTING"
-			if auth_btn: auth_btn.text = "📝 REGISTER & COMMISSION PILOT"
+			if register_toggle_btn: register_toggle_btn.text = "🔑 LOGIN"
+			if auth_btn: auth_btn.text = "📝  CREATE ACCOUNT & PLAY"
 			if status_label:
-				status_label.text = "// MODE: CREATE NEW PILOT ACCOUNT ON CLOUD //"
+				status_label.text = "// CREATING NEW CLOUD ACCOUNT //"
 				status_label.modulate = Color(1.0, 0.85, 0.2)
 		else:
-			if register_toggle_btn: register_toggle_btn.text = "📝 CLOUD REGISTER"
-			if auth_btn: auth_btn.text = "🌐 VERIFY CLOUD CREDENTIALS"
+			if register_toggle_btn: register_toggle_btn.text = "📝 REGISTER"
+			if auth_btn: auth_btn.text = "🌐  CLOUD LOGIN & PLAY"
 			if status_label:
-				status_label.text = "// MODE: VANGUARD CLOUD NETWORK (ONLINE DB) //"
+				status_label.text = "// CLOUD SYNC — SAVES PROGRESS ACROSS DEVICES //"
 				status_label.modulate = Color(0.2, 0.85, 1.0)
 	else:
 		if password_container: password_container.hide()
 		if cloud_help_label: cloud_help_label.hide()
 		if cloud_toggle_btn: cloud_toggle_btn.text = "🌐 CLOUD LOGIN"
-		if register_toggle_btn: register_toggle_btn.text = "📝 CLOUD REGISTER"
-		if auth_btn: auth_btn.text = "🚀 COMMENCE LOCAL SORTIE"
+		if register_toggle_btn: register_toggle_btn.text = "📝 REGISTER"
+		if auth_btn: auth_btn.text = "🚀  PLAY"
 		if status_label:
-			status_label.text = "// MODE: LOCAL FLIGHT LOG (OFFLINE READY) //"
-			status_label.modulate = Color(0.1, 0.95, 0.4)
+			status_label.text = "// LOCAL PLAY — NO ACCOUNT REQUIRED //"
+			status_label.modulate = Color(0.5, 0.7, 0.85)
 
 func _on_toggle_cloud_mode() -> void:
 	if not is_cloud_mode:

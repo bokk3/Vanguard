@@ -164,8 +164,6 @@ func _ready() -> void:
 		if auth_mgr.is_authenticated:
 			_update_pilot_dossier_ui()
 			if login_dialog: login_dialog.hide()
-			if not has_chosen_theater:
-				_show_mode_selector()
 		else:
 			_show_login_dialog()
 	else:
@@ -256,13 +254,9 @@ func _update_pilot_dossier_ui() -> void:
 
 func _on_login_completed(_profile: Dictionary) -> void:
 	_update_pilot_dossier_ui()
-	if not has_chosen_theater:
-		_show_mode_selector()
 
 func _on_auth_success(_profile: Dictionary) -> void:
 	_update_pilot_dossier_ui()
-	if not has_chosen_theater:
-		_show_mode_selector()
 
 func _on_logged_out() -> void:
 	_update_pilot_dossier_ui()

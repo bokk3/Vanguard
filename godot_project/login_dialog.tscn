@@ -3,22 +3,22 @@
 [ext_resource type="Script" path="res://login_dialog.gd" id="1_login"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
-content_margin_left = 24.0
-content_margin_top = 24.0
-content_margin_right = 24.0
-content_margin_bottom = 24.0
-bg_color = Color(0.03, 0.06, 0.1, 0.96)
+content_margin_left = 32.0
+content_margin_top = 28.0
+content_margin_right = 32.0
+content_margin_bottom = 28.0
+bg_color = Color(0.02, 0.05, 0.09, 0.97)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0, 0.9, 1, 0.8)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-shadow_color = Color(0, 0.9, 1, 0.25)
-shadow_size = 24
+border_color = Color(0, 0.9, 1, 0.85)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0.9, 1, 0.3)
+shadow_size = 30
 
 [node name="LoginDialog" type="Control"]
 process_mode = 3
@@ -37,7 +37,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.85)
+color = Color(0, 0, 0, 0.88)
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -48,13 +48,13 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(480, 500)
+custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
 
 [node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 16
 
 [node name="Header" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
@@ -62,24 +62,23 @@ layout_mode = 2
 [node name="Title" type="Label" parent="CenterContainer/Panel/VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 16
-text = "🛡️ VANGUARD PILOT IDENTIFICATION"
-horizontal_alignment = 1
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "🛡️ PILOT IDENTIFICATION"
 
 [node name="CloseBtn" type="Button" parent="CenterContainer/Panel/VBox/Header"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "✕"
 
 [node name="Subtitle" type="Label" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
-theme_override_font_sizes/font_size = 11
-text = "RESTRICTED FLIGHT OPERATIONS // LEVEL-4 CLEARANCE REQUIRED"
+theme_override_colors/font_color = Color(0.6, 0.75, 0.88, 0.9)
+theme_override_font_sizes/font_size = 12
+text = "Enter your callsign to begin. Your progress is saved locally."
 horizontal_alignment = 1
 
 [node name="HSeparator1" type="HSeparator" parent="CenterContainer/Panel/VBox"]
@@ -87,117 +86,119 @@ layout_mode = 2
 
 [node name="CallsignBox" type="VBoxContainer" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6
 
 [node name="Label" type="Label" parent="CenterContainer/Panel/VBox/CallsignBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 11
-text = "PILOT CALLSIGN:"
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "CALLSIGN"
 
 [node name="CallsignInput" type="LineEdit" parent="CenterContainer/Panel/VBox/CallsignBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 36)
+custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-placeholder_text = "e.g. MAVERICK, VIPER"
+theme_override_font_sizes/font_size = 16
+placeholder_text = "e.g. MAVERICK, VIPER, GHOST"
 max_length = 20
 
 [node name="SquadronBox" type="VBoxContainer" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6
 
 [node name="Label" type="Label" parent="CenterContainer/Panel/VBox/SquadronBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
-theme_override_font_sizes/font_size = 11
-text = "ASSIGNED SQUADRON:"
+theme_override_font_sizes/font_size = 13
+text = "SQUADRON"
 
 [node name="SquadronOption" type="OptionButton" parent="CenterContainer/Panel/VBox/SquadronBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 34)
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
+theme_override_font_sizes/font_size = 13
 
 [node name="PasswordContainer" type="VBoxContainer" parent="CenterContainer/Panel/VBox"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6
 
 [node name="Label" type="Label" parent="CenterContainer/Panel/VBox/PasswordContainer"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.75, 0.2, 1)
-theme_override_font_sizes/font_size = 11
-text = "SECURITY ACCESS CODE / PASSWORD:"
+theme_override_font_sizes/font_size = 13
+text = "PASSWORD"
 
 [node name="PasswordInput" type="LineEdit" parent="CenterContainer/Panel/VBox/PasswordContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 34)
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
+theme_override_font_sizes/font_size = 14
 secret = true
-placeholder_text = "Enter cloud access password"
+placeholder_text = "Cloud access password"
 
 [node name="CloudHelpLabel" type="Label" parent="CenterContainer/Panel/VBox"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.7, 0.9, 1)
-theme_override_font_sizes/font_size = 10
-text = "Synchronizes kills, flight hours, and rank with Vanguard Cloud D1 Database."
+theme_override_colors/font_color = Color(0.5, 0.7, 0.9, 0.85)
+theme_override_font_sizes/font_size = 11
+text = "Cloud sync saves your kills, flight hours, and rank across devices."
 autowrap_mode = 2
 
 [node name="RememberCheck" type="CheckBox" parent="CenterContainer/Panel/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 12
 button_pressed = true
-text = "REMEMBER PILOT ON THIS STATION"
+text = "Remember me on this station"
 
 [node name="HSeparator2" type="HSeparator" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
 
 [node name="AuthBtn" type="Button" parent="CenterContainer/Panel/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.02, 0.05, 0.1, 1)
-theme_override_font_sizes/font_size = 13
-text = "🚀 AUTHENTICATE & ENTER HANGAR"
+theme_override_colors/font_color = Color(0.0, 0.06, 0.12, 1)
+theme_override_font_sizes/font_size = 16
+text = "🚀  PLAY"
 
 [node name="SecondaryBtns" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 10
 
 [node name="QuickBtn" type="Button" parent="CenterContainer/Panel/VBox/SecondaryBtns"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 32)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
-text = "⚡ QUICK (GUEST)"
+theme_override_font_sizes/font_size = 11
+text = "⚡ QUICK PLAY (GUEST)"
 
 [node name="CloudToggleBtn" type="Button" parent="CenterContainer/Panel/VBox/SecondaryBtns"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 32)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 11
 text = "🌐 CLOUD LOGIN"
 
 [node name="RegisterToggleBtn" type="Button" parent="CenterContainer/Panel/VBox/SecondaryBtns"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 32)
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 11
 text = "📝 REGISTER"
 
 [node name="StatusLabel" type="Label" parent="CenterContainer/Panel/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0.9, 1, 1)
+theme_override_colors/font_color = Color(0.5, 0.7, 0.85, 0.8)
 theme_override_font_sizes/font_size = 11
-text = "// AWAITING BIOMETRIC CREDENTIALS... //"
+text = "// LOCAL PLAY — NO ACCOUNT REQUIRED //"
 horizontal_alignment = 1
 autowrap_mode = 2
