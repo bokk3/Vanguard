@@ -67,6 +67,14 @@ theme_override_font_sizes/font_size = 16
 text = "🛡️ VANGUARD PILOT IDENTIFICATION"
 horizontal_alignment = 1
 
+[node name="CloseBtn" type="Button" parent="CenterContainer/Panel/VBox/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "✕"
+
 [node name="Subtitle" type="Label" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
@@ -167,7 +175,7 @@ custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 10
-text = "⚡ QUICK SORTIE (GUEST)"
+text = "⚡ QUICK (GUEST)"
 
 [node name="CloudToggleBtn" type="Button" parent="CenterContainer/Panel/VBox/SecondaryBtns"]
 unique_name_in_owner = true
@@ -175,7 +183,15 @@ custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 10
-text = "🌐 SWITCH TO CLOUD"
+text = "🌐 CLOUD LOGIN"
+
+[node name="RegisterToggleBtn" type="Button" parent="CenterContainer/Panel/VBox/SecondaryBtns"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "📝 REGISTER"
 
 [node name="StatusLabel" type="Label" parent="CenterContainer/Panel/VBox"]
 unique_name_in_owner = true

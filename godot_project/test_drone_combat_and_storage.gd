@@ -96,7 +96,7 @@ func _init() -> void:
 	assert(telem.current_shield == 0.0, "Shield must be 0 after massive hit")
 	assert(telem.current_hull < 100.0, "Hull must absorb overflow damage")
 	print("  [OK] Damage overflow absorbed by Hull: Hull at %.1f HP" % telem.current_hull)
-	main.queue_free()
+	main.free()
 	
 	# -------------------------------------------------------------------------
 	# TEST 3: ConfigManager Factory Reset
@@ -181,7 +181,7 @@ func _init() -> void:
 	settings._on_clear_saves_pressed()
 	assert(settings.save_status_label.text != "", "SaveStatusLabel should display confirmation")
 	print("  [OK] SettingsMenu Data & Storage controls and feedback actions verified.")
-	settings.queue_free()
+	settings.free()
 	
 	print("\n==================================================================")
 	print("ALL DRONE COMBAT & STORAGE MANAGEMENT TESTS PASSED (100%)!")

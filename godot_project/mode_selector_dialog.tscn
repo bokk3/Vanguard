@@ -102,7 +102,12 @@ theme_override_font_sizes/font_size = 18
 text = "◈ VANGUARD COMMAND // SELECT OPERATIONAL THEATER"
 horizontal_alignment = 1
 
-[node name="PilotTagLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/HeaderBox"]
+[node name="PilotTagHBox" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/HeaderBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="PilotTagLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/HeaderBox/PilotTagHBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.84, 0, 0.9)
@@ -110,11 +115,27 @@ theme_override_font_sizes/font_size = 12
 text = "PILOT IDENTIFIED: VANGUARD-LEAD // 404TH WING"
 horizontal_alignment = 1
 
+[node name="SwitchPilotBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/HeaderBox/PilotTagHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(130, 24)
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "🧑‍✈️ [LOGIN / SWITCH]"
+
 [node name="Subtitle" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/HeaderBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.65, 0.8, 0.92, 0.85)
 theme_override_font_sizes/font_size = 11
 text = "Select your deployment directive. You may switch theaters at any time from the hangar."
+horizontal_alignment = 1
+
+[node name="FleetTelemetryLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/HeaderBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.15, 0.95, 0.5, 0.95)
+theme_override_font_sizes/font_size = 11
+text = "🟢 GLOBAL FLEET RADAR: 1 PILOTS ONLINE // 0 COMBAT LOBBIES ACTIVE"
 horizontal_alignment = 1
 
 [node name="Sep" type="HSeparator" parent="CenterContainer/MainPanel/Margin/VBox"]

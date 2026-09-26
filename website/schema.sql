@@ -62,3 +62,18 @@ CREATE TABLE IF NOT EXISTS mission_leaderboards (
 
 -- Fast leaderboard retrieval index ordered by mission and descending score
 CREATE INDEX IF NOT EXISTS idx_leaderboards_mission_score ON mission_leaderboards(mission_id, score DESC, completion_time_sec ASC);
+
+-- 5. Fleet Telemetry & Active Online Presence
+CREATE TABLE IF NOT EXISTS active_sessions (
+    session_id TEXT PRIMARY KEY,
+    pilot_id TEXT,
+    callsign TEXT NOT NULL,
+    session_type TEXT DEFAULT 'PILOT',           -- 'PILOT' or 'LOBBY'
+    metadata TEXT,                               -- JSON string: { "lobby_name": "...", "players": 1, "max_players": 2 }
+    last_heartbeat DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_active_sessions_heartbeat ON active_sessions(last_heartbeat);
+CREATE INDEX IF NOT EXISTS idx_active_sessions_type ON active_sessions(session_type);
+

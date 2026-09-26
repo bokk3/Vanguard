@@ -153,9 +153,18 @@ func _ensure_node_references() -> void:
 	if not recon_card_rect:
 		recon_card_rect = find_child("ReconCardRect", true, false)
 
+func _get_mission_manager() -> Node:
+	if is_inside_tree():
+		return get_node_or_null("/root/MissionManager")
+	elif Engine.get_main_loop() and "root" in Engine.get_main_loop():
+		var main_root = Engine.get_main_loop().root
+		if main_root:
+			return main_root.get_node_or_null("MissionManager")
+	return null
+
 func open_selector() -> void:
 	_ensure_node_references()
-	var mm = get_node_or_null("/root/MissionManager")
+	var mm = _get_mission_manager()
 	if mm:
 		selected_mission_id = mm.current_mission_id
 	refresh_mission_list()
@@ -167,7 +176,7 @@ func close_selector() -> void:
 	selector_closed.emit()
 
 func refresh_mission_list() -> void:
-	var mm = get_node_or_null("/root/MissionManager")
+	var mm = _get_mission_manager()
 	if not mm:
 		return
 	
@@ -233,7 +242,7 @@ func refresh_mission_list() -> void:
 
 func select_mission(mission_id: String) -> void:
 	selected_mission_id = mission_id
-	var mm = get_node_or_null("/root/MissionManager")
+	var mm = _get_mission_manager()
 	if not mm:
 		return
 	

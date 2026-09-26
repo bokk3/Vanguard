@@ -103,11 +103,12 @@ func _process(delta: float) -> bool:
 	# Step 1: Read HTTP response
 	elif step == 1:
 		test_http.poll()
-		var avail = test_http.get_available_bytes()
-		if avail > 0:
-			http_response_buffer += test_http.get_utf8_string(avail)
-		
 		var status = test_http.get_status()
+		if status == StreamPeerTCP.STATUS_CONNECTED:
+			var avail = test_http.get_available_bytes()
+			if avail > 0:
+				http_response_buffer += test_http.get_utf8_string(avail)
+		
 		if status != StreamPeerTCP.STATUS_CONNECTED or timer > 2.0:
 			if http_response_buffer.begins_with("HTTP/1.1 200 OK") and http_response_buffer.find("Project Vanguard") != -1:
 				print("[PASS] HTTP Server successfully served standalone controller HTML (%d bytes received)!" % http_response_buffer.length())
@@ -197,10 +198,46 @@ func _process(delta: float) -> bool:
 				quit(1)
 				return true
 				
-			print("[PASS] Dummy ship verified: Pitch=0.85, Roll=-0.60, Throttle=0.95, Boost=TRUE, Fire=TRUE, Power=ENGINES!")
+			print("[PASS] Dummy ship verified JSON: Pitch=0.85, Roll=-0.60, Throttle=0.95, Boost=TRUE, Fire=TRUE, Power=ENGINES!")
+			
+			# Construct and send 16-Byte Raw Binary Packet (CEObot Mandate)
+			var sp = StreamPeerBuffer.new()
+			sp.put_float(-0.75) # pitch
+			sp.put_float(0.40)  # roll
+			sp.put_float(0.80)  # throttle
+			sp.put_16(int(0.50 * 32767.0)) # yaw
+			# flags: fire(1) + boost(2) + missile(4) + SHIELDS(2 << 3 = 16) + tare(64) = 87
+			var flags: int = 1 | 2 | 4 | (2 << 3) | 64
+			sp.put_u8(flags)
+			sp.put_u8(42) # seq
+			test_client.send(sp.data_array)
+			frame_received = false
+			step = 42
+			timer = 0.0
+			
+		elif step == 42 and frame_received and timer > 0.05:
+			if abs(dummy_ship.mobile_pitch - (-0.75)) > 0.01:
+				push_error("Binary Pitch mismatch: expected -0.75, got %f" % dummy_ship.mobile_pitch)
+				quit(1)
+				return true
+			if abs(dummy_ship.mobile_roll - 0.40) > 0.01:
+				push_error("Binary Roll mismatch: expected 0.40, got %f" % dummy_ship.mobile_roll)
+				quit(1)
+				return true
+			if abs(dummy_ship.mobile_throttle - 0.80) > 0.01:
+				push_error("Binary Throttle mismatch: expected 0.80, got %f" % dummy_ship.mobile_throttle)
+				quit(1)
+				return true
+			if dummy_ship.power_divert_mode != "SHIELDS":
+				push_error("Binary Power divert mismatch: expected SHIELDS, got %s" % dummy_ship.power_divert_mode)
+				quit(1)
+				return true
+				
+			print("[PASS] 16-Byte Raw Binary WebSocket Frame verified! Pitch=-0.75, Roll=0.40, Throttle=0.80, Power=SHIELDS, Tare=TRUE")
 			
 			# Enqueue a combat event to verify reverse telemetry event delivery
-			server.notify_combat_event(2, "HIT_CONFIRMED")
+			var target_pid = dummy_ship.player_id
+			server.notify_combat_event(target_pid, "HIT_CONFIRMED")
 			step = 5
 			timer = 0.0
 			

@@ -29,7 +29,7 @@ var telemetry_timer: float = 0.0
 var is_active: bool = false
 var is_solo_mode: bool = true
 var default_player_id: int = 1
-var use_web_gateway: bool = true
+var use_web_gateway: bool = false
 const WEB_GATEWAY_BASE: String = "https://project-vanguard.pages.dev/controller.html"
 
 ## Enqueues a high-priority combat event for transmission to the player's mobile cockpit (e.g. HIT_CONFIRMED, KILL_CONFIRMED)
@@ -264,9 +264,13 @@ func _process(delta: float) -> void:
 
 		if state == WebSocketPeer.STATE_OPEN:
 			while peer.get_available_packet_count() > 0:
-				var raw = peer.get_packet().get_string_from_utf8()
+				var packet = peer.get_packet()
 				client["last_seen"] = Time.get_ticks_msec() / 1000.0
-				_handle_packet(client, raw)
+				if packet.size() == 16:
+					_handle_binary_packet(client, packet)
+				else:
+					var raw = packet.get_string_from_utf8()
+					_handle_packet(client, raw)
 		elif state == WebSocketPeer.STATE_CLOSED or state == WebSocketPeer.STATE_CLOSING:
 			to_remove.append(client)
 
@@ -311,6 +315,56 @@ func _handle_packet(client: Dictionary, raw_json: String) -> void:
 		return
 
 	# Flight telemetry frame
+	var pid = client.get("player_id", default_player_id)
+	control_frame_received.emit(pid, data)
+
+	# Forward to registered spaceship
+	if target_ships.has(pid):
+		var ship = target_ships[pid]
+		if is_instance_valid(ship) and ship.has_method("apply_mobile_inputs"):
+			ship.apply_mobile_inputs(data)
+
+func _handle_binary_packet(client: Dictionary, bytes: PackedByteArray) -> void:
+	if bytes.size() != 16:
+		return
+
+	var sp = StreamPeerBuffer.new()
+	sp.data_array = bytes
+	var pitch = sp.get_float()
+	var roll = sp.get_float()
+	var throttle = sp.get_float()
+	var yaw_int = sp.get_16()
+	var yaw = float(yaw_int) / 32767.0
+	var flags = sp.get_u8()
+	var seq = sp.get_u8()
+
+	var fire_primary = bool(flags & 1)
+	var boost = bool(flags & 2)
+	var fire_missile = bool(flags & 4)
+	var power_code = (flags >> 3) & 3
+	var power_modes = ["BALANCED", "ENGINES", "SHIELDS", "WEAPONS"]
+	var power_mode = power_modes[power_code]
+	var target_lock = bool(flags & 32)
+	var tare_pulse = bool(flags & 64)
+
+	var data = {
+		"pitch": pitch,
+		"roll": roll,
+		"yaw": yaw,
+		"throttle": throttle,
+		"boost": boost,
+		"fire_primary": fire_primary,
+		"fire": fire_primary,
+		"fire_missile": fire_missile,
+		"missile": fire_missile,
+		"target_lock": target_lock,
+		"power": power_mode,
+		"power_divert": power_mode,
+		"tare": tare_pulse,
+		"seq": seq,
+		"is_binary": true
+	}
+
 	var pid = client.get("player_id", default_player_id)
 	control_frame_received.emit(pid, data)
 

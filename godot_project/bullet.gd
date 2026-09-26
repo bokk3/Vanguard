@@ -14,15 +14,30 @@ var shooter: Node3D = null
 var lifetime: float = 0.0
 var has_hit: bool = false
 
-var spark_material: StandardMaterial3D
+static var _cached_mesh: SphereMesh = null
+static var _cached_hull_mat: StandardMaterial3D = null
+static var _cached_shield_mat: StandardMaterial3D = null
+
+static func _init_cached_resources() -> void:
+	if _cached_mesh == null:
+		_cached_mesh = SphereMesh.new()
+		_cached_mesh.radius = 0.08
+		_cached_mesh.height = 0.16
+	if _cached_hull_mat == null:
+		_cached_hull_mat = StandardMaterial3D.new()
+		_cached_hull_mat.albedo_color = Color(1.0, 0.8, 0.2, 1.0)
+		_cached_hull_mat.emission_enabled = true
+		_cached_hull_mat.emission = Color(1.0, 0.7, 0.1, 1.0)
+		_cached_hull_mat.emission_energy_multiplier = 4.0
+	if _cached_shield_mat == null:
+		_cached_shield_mat = StandardMaterial3D.new()
+		_cached_shield_mat.albedo_color = Color(0.2, 0.85, 1.0, 1.0)
+		_cached_shield_mat.emission_enabled = true
+		_cached_shield_mat.emission = Color(0.1, 0.7, 1.0, 1.0)
+		_cached_shield_mat.emission_energy_multiplier = 4.5
 
 func _ready() -> void:
-	spark_material = StandardMaterial3D.new()
-	spark_material.albedo_color = Color(1.0, 0.8, 0.2, 1.0)
-	spark_material.emission_enabled = true
-	spark_material.emission = Color(1.0, 0.7, 0.1, 1.0)
-	spark_material.emission_energy_multiplier = 4.0
-	
+	_init_cached_resources()
 	if is_hostile:
 		_apply_hostile_visuals()
 
@@ -87,12 +102,19 @@ func _handle_hit(collider: Object, hit_pos: Vector3, hit_normal: Vector3) -> voi
 		return
 	has_hit = true
 	
+	var hit_shield = false
 	# Check if collider or parent can take damage
 	var target_node = collider as Node
 	if target_node:
 		var damage_receiver = target_node
 		if not damage_receiver.has_method("take_damage") and damage_receiver.get_parent():
 			damage_receiver = damage_receiver.get_parent()
+		
+		# Check if target has active shield
+		if "shield" in damage_receiver and damage_receiver.shield > 0.0:
+			hit_shield = true
+		elif "telemetry" in damage_receiver and damage_receiver.telemetry and "current_shield" in damage_receiver.telemetry and damage_receiver.telemetry.current_shield > 0.0:
+			hit_shield = true
 		
 		if damage_receiver.has_method("take_damage_from"):
 			damage_receiver.take_damage_from(damage, shooter)
@@ -101,8 +123,8 @@ func _handle_hit(collider: Object, hit_pos: Vector3, hit_normal: Vector3) -> voi
 			damage_receiver.take_damage(damage)
 			_trigger_player_hitmarker()
 	
-	# Spawn kinetic impact spark effect
-	_spawn_impact_spark(hit_pos, hit_normal)
+	# Spawn kinetic impact spark effect (cyan for shield, amber for hull)
+	_spawn_impact_spark(hit_pos, hit_normal, hit_shield)
 	queue_free()
 
 func _trigger_player_hitmarker() -> void:
@@ -115,30 +137,32 @@ func _trigger_player_hitmarker() -> void:
 	if hud and hud.has_method("trigger_hitmarker"):
 		hud.trigger_hitmarker()
 
-func _spawn_impact_spark(pos: Vector3, normal: Vector3) -> void:
-	var parent_node = get_tree().current_scene if get_tree().current_scene else get_parent()
+func _spawn_impact_spark(pos: Vector3, normal: Vector3, is_shield: bool = false) -> void:
+	var parent_node = get_tree().current_scene if (is_inside_tree() and get_tree() and get_tree().current_scene) else get_parent()
 	if not parent_node:
 		return
 	
+	_init_cached_resources()
 	var sparks = CPUParticles3D.new()
 	sparks.emitting = true
 	sparks.one_shot = true
-	sparks.explosiveness = 0.9
-	sparks.amount = 12
-	sparks.lifetime = 0.35
-	sparks.mesh = SphereMesh.new()
-	(sparks.mesh as SphereMesh).radius = 0.08
-	(sparks.mesh as SphereMesh).height = 0.16
-	(sparks.mesh as SphereMesh).material = spark_material
+	sparks.explosiveness = 0.92
+	sparks.amount = 14 if is_shield else 12
+	sparks.lifetime = 0.32
+	sparks.mesh = _cached_mesh
+	sparks.material_override = _cached_shield_mat if is_shield else _cached_hull_mat
 	sparks.direction = normal
-	sparks.spread = 45.0
-	sparks.initial_velocity_min = 6.0
-	sparks.initial_velocity_max = 14.0
-	sparks.color = Color(1.0, 0.8, 0.2, 1.0)
+	sparks.spread = 50.0 if is_shield else 40.0
+	sparks.initial_velocity_min = 7.0
+	sparks.initial_velocity_max = 16.0
+	sparks.color = Color(0.2, 0.85, 1.0, 1.0) if is_shield else Color(1.0, 0.8, 0.2, 1.0)
 	
 	parent_node.add_child(sparks)
 	sparks.global_position = pos
 	
 	# Self-free particle node after emission finishes
-	var timer = get_tree().create_timer(0.45)
-	timer.timeout.connect(sparks.queue_free)
+	if is_inside_tree() and get_tree():
+		var timer = get_tree().create_timer(0.40)
+		timer.timeout.connect(sparks.queue_free)
+	else:
+		sparks.queue_free()

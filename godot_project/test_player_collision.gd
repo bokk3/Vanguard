@@ -71,6 +71,7 @@ func _init() -> void:
 	# -------------------------------------------------------------------------
 	print("\n[TEST 4] Testing Catastrophic Ground / Terrain Crash...")
 	# Retrieve active MissionManager singleton
+	var created_mm = false
 	var mm = root.get_node_or_null("MissionManager")
 	if not mm:
 		var mm_script = load("res://mission_manager.gd")
@@ -78,6 +79,7 @@ func _init() -> void:
 		mm.name = "MissionManager"
 		mm.set_script(mm_script)
 		root.add_child(mm)
+		created_mm = true
 	mm.is_sortie_active = true
 	ship.mission_manager_override = mm
 	
@@ -113,7 +115,7 @@ func _init() -> void:
 	assert(pylon_body != null, "Pylon missing StaticBody3D")
 	assert(pylon_body.collision_layer == 1, "Pylon StaticBody3D must be on Layer 1")
 	print("  [OK] AltitudeMarkerPylon has valid StaticBody3D on Layer 1.")
-	pylon.queue_free()
+	pylon.free()
 	
 	var transport_scene = load("res://transport_olympus4.tscn")
 	var transport = transport_scene.instantiate()
@@ -122,9 +124,11 @@ func _init() -> void:
 	assert(transport_body != null, "Transport missing PhysicalHull AnimatableBody3D")
 	assert(transport_body.collision_layer == 16, "Transport PhysicalHull must be on Layer 5 (16)")
 	print("  [OK] Transport Olympus-4 has valid physical collision hull on Layer 5.")
-	transport.queue_free()
+	transport.free()
 
-	main.queue_free()
+	main.free()
+	if created_mm and is_instance_valid(mm):
+		mm.free()
 	
 	print("\n==================================================================")
 	print("ALL GROUND & OBJECT COLLISION TESTS PASSED (100%)!")

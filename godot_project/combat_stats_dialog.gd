@@ -38,6 +38,7 @@ func show_stats() -> void:
 
 func hide_stats() -> void:
 	visible = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	closed.emit()
 
 func _populate_stats() -> void:
@@ -95,7 +96,7 @@ func _populate_stats() -> void:
 				if typeof(b) != TYPE_DICTIONARY:
 					continue
 				var row = HBoxContainer.new()
-				row.theme_override_constants["separation"] = 10
+				row.add_theme_constant_override("separation", 10)
 				
 				var date_lbl = Label.new()
 				date_lbl.text = str(b.get("date", "RECENT"))

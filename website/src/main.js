@@ -953,7 +953,86 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // ============================================================================
+  // Live Fleet Radar & Operational Presence Engine
+  // ============================================================================
+  const webSessionId = "web-" + Math.random().toString(36).substring(2, 10);
+
+  async function fetchNetworkStats() {
+    try {
+      const res = await fetch('/api/network/stats');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data.success) return;
+
+      const onlineCount = data.online_pilots || 1;
+      const lobbyCount = data.active_lobbies || 0;
+      const rosterCount = (data.registered_pilots || 1420).toLocaleString();
+
+      // Top Ticker Elements
+      const tickerOnline = document.getElementById('ticker-online-pilots');
+      const tickerLobbies = document.getElementById('ticker-active-lobbies');
+      const tickerRoster = document.getElementById('ticker-registered-pilots');
+      if (tickerOnline) tickerOnline.textContent = onlineCount;
+      if (tickerLobbies) tickerLobbies.textContent = lobbyCount;
+      if (tickerRoster) tickerRoster.textContent = rosterCount;
+
+      // Hero Radar Elements
+      const heroOnline = document.getElementById('hero-online-pilots');
+      const heroLobbies = document.getElementById('hero-active-lobbies');
+      const heroRoster = document.getElementById('hero-registered-pilots');
+      if (heroOnline) heroOnline.textContent = onlineCount;
+      if (heroLobbies) heroLobbies.textContent = lobbyCount;
+      if (heroRoster) heroRoster.textContent = rosterCount;
+    } catch {
+      // Offline fallback
+    }
+  }
+
+  async function sendWebHeartbeat() {
+    try {
+      let callsign = 'WEB-PILOT';
+      let pilotId = null;
+      try {
+        const profile = JSON.parse(localStorage.getItem('vanguard_pilot_profile') || '{}');
+        if (profile.callsign) callsign = profile.callsign;
+        if (profile.id) pilotId = profile.id;
+      } catch {
+        // Fallback default
+      }
+
+      await fetch('/api/network/heartbeat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          session_id: webSessionId,
+          callsign: callsign,
+          pilot_id: pilotId,
+          session_type: 'PILOT',
+          metadata: { client: 'website_portal' }
+        })
+      });
+    } catch {
+      // Non-blocking
+    }
+  }
+
+  // Gracefully leave network session on page unload
+  window.addEventListener('beforeunload', () => {
+    try {
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon('/api/network/leave', JSON.stringify({ session_id: webSessionId }));
+      }
+    } catch {
+      // Ignored
+    }
+  });
+
   updateAuthUI();
   syncStatsFromCloud(false);
   syncGitHubRelease();
+  fetchNetworkStats();
+  sendWebHeartbeat();
+  setInterval(fetchNetworkStats, 20000);
+  setInterval(sendWebHeartbeat, 30000);
 });

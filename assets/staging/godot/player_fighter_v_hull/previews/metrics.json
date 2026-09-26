@@ -1,0 +1,714 @@
+{
+  "active": {
+    "Prop_Headlight_L": {
+      "type": "MESH",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        1.15,
+        -4.45,
+        0.28
+      ],
+      "local_loc": [
+        -1.15,
+        4.45,
+        0.28
+      ],
+      "verts": 96,
+      "faces": 60,
+      "materials": [
+        "MI_Headlights"
+      ]
+    },
+    "Prop_Headlight_R": {
+      "type": "MESH",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        -1.15,
+        -4.45,
+        0.28
+      ],
+      "local_loc": [
+        1.15,
+        4.45,
+        0.28
+      ],
+      "verts": 96,
+      "faces": 60,
+      "materials": [
+        "MI_Headlights"
+      ]
+    },
+    "Prop_Thruster_Core_L": {
+      "type": "MESH",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.95,
+        4.62,
+        -0.05
+      ],
+      "local_loc": [
+        -0.95,
+        -4.62,
+        -0.05
+      ],
+      "verts": 144,
+      "faces": 92,
+      "materials": [
+        "MI_Thrusters"
+      ]
+    },
+    "Prop_Thruster_Core_R": {
+      "type": "MESH",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        -0.95,
+        4.62,
+        -0.05
+      ],
+      "local_loc": [
+        0.95,
+        -4.62,
+        -0.05
+      ],
+      "verts": 144,
+      "faces": 92,
+      "materials": [
+        "MI_Thrusters"
+      ]
+    },
+    "SOCKET_Chase_Camera": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        -0.0,
+        9.5,
+        3.2
+      ],
+      "local_loc": [
+        0.0,
+        -9.5,
+        3.2
+      ]
+    },
+    "SOCKET_Cockpit_Camera": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.0,
+        -1.85,
+        0.72
+      ],
+      "local_loc": [
+        0.0,
+        1.85,
+        0.72
+      ]
+    },
+    "SOCKET_Headlight_L": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        1.15,
+        -4.55,
+        0.28
+      ],
+      "local_loc": [
+        -1.15,
+        4.55,
+        0.28
+      ]
+    },
+    "SOCKET_Headlight_R": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        -1.15,
+        -4.55,
+        0.28
+      ],
+      "local_loc": [
+        1.15,
+        4.55,
+        0.28
+      ]
+    },
+    "SOCKET_Thruster_L": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.95,
+        4.75,
+        -0.05
+      ],
+      "local_loc": [
+        -0.95,
+        -4.75,
+        -0.05
+      ]
+    },
+    "SOCKET_Thruster_R": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        -0.95,
+        4.75,
+        -0.05
+      ],
+      "local_loc": [
+        0.95,
+        -4.75,
+        -0.05
+      ]
+    },
+    "SOCKET_Ventral_Sensor": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.0,
+        -2.75,
+        -0.72
+      ],
+      "local_loc": [
+        0.0,
+        2.75,
+        -0.72
+      ]
+    },
+    "SOCKET_Weapon_Hardpoint_01": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        3.6,
+        1.8,
+        -0.25
+      ],
+      "local_loc": [
+        -3.6,
+        -1.8,
+        -0.25
+      ]
+    },
+    "SOCKET_Weapon_Hardpoint_02": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        2.6,
+        1.8,
+        -0.25
+      ],
+      "local_loc": [
+        -2.6,
+        -1.8,
+        -0.25
+      ]
+    },
+    "SOCKET_Weapon_Hardpoint_03": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        -2.6,
+        1.8,
+        -0.25
+      ],
+      "local_loc": [
+        2.6,
+        -1.8,
+        -0.25
+      ]
+    },
+    "SOCKET_Weapon_Hardpoint_04": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        -3.6,
+        1.8,
+        -0.25
+      ],
+      "local_loc": [
+        3.6,
+        -1.8,
+        -0.25
+      ]
+    },
+    "Spaceship_Sculpted_V_Hull": {
+      "type": "MESH",
+      "parent": null,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_loc": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "verts": 19692,
+      "faces": 7868,
+      "materials": [
+        "MI_Spaceship_Hull",
+        "MI_Cockpit_Glass",
+        "MI_Thrusters"
+      ]
+    }
+  },
+  "staged": {
+    "Fuselage-convcol": {
+      "type": "MESH",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_loc": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "verts": 74,
+      "faces": 26,
+      "materials": []
+    },
+    "Prop_Headlight_L": {
+      "type": "MESH",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        1.15,
+        -4.45,
+        0.28
+      ],
+      "local_loc": [
+        -1.15,
+        4.45,
+        0.28
+      ],
+      "verts": 96,
+      "faces": 60,
+      "materials": [
+        "MI_Headlights"
+      ]
+    },
+    "Prop_Headlight_R": {
+      "type": "MESH",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        -1.15,
+        -4.45,
+        0.28
+      ],
+      "local_loc": [
+        1.15,
+        4.45,
+        0.28
+      ],
+      "verts": 96,
+      "faces": 60,
+      "materials": [
+        "MI_Headlights"
+      ]
+    },
+    "Prop_Thruster_Core_L": {
+      "type": "MESH",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.95,
+        4.62,
+        -0.05
+      ],
+      "local_loc": [
+        -0.95,
+        -4.62,
+        -0.05
+      ],
+      "verts": 144,
+      "faces": 92,
+      "materials": [
+        "MI_Thrusters"
+      ]
+    },
+    "Prop_Thruster_Core_R": {
+      "type": "MESH",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        -0.95,
+        4.62,
+        -0.05
+      ],
+      "local_loc": [
+        0.95,
+        -4.62,
+        -0.05
+      ],
+      "verts": 144,
+      "faces": 92,
+      "materials": [
+        "MI_Thrusters"
+      ]
+    },
+    "SOCKET_Chase_Camera": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        -0.0,
+        9.5,
+        3.2
+      ],
+      "local_loc": [
+        0.0,
+        -9.5,
+        3.2
+      ]
+    },
+    "SOCKET_Cockpit_Camera": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.0,
+        -1.85,
+        0.72
+      ],
+      "local_loc": [
+        0.0,
+        1.85,
+        0.72
+      ]
+    },
+    "SOCKET_Cockpit_View": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.0,
+        -1.85,
+        0.72
+      ],
+      "local_loc": [
+        0.0,
+        1.85,
+        0.72
+      ]
+    },
+    "SOCKET_Engine_L": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.95,
+        4.75,
+        -0.05
+      ],
+      "local_loc": [
+        -0.95,
+        -4.75,
+        -0.05
+      ]
+    },
+    "SOCKET_Engine_R": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        -0.95,
+        4.75,
+        -0.05
+      ],
+      "local_loc": [
+        0.95,
+        -4.75,
+        -0.05
+      ]
+    },
+    "SOCKET_Headlight_L": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        1.15,
+        -4.55,
+        0.28
+      ],
+      "local_loc": [
+        -1.15,
+        4.55,
+        0.28
+      ]
+    },
+    "SOCKET_Headlight_R": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        -1.15,
+        -4.55,
+        0.28
+      ],
+      "local_loc": [
+        1.15,
+        4.55,
+        0.28
+      ]
+    },
+    "SOCKET_Muzzle_L": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.85,
+        -2.6,
+        -0.15
+      ],
+      "local_loc": [
+        -0.85,
+        2.6,
+        -0.15
+      ]
+    },
+    "SOCKET_Muzzle_R": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        -0.85,
+        -2.6,
+        -0.15
+      ],
+      "local_loc": [
+        0.85,
+        2.6,
+        -0.15
+      ]
+    },
+    "SOCKET_Thruster_L": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.95,
+        4.75,
+        -0.05
+      ],
+      "local_loc": [
+        -0.95,
+        -4.75,
+        -0.05
+      ]
+    },
+    "SOCKET_Thruster_R": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        -0.95,
+        4.75,
+        -0.05
+      ],
+      "local_loc": [
+        0.95,
+        -4.75,
+        -0.05
+      ]
+    },
+    "SOCKET_Ventral_Sensor": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.0,
+        -2.75,
+        -0.72
+      ],
+      "local_loc": [
+        0.0,
+        2.75,
+        -0.72
+      ]
+    },
+    "SOCKET_Weapon_Hardpoint_01": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        3.6,
+        1.8,
+        -0.25
+      ],
+      "local_loc": [
+        -3.6,
+        -1.8,
+        -0.25
+      ]
+    },
+    "SOCKET_Weapon_Hardpoint_02": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        2.6,
+        1.8,
+        -0.25
+      ],
+      "local_loc": [
+        -2.6,
+        -1.8,
+        -0.25
+      ]
+    },
+    "SOCKET_Weapon_Hardpoint_03": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        -2.6,
+        1.8,
+        -0.25
+      ],
+      "local_loc": [
+        2.6,
+        -1.8,
+        -0.25
+      ]
+    },
+    "SOCKET_Weapon_Hardpoint_04": {
+      "type": "EMPTY",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        -3.6,
+        1.8,
+        -0.25
+      ],
+      "local_loc": [
+        3.6,
+        -1.8,
+        -0.25
+      ]
+    },
+    "Spaceship_Sculpted_V_Hull": {
+      "type": "MESH",
+      "parent": null,
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_loc": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "verts": 19692,
+      "faces": 7868,
+      "materials": [
+        "MI_Spaceship_Hull",
+        "MI_Cockpit_Glass",
+        "MI_Thrusters"
+      ]
+    },
+    "UCX_Fuselage": {
+      "type": "MESH",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_loc": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "verts": 74,
+      "faces": 26,
+      "materials": []
+    },
+    "UCX_Ventral_Keel": {
+      "type": "MESH",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_loc": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "verts": 36,
+      "faces": 14,
+      "materials": []
+    },
+    "UCX_Wing_L": {
+      "type": "MESH",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_loc": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "verts": 32,
+      "faces": 12,
+      "materials": []
+    },
+    "UCX_Wing_R": {
+      "type": "MESH",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_loc": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "verts": 32,
+      "faces": 12,
+      "materials": []
+    },
+    "Ventral_Keel-convcol": {
+      "type": "MESH",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_loc": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "verts": 36,
+      "faces": 14,
+      "materials": []
+    },
+    "Wing_L-convcol": {
+      "type": "MESH",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_loc": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "verts": 32,
+      "faces": 12,
+      "materials": []
+    },
+    "Wing_R-convcol": {
+      "type": "MESH",
+      "parent": "Spaceship_Sculpted_V_Hull",
+      "location": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "local_loc": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "verts": 32,
+      "faces": 12,
+      "materials": []
+    }
+  }
+}

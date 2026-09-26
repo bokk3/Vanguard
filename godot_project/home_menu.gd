@@ -36,6 +36,7 @@ extends Node3D
 @onready var pilot_label: Label = %PilotLabel
 @onready var pilot_rank_label: Label = %PilotRankLabel
 @onready var switch_pilot_btn: Button = %SwitchPilotBtn
+@onready var fleet_stats_label: Label = %FleetStatsLabel
 @onready var fade_overlay: ColorRect = %FadeOverlay
 @onready var warp_audio: AudioStreamPlayer = %WarpAudio
 @onready var menu_music_player: AudioStreamPlayer = %MenuMusicPlayer
@@ -54,6 +55,13 @@ var is_launching: bool = false
 var qr_dialog: Control = null
 var current_theater: String = "SOLO"
 var has_chosen_theater: bool = false
+
+func _get_autoload_node(node_name: String) -> Node:
+	if is_inside_tree():
+		return get_node_or_null("/root/" + node_name)
+	elif Engine.get_main_loop() and "root" in Engine.get_main_loop() and Engine.get_main_loop().root:
+		return Engine.get_main_loop().root.get_node_or_null(node_name)
+	return null
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -97,11 +105,19 @@ func _ready() -> void:
 			mode_selector.pair_controller1_requested.connect(_on_pair_controller1_requested)
 		if not mode_selector.layout_toggled.is_connected(_on_layout_toggled):
 			mode_selector.layout_toggled.connect(_on_layout_toggled)
+		if not mode_selector.switch_pilot_requested.is_connected(_on_switch_pilot_pressed):
+			mode_selector.switch_pilot_requested.connect(_on_switch_pilot_pressed)
 
-	var net_ctrl = get_node_or_null("/root/NetworkControllerServer")
+	var net_ctrl = _get_autoload_node("NetworkControllerServer")
 	if net_ctrl:
 		if not net_ctrl.pilot_connected.is_connected(_on_mobile_pilot_joined):
 			net_ctrl.pilot_connected.connect(_on_mobile_pilot_joined)
+
+	var net_mgr = _get_autoload_node("NetworkManager")
+	if net_mgr:
+		if not net_mgr.network_stats_updated.is_connected(_on_network_stats_updated):
+			net_mgr.network_stats_updated.connect(_on_network_stats_updated)
+		_update_fleet_stats_ui(net_mgr.registered_pilots, net_mgr.online_pilots, net_mgr.active_lobbies)
 
 	_update_layout_ui()
 	
@@ -113,7 +129,7 @@ func _ready() -> void:
 	if update_dialog:
 		update_dialog.hide()
 	
-	var updater = get_node_or_null("/root/Updater")
+	var updater = _get_autoload_node("Updater")
 	if updater:
 		if not updater.update_available.is_connected(_on_update_available):
 			updater.update_available.connect(_on_update_available)
@@ -138,7 +154,7 @@ func _ready() -> void:
 	if login_dialog and not login_dialog.login_completed.is_connected(_on_login_completed):
 		login_dialog.login_completed.connect(_on_login_completed)
 
-	var auth_mgr = get_node_or_null("/root/AuthManager")
+	var auth_mgr = _get_autoload_node("AuthManager")
 	if auth_mgr:
 		if not auth_mgr.auth_success.is_connected(_on_auth_success):
 			auth_mgr.auth_success.connect(_on_auth_success)
@@ -216,24 +232,27 @@ func _toggle_keyboard_layout() -> void:
 			mode_selector._update_layout_button_text()
 
 func _update_layout_ui() -> void:
-	var cfg = get_node_or_null("/root/ConfigManager")
+	var cfg = _get_autoload_node("ConfigManager")
 	var is_az = cfg.is_azerty if cfg else false
 	if layout_toggle_btn:
 		layout_toggle_btn.text = "  [ ⌨ ]  LAYOUT: %s" % ("AZERTY (ZQSD)" if is_az else "QWERTY (WASD)")
 
 func _on_mobile_pilot_joined(cs: String, pid: int) -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	if mobile_hotas_btn:
 		mobile_hotas_btn.text = "  [ 📱 ]  CONTROLLER %d: %s (LINKED)" % [pid, cs]
 		mobile_hotas_btn.add_theme_color_override("font_color", Color(0.1, 0.95, 0.4))
 
 func _update_pilot_dossier_ui() -> void:
-	var auth_mgr = get_node_or_null("/root/AuthManager")
+	var auth_mgr = _get_autoload_node("AuthManager")
 	if not auth_mgr:
 		return
 	if pilot_label:
-		pilot_label.text = "PILOT: %s" % (auth_mgr.callsign if not auth_mgr.callsign.is_empty() else "UNAUTHENTICATED")
+		pilot_label.text = "PILOT: %s" % (auth_mgr.callsign if (auth_mgr.is_authenticated and not auth_mgr.callsign.is_empty()) else "UNAUTHENTICATED")
 	if pilot_rank_label:
-		pilot_rank_label.text = "RANK: %s // %s" % [auth_mgr.rank, auth_mgr.squadron]
+		pilot_rank_label.text = ("RANK: %s // %s" % [auth_mgr.rank, auth_mgr.squadron]) if auth_mgr.is_authenticated else "CLEARANCE: RECRUIT // NOT LOGGED IN"
+	if switch_pilot_btn:
+		switch_pilot_btn.text = "🧑‍✈️ [SWITCH PILOT / LOGOUT]" if auth_mgr.is_authenticated else "🧑‍✈️ [LOGIN / REGISTER PILOT]"
 
 func _on_login_completed(_profile: Dictionary) -> void:
 	_update_pilot_dossier_ui()
@@ -251,10 +270,28 @@ func _on_logged_out() -> void:
 
 func _on_switch_pilot_pressed() -> void:
 	var auth_mgr = get_node_or_null("/root/AuthManager")
-	if auth_mgr:
+	if auth_mgr and auth_mgr.is_authenticated:
 		auth_mgr.logout()
 	else:
 		_show_login_dialog()
+
+func _on_network_stats_updated(reg: int, online: int, lobbies: int) -> void:
+	_update_fleet_stats_ui(reg, online, lobbies)
+
+func _update_fleet_stats_ui(reg: int, online: int, lobbies: int) -> void:
+	if fleet_stats_label:
+		fleet_stats_label.text = "ONLINE: %d  |  LOBBIES: %d  |  ROSTER: %s" % [online, lobbies, _format_number(reg)]
+
+func _format_number(n: int) -> String:
+	var s = str(n)
+	var out = ""
+	var count = 0
+	for i in range(s.length() - 1, -1, -1):
+		out = s[i] + out
+		count += 1
+		if count % 3 == 0 and i > 0:
+			out = "," + out
+	return out
 
 func _setup_menu_music() -> void:
 	if not menu_music_player:
@@ -312,7 +349,7 @@ func _setup_turntable_hardpoints() -> void:
 			hp.add_child(m_inst)
 
 func _check_save_game_state() -> void:
-	var sm = get_node_or_null("/root/SaveManager")
+	var sm = _get_autoload_node("SaveManager")
 	if sm and sm.has_save():
 		var info = sm.get_save_info()
 		var date_str = info.get("display_date", "UNKNOWN")
@@ -370,13 +407,17 @@ func _process(delta: float) -> void:
 	if title_box_right and not is_launching:
 		title_box_right.position.y = initial_title_y + sin(anim_time * 1.4) * 4.0
 
+	# Keep mouse cursor visible at all times during menu navigation
+	if not is_launching and Input.mouse_mode != Input.MOUSE_MODE_VISIBLE:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
 func _on_continue_pressed() -> void:
 	var target_mid = "M01"
-	var sm = get_node_or_null("/root/SaveManager")
+	var sm = _get_autoload_node("SaveManager")
 	if sm and sm.has_save():
 		var info = sm.get_save_info()
 		target_mid = info.get("mission_id", "M01")
-	var mm = get_node_or_null("/root/MissionManager")
+	var mm = _get_autoload_node("MissionManager")
 	if mm and mm.current_mission_id:
 		target_mid = mm.current_mission_id
 	_launch_game_animation(target_mid, true)
@@ -391,7 +432,7 @@ func _on_mission_selector_scrambled(mission_id: String) -> void:
 	_launch_game_animation(mission_id, false)
 
 func _on_prologue_pressed() -> void:
-	var mm = get_node_or_null("/root/MissionManager")
+	var mm = _get_autoload_node("MissionManager")
 	if mm:
 		mm.is_prologue_preview_only = true
 	_launch_game_animation("M01", false)
@@ -520,8 +561,13 @@ func _toggle_qr_dialog(target_pid: int = 1) -> void:
 		if scene:
 			qr_dialog = scene.instantiate()
 			$UI.add_child(qr_dialog)
+			if not qr_dialog.closed.is_connected(_on_qr_dialog_closed):
+				qr_dialog.closed.connect(_on_qr_dialog_closed)
 	if qr_dialog and qr_dialog.has_method("toggle_dialog"):
 		qr_dialog.toggle_dialog(target_pid)
+
+func _on_qr_dialog_closed() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_F3:

@@ -93,7 +93,7 @@ func _ready() -> void:
 	# 4. AudioStreamPlayer3D for spatialized hostile gunfire
 	var shot_player = AudioStreamPlayer3D.new()
 	shot_player.name = "ShotAudio3D"
-	shot_player.bus = "Weapons"
+	shot_player.bus = "SFX"
 	shot_player.max_distance = 600.0
 	shot_player.unit_size = 10.0
 	var sfx_shot = load("res://audio/sfx/sfx_weapon_cannon_burst.wav")

@@ -67,7 +67,7 @@ func _on_mobile_pilot_joined(callsign: String, p_id: int) -> void:
 
 	if not is_coop_active:
 		join_player_2()
-	var hud = p2_hud if p2_hud else single_hud
+	var hud = hud_p2 if hud_p2 else single_hud
 	if hud and hud.has_method("notify_combat_event"):
 		hud.notify_combat_event("// WINGMAN JOINED: MOBILE PILOT %s //" % callsign, Color(0.0, 0.95, 1.0))
 

@@ -139,6 +139,19 @@ func _run_test() -> void:
 	main._on_coop_player_destroyed(main.ship_p1, "TEST_WIPE", "Both lost")
 	print("  [OK] Simultaneous dual-airframe loss fail-safe verified.")
 	
+	var mm_active = root.get_node_or_null("MissionManager")
+	if mm_active and mm_active.has_method("stop_all_comms"):
+		mm_active.stop_all_comms()
+	
+	for p in main.find_children("*", "AudioStreamPlayer", true, false):
+		(p as AudioStreamPlayer).stop()
+	for p3 in main.find_children("*", "AudioStreamPlayer3D", true, false):
+		(p3 as AudioStreamPlayer3D).stop()
+		
+	main.free()
+	await process_frame
+	await process_frame
+	
 	print("==================================================")
 	print("ALL CAMPAIGN DROP-IN CO-OP TESTS PASSED (100%)!")
 	print("==================================================")

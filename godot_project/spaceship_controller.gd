@@ -61,6 +61,13 @@ var mobile_fire_primary: bool = false
 var power_divert_mode: String = "BALANCED" # ENGINES, SHIELDS, WEAPONS, BALANCED
 var base_camera_fov: float = 75.0
 
+# Dynamic Camera Breathing & G-Lag
+var smoothed_cam_up: Vector3 = Vector3.UP
+var smoothed_look_target: Vector3 = Vector3.ZERO
+var cam_g_lag_offset: Vector3 = Vector3.ZERO
+var cam_first_frame: bool = true
+var last_pitch_input: float = 0.0
+
 @export_group("Collision & Damage")
 @export var terrain_floor_y: float = 0.0 ## Lowest ground elevation (fail-safe clamped)
 
@@ -100,7 +107,7 @@ const GUN_MUZZLE_OFFSETS: Array[Vector3] = [
 ]
 
 @onready var camera: Camera3D = get_node_or_null("../Camera3D")
-@onready var telemetry: Node = $CombatTelemetry
+@onready var telemetry: Node = get_node_or_null("CombatTelemetry")
 
 func _get_action(base_action: String) -> String:
 	if is_split_screen and player_id == 2:
@@ -172,15 +179,29 @@ func apply_mobile_inputs(data: Dictionary) -> void:
 	if data.has("throttle"): mobile_throttle = float(data["throttle"])
 	if data.has("boost"): mobile_boost = bool(data["boost"])
 	if data.has("fire_primary"): mobile_fire_primary = bool(data["fire_primary"])
-	if data.has("fire_missile") and bool(data["fire_missile"]):
+	elif data.has("fire"): mobile_fire_primary = bool(data["fire"])
+	
+	var do_missile = false
+	if data.has("fire_missile") and bool(data["fire_missile"]): do_missile = true
+	elif data.has("missile") and bool(data["missile"]): do_missile = true
+	if do_missile:
 		_fire_missile()
 		if is_inside_tree() and multiplayer and multiplayer.has_multiplayer_peer() and not is_network_remote:
 			rpc("rpc_fire_missile_net")
+			
 	if data.has("target_lock") and bool(data["target_lock"]):
 		if telemetry and telemetry.has_method("cycle_target"):
 			telemetry.cycle_target()
+			
 	if data.has("power_divert"):
 		set_power_divert(str(data["power_divert"]))
+	elif data.has("power"):
+		set_power_divert(str(data["power"]))
+		
+	if data.has("tare") and bool(data["tare"]):
+		var hud = custom_hud if custom_hud else (get_tree().current_scene.find_child("TacticalOverlay", true, false) if (is_inside_tree() and get_tree() and get_tree().current_scene) else null)
+		if hud and hud.has_method("notify_combat_event"):
+			hud.notify_combat_event("// HORIZON ZEROED //", Color(0.1, 1.0, 0.45))
 
 func _ready() -> void:
 	if not telemetry and has_node("CombatTelemetry"):
@@ -427,7 +448,7 @@ func _physics_process(delta: float) -> void:
 	if mobile_control_active:
 		p_input += mobile_pitch
 		r_input += mobile_roll
-		y_input += mobile_yaw
+		y_input += -mobile_yaw
 
 	if player_id == 1 and not is_network_remote:
 		var cfg = get_tree().root.get_node_or_null("ConfigManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
@@ -435,6 +456,7 @@ func _physics_process(delta: float) -> void:
 		p_input += mouse_input.y * mouse_sensitivity * 25.0 * pitch_invert
 		y_input += -mouse_input.x * mouse_sensitivity * 18.0
 	mouse_input = Vector2.ZERO
+	last_pitch_input = clamp(p_input, -1.0, 1.0)
 
 	rotate_object_local(Vector3.RIGHT, p_input * pitch_rate * delta)
 	rotate_object_local(Vector3.FORWARD, r_input * roll_rate * delta)
@@ -501,8 +523,18 @@ func _physics_process(delta: float) -> void:
 func _process_camera_follow(delta: float) -> void:
 	var active_cam = custom_camera if custom_camera else camera
 	if active_cam and is_inside_tree() and active_cam.is_inside_tree():
-		var forward_dir = -global_transform.basis.z.normalized()
-		var target_cam_pos = global_position + (global_transform.basis.z * camera_distance) + (global_transform.basis.y * camera_height)
+		var xform = global_transform
+		var forward_dir = -xform.basis.z.normalized()
+		var ship_up = xform.basis.y.normalized()
+		
+		# Target camera position behind and above the aircraft
+		var target_cam_pos = global_position + (xform.basis.z * camera_distance) + (ship_up * camera_height)
+		
+		# Aerospace G-Force translational lag
+		var p_in = last_pitch_input
+		var target_g_lag = (-ship_up * (p_in * 0.35)) + (xform.basis.z * (1.15 if was_boosting else 0.0))
+		cam_g_lag_offset = cam_g_lag_offset.lerp(target_g_lag, 6.0 * delta)
+		
 		var shake_offset = Vector3.ZERO
 		if camera_shake_trauma > 0.0:
 			var t2 = camera_shake_trauma * camera_shake_trauma
@@ -511,17 +543,46 @@ func _process_camera_follow(delta: float) -> void:
 				randf_range(-t2 * 2.2, t2 * 2.2),
 				randf_range(-t2 * 2.2, t2 * 2.2)
 			)
-		active_cam.global_position = active_cam.global_position.lerp(target_cam_pos + shake_offset, camera_lerp_speed * delta)
-		var look_target = global_position + (forward_dir * 8.0)
-		active_cam.look_at(look_target, global_transform.basis.y)
+			camera_shake_trauma = max(0.0, camera_shake_trauma - delta * 2.6)
 		
-		# Dynamic FOV Expansion
-		var target_fov = base_camera_fov
+		# Aerodynamic stall shudder (airframe buffeting as boundary layer separates)
+		if enable_gravity and current_speed < stall_speed:
+			var stall_deficit = clamp(1.0 - (current_speed / max(1.0, stall_speed)), 0.0, 1.0)
+			var buffet_time = Time.get_ticks_msec() * 0.045
+			var buffet_vec = Vector3(
+				sin(buffet_time * 1.3) * 0.14 * stall_deficit,
+				cos(buffet_time * 1.7) * 0.18 * stall_deficit,
+				sin(buffet_time * 2.2) * 0.10 * stall_deficit
+			)
+			shake_offset += buffet_vec
+			
+		var final_cam_pos = target_cam_pos + cam_g_lag_offset + shake_offset
+		if cam_first_frame:
+			active_cam.global_position = final_cam_pos
+			smoothed_cam_up = ship_up
+			smoothed_look_target = global_position + (forward_dir * 12.0)
+			cam_first_frame = false
+		else:
+			active_cam.global_position = active_cam.global_position.lerp(final_cam_pos, camera_lerp_speed * delta)
+		
+		# G-force rotational breathing: smoothly damp camera up-vector and look target
+		smoothed_cam_up = smoothed_cam_up.slerp(ship_up, clamp(8.5 * delta, 0.0, 1.0)).normalized()
+		var target_look = global_position + (forward_dir * 12.0) + (ship_up * (p_in * 0.25))
+		smoothed_look_target = smoothed_look_target.lerp(target_look, clamp(11.0 * delta, 0.0, 1.0))
+		active_cam.look_at(smoothed_look_target, smoothed_cam_up)
+		
+		# Dynamic FOV Expansion & Airbrake Compression
+		var speed_ratio = clamp(current_speed / max(1.0, boost_speed), 0.0, 1.5)
+		var target_fov = base_camera_fov + (speed_ratio * 3.5)
 		if was_boosting:
-			target_fov += (18.0 if power_divert_mode == "ENGINES" else 10.0)
+			target_fov += (18.0 if power_divert_mode == "ENGINES" else 12.0)
 		elif power_divert_mode == "ENGINES":
-			target_fov += 6.0
-		active_cam.fov = lerp(active_cam.fov, target_fov, 4.0 * delta)
+			target_fov += 5.0
+		elif current_speed < stall_speed and enable_gravity:
+			target_fov -= 5.0
+		elif current_speed < cruise_speed * 0.70:
+			target_fov -= 3.5
+		active_cam.fov = lerp(active_cam.fov, target_fov, 4.5 * delta)
 
 # -----------------------------------------------------------------------------
 # Weapon Hardpoints & Missile Launch System
@@ -626,6 +687,8 @@ func _fire_missile() -> void:
 		var hud = get_node_or_null("../HUD/TacticalOverlay")
 		if hud and hud.has_method("notify_combat_event"):
 			hud.notify_combat_event("// MISSILE AWAY // TGT ACQUIRED", Color(0.0, 0.95, 1.0))
+		
+		camera_shake_trauma = max(camera_shake_trauma, 0.16)
 		
 		var mm = get_node_or_null("/root/MissionManager")
 		if mm and mm.has_method("record_shot_fired"):
@@ -746,6 +809,7 @@ func _process_machine_gun(delta: float) -> void:
 			max_burst_per_frame -= 1
 
 		# Subtle camera recoil vibration & controller haptics
+		camera_shake_trauma = max(camera_shake_trauma, 0.07)
 		var cfg = get_node_or_null("/root/ConfigManager")
 		if cfg and cfg.has_method("play_rumble") and not is_network_remote:
 			var pad_idx = 1 if (is_split_screen and player_id == 2) else 0
@@ -1204,6 +1268,8 @@ func _spawn_scrape_sparks(pos: Vector3, normal: Vector3) -> void:
 		return
 	var p = CPUParticles3D.new()
 	p.top_level = true
+	var parent_target = get_parent() if get_parent() else self
+	parent_target.add_child(p)
 	p.global_position = pos
 	p.emitting = true
 	p.one_shot = true
@@ -1226,8 +1292,6 @@ func _spawn_scrape_sparks(pos: Vector3, normal: Vector3) -> void:
 	quad.material = mat
 	p.mesh = quad
 	
-	var parent_target = get_parent() if get_parent() else self
-	parent_target.add_child(p)
 	p.finished.connect(p.queue_free)
 
 func _spawn_crash_explosion(pos: Vector3, _normal: Vector3) -> void:

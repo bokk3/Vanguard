@@ -17,7 +17,7 @@ signal closed()
 
 var server: Node = null
 var selected_target_pid: int = 1 # 1 = Command Pilot (Controller 1), 2 = Wingman
-var use_web_gateway: bool = true
+var use_web_gateway: bool = false
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -103,6 +103,8 @@ func _refresh_qr() -> void:
 			server.session_room_code, selected_target_pid, "MAIN PILOT" if selected_target_pid == 1 else "WINGMAN"
 		]
 
+var previous_mouse_mode: int = Input.MOUSE_MODE_VISIBLE
+
 func show_dialog(target_pid: int = 1) -> void:
 	_ensure_server()
 	if not server:
@@ -123,11 +125,23 @@ func show_dialog(target_pid: int = 1) -> void:
 			status_label.modulate = Color(0.1, 0.95, 0.4) # Emerald
 			
 	visible = true
+	previous_mouse_mode = Input.mouse_mode
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func hide_dialog() -> void:
 	visible = false
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	var scene = get_tree().current_scene if (is_inside_tree() and get_tree()) else null
+	var is_in_flight_sortie = false
+	if scene:
+		var scene_name = scene.name
+		if scene_name in ["Main", "Level", "SplitScreenArena", "LANArena"]:
+			is_in_flight_sortie = true
+			
+	if is_in_flight_sortie and previous_mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	else:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		
 	closed.emit()
 
 func toggle_dialog(target_pid: int = 1) -> void:

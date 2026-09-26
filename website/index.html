@@ -24,17 +24,26 @@
   <header class="bg-vanguard-deep/90 border-b border-vanguard-border/80 backdrop-blur-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-9 text-xs font-mono border-b border-vanguard-border/40 text-vanguard-textMuted">
-        <div class="flex items-center space-x-4 overflow-hidden">
+        <div class="flex items-center space-x-3 sm:space-x-4 overflow-hidden text-[11px] sm:text-xs">
           <span class="flex items-center space-x-1.5 text-vanguard-emerald">
             <span class="inline-block w-2 h-2 rounded-full bg-vanguard-emerald animate-pulse"></span>
-            <span class="font-bold">SYSTEMS: ONLINE</span>
+            <span class="font-bold hidden xs:inline">ONLINE:</span>
+            <span id="ticker-online-pilots" class="font-bold text-white bg-emerald-500/20 px-1.5 py-0.5 rounded border border-emerald-500/40">--</span>
           </span>
-          <span class="hidden md:inline text-slate-500">|</span>
-          <span class="hidden md:inline">SPEED: <span id="ticker-speed" class="text-vanguard-cyan">62.4 m/s</span></span>
-          <span class="hidden lg:inline text-slate-500">|</span>
-          <span class="hidden lg:inline">ALTITUDE: <span id="ticker-alt" class="text-vanguard-cyan">3,450 m</span></span>
-          <span class="hidden xl:inline text-slate-500">|</span>
-          <span class="hidden xl:inline">LIFT RATIO: <span id="ticker-lift" class="text-vanguard-cyan">100% (OPTIMAL)</span></span>
+          <span class="text-slate-600">|</span>
+          <span class="flex items-center space-x-1 text-vanguard-amber">
+            <span class="font-bold hidden sm:inline">LOBBIES:</span>
+            <span id="ticker-active-lobbies" class="font-bold text-white bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/40">--</span>
+          </span>
+          <span class="text-slate-600">|</span>
+          <span class="flex items-center space-x-1 text-vanguard-cyan">
+            <span class="font-bold hidden md:inline">ROSTER:</span>
+            <span id="ticker-registered-pilots" class="font-bold text-vanguard-cyan">--</span>
+          </span>
+          <span class="hidden lg:inline text-slate-600">|</span>
+          <span class="hidden lg:inline">SPEED: <span id="ticker-speed" class="text-vanguard-cyan">62.4 m/s</span></span>
+          <span class="hidden xl:inline text-slate-600">|</span>
+          <span class="hidden xl:inline">ALT: <span id="ticker-alt" class="text-vanguard-cyan">3,450 m</span></span>
         </div>
         <div class="flex items-center space-x-4">
           <button id="bgm-toggle" class="hover:text-vanguard-cyan transition-colors text-vanguard-cyan flex items-center gap-1.5 cursor-pointer text-xs font-mono" title="Menu Soundtrack">
@@ -50,7 +59,7 @@
             [ SFX: TACTICAL ]
           </button>
           <span id="top-version-badge" class="px-2 py-0.5 rounded bg-vanguard-cyan/10 text-vanguard-cyan border border-vanguard-cyan/30 text-[10px] font-bold tracking-widest uppercase">
-            v0.8.1-ALPHA
+            v0.8.2-ALPHA
           </span>
         </div>
       </div>
@@ -130,7 +139,7 @@
         <button id="mobile-pilot-portal-btn" class="w-full text-center py-3 px-4 rounded-lg bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/30 border-2 border-vanguard-gold text-vanguard-gold font-display font-black tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,215,0,0.3)]">
           <span class="text-lg">🎖️</span> <span id="mobile-pilot-label">COMMISSION CALLSIGN</span>
         </button>
-        <a href="#downloads" class="block py-2 text-vanguard-cyan font-bold">Deploy Sortie v0.8.1</a>
+        <a href="#downloads" class="block py-2 text-vanguard-cyan font-bold">Deploy Sortie v0.8.2</a>
       </div>
     </div>
   </header>
@@ -155,7 +164,7 @@
           
           <div id="release-announcement" class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full border border-vanguard-cyan/40 bg-vanguard-cyan/10 text-vanguard-cyan text-xs font-mono tracking-wider transition-all">
             <span class="w-2 h-2 rounded-full bg-vanguard-cyan animate-ping"></span>
-            <span id="release-status-text">DISPATCH: <strong id="hero-tag-name">v0.8.1-alpha</strong> // LIVE ON GITHUB</span>
+            <span id="release-status-text">DISPATCH: <strong id="hero-tag-name">v0.8.2-alpha</strong> // LIVE ON GITHUB</span>
             <a id="release-notes-link" href="https://github.com/bokk3/Vanguard/releases" target="_blank" rel="noopener noreferrer" class="hidden sm:inline text-white hover:underline ml-1 font-bold">[NOTES]</a>
           </div>
 
@@ -178,15 +187,40 @@
             </button>
             <a id="hero-download-btn" href="https://github.com/bokk3/Vanguard/releases" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-7 py-3.5 bg-vanguard-cyan text-black font-display font-bold text-base uppercase tracking-wider rounded hover:bg-white hover:shadow-cyan-glow transition-all text-center flex items-center justify-center gap-2">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-              <span id="hero-download-text">Download v0.8.1-Alpha (Win64)</span>
+              <span id="hero-download-text">Download v0.8.2-Alpha (Win64)</span>
             </a>
             <a href="#multiplayer" class="w-full sm:w-auto px-6 py-3.5 border border-vanguard-border bg-vanguard-panel/90 text-slate-200 font-mono text-sm uppercase tracking-wider rounded hover:border-vanguard-cyan hover:text-vanguard-cyan transition-all text-center">
               Multiplayer
             </a>
           </div>
 
+          <!-- Live Fleet Radar Operations Bar -->
+          <div class="p-3.5 rounded-lg border border-vanguard-cyan/35 bg-vanguard-deep/90 backdrop-blur-sm flex flex-wrap items-center justify-between gap-4 font-mono text-xs shadow-[0_0_20px_rgba(0,229,255,0.08)]">
+            <div class="flex items-center space-x-2">
+              <span class="relative flex h-2.5 w-2.5">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-vanguard-emerald opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-vanguard-emerald"></span>
+              </span>
+              <span class="font-display font-bold text-white tracking-wider text-xs">FLEET RADAR // LIVE</span>
+            </div>
+            <div class="flex items-center space-x-4 sm:space-x-6 text-[11px] sm:text-xs">
+              <div>
+                <span class="text-slate-400 block text-[9px] uppercase tracking-wider">PILOTS ONLINE</span>
+                <span id="hero-online-pilots" class="font-bold text-emerald-400 text-sm sm:text-base">--</span>
+              </div>
+              <div class="border-l border-vanguard-border/60 pl-4 sm:pl-6">
+                <span class="text-slate-400 block text-[9px] uppercase tracking-wider">ACTIVE LOBBIES</span>
+                <span id="hero-active-lobbies" class="font-bold text-amber-400 text-sm sm:text-base">--</span>
+              </div>
+              <div class="border-l border-vanguard-border/60 pl-4 sm:pl-6">
+                <span class="text-slate-400 block text-[9px] uppercase tracking-wider">COMMISSIONED ROSTER</span>
+                <span id="hero-registered-pilots" class="font-bold text-vanguard-cyan text-sm sm:text-base">--</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Feature Pills -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 text-left">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-left">
             <div class="p-3 tactical-box rounded">
               <span class="block text-[10px] font-mono text-vanguard-textMuted uppercase">Flight Engine</span>
               <span class="font-display font-bold text-slate-100 text-sm">Godot 4.7.2</span>
@@ -248,7 +282,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-amber">[ TACTICAL COMBAT EXPANSION // v0.8.1 ]</span>
+        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-amber">[ TACTICAL COMBAT EXPANSION // v0.8.2 ]</span>
         <h2 class="text-3xl sm:text-5xl font-bold text-white tracking-wide">
           MULTIPLAYER, DROP-IN CO-OP & LAN ARENA
         </h2>
@@ -912,13 +946,13 @@
       </h2>
 
       <p class="text-base sm:text-lg text-slate-300 font-light max-w-2xl mx-auto leading-relaxed">
-        Download the compiled Windows 64-bit binaries for <strong>Project Vanguard v0.8.1-alpha</strong>. Includes all 8 campaign missions, split-screen co-op, and LAN multiplayer.
+        Download the compiled Windows 64-bit binaries for <strong>Project Vanguard v0.8.2-alpha</strong>. Includes all 8 campaign missions, split-screen co-op, and LAN multiplayer.
       </p>
 
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
         <a id="download-section-btn" href="https://github.com/bokk3/Vanguard/releases/latest" target="_blank" rel="noopener noreferrer" class="px-10 py-4 bg-vanguard-cyan text-black font-display font-bold text-xl uppercase tracking-wider rounded hover:bg-white hover:shadow-cyan-glow transition-all flex items-center gap-3">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          <span id="download-section-text">Download v0.8.1-Alpha (Win64)</span>
+          <span id="download-section-text">Download v0.8.2-Alpha (Win64)</span>
         </a>
         <a href="https://github.com/bokk3/Vanguard" target="_blank" rel="noopener noreferrer" class="px-8 py-4 border border-vanguard-border bg-vanguard-panel text-slate-200 font-mono text-sm uppercase tracking-wider rounded hover:border-vanguard-cyan hover:text-vanguard-cyan transition-all">
           Browse Source on GitHub

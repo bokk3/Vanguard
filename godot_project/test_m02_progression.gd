@@ -121,9 +121,9 @@ func _init() -> void:
 	print("==================================================================")
 	
 	# Cleanup
-	cutscene.queue_free()
-	debrief.queue_free()
-	dummy_level.queue_free()
-	mm.queue_free()
+	cutscene.free()
+	debrief.free()
+	dummy_level.free()
+	mm.free()
 	
 	quit(0)

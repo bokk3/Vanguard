@@ -43,6 +43,14 @@ const FORMAT_INFO_L = [
 	0x77C4, 0x72F3, 0x7DAA, 0x789D, 0x662F, 0x6318, 0x6C41, 0x6976
 ]
 
+# Pre-computed 18-bit version information for Versions 7..10 (ISO/IEC 18004 Standard)
+const VERSION_PATTERNS = {
+	7: 0x07C94,
+	8: 0x085BC,
+	9: 0x09A99,
+	10: 0x0A4D3
+}
+
 static func _init_gf_tables() -> void:
 	if _tables_initialized:
 		return
@@ -268,6 +276,8 @@ static func generate_matrix(text: String) -> Array:
 	
 	# Reserve Format Info modules
 	_reserve_format_info(is_function, matrix_size)
+	if version >= 7:
+		_reserve_version_info(is_function, matrix_size)
 	
 	# 5. Place Data Codewords (Zig-Zag upward/downward in 2-column pairs)
 	var bit_idx = 0
@@ -300,6 +310,8 @@ static func generate_matrix(text: String) -> Array:
 					
 	# 7. Write Format Info (Level L + Mask 0)
 	_write_format_info(modules, FORMAT_INFO_L[mask_id], matrix_size)
+	if version >= 7:
+		_write_version_info(modules, version, matrix_size)
 	
 	return modules
 
@@ -354,3 +366,24 @@ static func _write_format_info(modules: Array, format_val: int, size: int) -> vo
 			
 	# Dark module (always dark)
 	modules[size - 8][8] = true
+
+static func _reserve_version_info(is_func: Array, size: int) -> void:
+	for r in range(6):
+		for c in range(size - 11, size - 8):
+			is_func[r][c] = true
+	for r in range(size - 11, size - 8):
+		for c in range(6):
+			is_func[r][c] = true
+
+static func _write_version_info(modules: Array, version: int, size: int) -> void:
+	if not VERSION_PATTERNS.has(version):
+		return
+	var v_bits = VERSION_PATTERNS[version]
+	for i in range(18):
+		var bit = ((v_bits >> i) & 1) == 1
+		var r = i / 3
+		var c = (i % 3) + size - 11
+		# Top-right block (rows 0..5, cols size-11..size-9)
+		modules[r][c] = bit
+		# Bottom-left block (rows size-11..size-9, cols 0..5)
+		modules[c][r] = bit

@@ -44,6 +44,51 @@ var lock_chirp_timer: float = 0.0
 var shield_alarm_player: AudioStreamPlayer = null
 var shield_alarm_cooldown: float = 0.0
 
+# LCOS Predictive Lead Gunnery & Hitmarker Audio
+var lcos_lead_world_pos: Vector3 = Vector3.ZERO
+var lcos_lead_screen_pos: Vector2 = Vector2.ZERO
+var lcos_is_valid: bool = false
+var lcos_is_aligned: bool = false
+var lcos_time_to_impact: float = 0.0
+var lcos_lock_player: AudioStreamPlayer = null
+var lcos_tone_cooldown: float = 0.0
+var hitmarker_player: AudioStreamPlayer = null
+
+# High-G Blackout / Redout Vignette
+var blackout_alpha: float = 0.0
+var redout_alpha: float = 0.0
+var blackout_vignette_texture: GradientTexture2D = null
+var redout_vignette_texture: GradientTexture2D = null
+
+func _create_vignette_textures() -> void:
+	var grad_black = Gradient.new()
+	grad_black.set_color(0, Color(0, 0, 0, 0.0))
+	grad_black.set_offset(0, 0.35)
+	grad_black.add_point(0.70, Color(0.01, 0.02, 0.04, 0.40))
+	grad_black.add_point(1.00, Color(0.0, 0.0, 0.0, 0.95))
+	
+	blackout_vignette_texture = GradientTexture2D.new()
+	blackout_vignette_texture.gradient = grad_black
+	blackout_vignette_texture.fill = GradientTexture2D.FILL_RADIAL
+	blackout_vignette_texture.fill_from = Vector2(0.5, 0.5)
+	blackout_vignette_texture.fill_to = Vector2(1.0, 1.0)
+	blackout_vignette_texture.width = 512
+	blackout_vignette_texture.height = 512
+
+	var grad_red = Gradient.new()
+	grad_red.set_color(0, Color(0.85, 0.05, 0.05, 0.0))
+	grad_red.set_offset(0, 0.35)
+	grad_red.add_point(0.70, Color(0.80, 0.05, 0.05, 0.35))
+	grad_red.add_point(1.00, Color(0.95, 0.02, 0.02, 0.88))
+	
+	redout_vignette_texture = GradientTexture2D.new()
+	redout_vignette_texture.gradient = grad_red
+	redout_vignette_texture.fill = GradientTexture2D.FILL_RADIAL
+	redout_vignette_texture.fill_from = Vector2(0.5, 0.5)
+	redout_vignette_texture.fill_to = Vector2(1.0, 1.0)
+	redout_vignette_texture.width = 512
+	redout_vignette_texture.height = 512
+
 @export var player_id: int = 1
 
 func bind_to_ship(ship_node: CharacterBody3D, camera_node: Camera3D, p_id: int = 1) -> void:
@@ -57,12 +102,22 @@ func bind_to_ship(ship_node: CharacterBody3D, camera_node: Camera3D, p_id: int =
 			telemetry.lock_state_changed.connect(_on_lock_state_changed)
 
 func _ready() -> void:
-	var cfg = get_node_or_null("/root/ConfigManager")
+	var cfg: Node = null
+	var mm_node: Node = null
+	if is_inside_tree():
+		cfg = get_node_or_null("/root/ConfigManager")
+		mm_node = get_node_or_null("/root/MissionManager")
+	elif Engine.get_main_loop() and "root" in Engine.get_main_loop() and Engine.get_main_loop().root:
+		cfg = Engine.get_main_loop().root.get_node_or_null("ConfigManager")
+		mm_node = Engine.get_main_loop().root.get_node_or_null("MissionManager")
+	
 	if cfg:
 		show_circular_radar = cfg.radar_circular_default
 		cfg.settings_changed.connect(func(): show_circular_radar = cfg.radar_circular_default)
-	if not ship and get_tree() and get_tree().current_scene:
-		var root = get_tree().current_scene
+	
+	var active_tree = get_tree() if is_inside_tree() else Engine.get_main_loop() as SceneTree
+	if not ship and active_tree and active_tree.current_scene:
+		var root = active_tree.current_scene
 		ship = root.get_node_or_null("Spaceship") as CharacterBody3D
 		camera = root.get_node_or_null("Camera3D") as Camera3D
 	if ship:
@@ -108,11 +163,31 @@ func _ready() -> void:
 		shield_alarm_player.stream = sh_stream
 	add_child(shield_alarm_player)
 
+	# Setup Hitmarker Audio Tick
+	hitmarker_player = AudioStreamPlayer.new()
+	hitmarker_player.name = "HitmarkerAudioPlayer"
+	hitmarker_player.bus = "UI"
+	hitmarker_player.volume_db = -1.5
+	var tick_stream = load("res://audio/sfx/sfx_debrief_tally_tick.wav")
+	if tick_stream:
+		hitmarker_player.stream = tick_stream
+	add_child(hitmarker_player)
+
+	# Setup LCOS Lead Lock Audio Player
+	lcos_lock_player = AudioStreamPlayer.new()
+	lcos_lock_player.name = "LCOSLockAudioPlayer"
+	lcos_lock_player.bus = "UI"
+	lcos_lock_player.volume_db = -8.0
+	var lcos_stream = load("res://audio/sfx/sfx_hud_target_locking.wav")
+	if lcos_stream:
+		lcos_lock_player.stream = lcos_stream
+	add_child(lcos_lock_player)
+
 	if telemetry:
 		telemetry.lock_state_changed.connect(_on_lock_state_changed)
 	
 	# Connect to MissionManager
-	var mm = get_node_or_null("/root/MissionManager")
+	var mm = mm_node
 	if mm:
 		mm.radio_transmission_started.connect(_on_radio_started)
 		mm.radio_transmission_ended.connect(_on_radio_ended)
@@ -125,7 +200,10 @@ func _ready() -> void:
 			mission_objectives = mm.active_objectives.duplicate()
 
 func trigger_hitmarker() -> void:
-	hitmarker_timer = 0.35
+	hitmarker_timer = 0.25
+	if hitmarker_player:
+		hitmarker_player.pitch_scale = randf_range(1.15, 1.40)
+		hitmarker_player.play()
 	queue_redraw()
 
 func notify_combat_event(text: String, col: Color = COLOR_CYAN) -> void:
@@ -175,11 +253,57 @@ func _process(delta: float) -> void:
 		var target_g = clamp(1.0 + centripetal_g + abs(linear_g) * 0.4, 1.0, 9.9)
 		current_g_force = lerp(current_g_force, target_g, 10.0 * delta)
 		
+		# Blackout (High Positive G tunnel vision darkening)
+		if current_g_force > 5.2:
+			var target_blackout = clamp((current_g_force - 5.2) / 3.8, 0.0, 0.82)
+			blackout_alpha = lerp(blackout_alpha, target_blackout, 6.0 * delta)
+		else:
+			blackout_alpha = lerp(blackout_alpha, 0.0, 4.0 * delta)
+		
+		# Redout (High Negative G pushover)
+		var pitch_val = ship.last_pitch_input if "last_pitch_input" in ship else 0.0
+		if pitch_val < -0.75 and speed > 105.0:
+			redout_alpha = lerp(redout_alpha, 0.38, 5.0 * delta)
+		else:
+			redout_alpha = lerp(redout_alpha, 0.0, 4.0 * delta)
+		
 		high_g_cooldown -= delta
 		if current_g_force > 6.0 and high_g_cooldown <= 0.0:
 			high_g_cooldown = 3.2
 			if high_g_audio_player and not high_g_audio_player.playing:
 				high_g_audio_player.play()
+	
+	# LCOS Predictive Ballistic Lead Gunnery System
+	lcos_is_valid = false
+	if ship and camera and telemetry:
+		var target_candidate: Node3D = null
+		var target_pos: Vector3 = Vector3.ZERO
+		
+		# Priority 1: Current locked target
+		if telemetry.current_target and is_instance_valid(telemetry.current_target):
+			target_candidate = telemetry.current_target
+			target_pos = target_candidate.global_position
+		else:
+			# Priority 2: Nearest hostile target within forward cone (< 45 deg azimuth, < 1200m)
+			var min_dist = 1200.0
+			for t in telemetry.detected_targets:
+				if t.get("is_hostile", false) and is_instance_valid(t.get("node")):
+					var d = t.get("distance", 9999.0)
+					var az = abs(t.get("azimuth_deg", 180.0))
+					if d < min_dist and az < 45.0:
+						min_dist = d
+						target_candidate = t["node"]
+						target_pos = t["world_pos"]
+		
+		if target_candidate and is_instance_valid(target_candidate):
+			var lead_info = _calculate_lcos_lead(target_candidate, target_pos, delta)
+			if not lead_info.is_empty():
+				lcos_lead_world_pos = lead_info["lead_pos"]
+				lcos_time_to_impact = lead_info["time_of_flight"]
+				lcos_is_valid = true
+	
+	if lcos_tone_cooldown > 0.0:
+		lcos_tone_cooldown -= delta
 	
 	# Shield Critical Warning Alarm
 	if shield_alarm_cooldown > 0.0:
@@ -263,8 +387,14 @@ func _draw() -> void:
 	_draw_center_crosshair(center)
 	_draw_flight_path_marker(viewport_size)
 
+	# 3c. LCOS Ballistic Predictive Lead Pipper (Tactical Gunnery)
+	_draw_lcos_lead_reticle(center, viewport_size)
+
 	# 4. Target Acquisition & Missile Lock-On Reticle
 	_draw_target_tracking(viewport_size, center)
+
+	# 4b. High-G Blackout / Redout Atmospheric Vignette
+	_draw_high_g_vignette(viewport_size)
 
 	# 5. Left Panel: Speed, Altitude & Vital Systems (Shield / Hull)
 	_draw_vital_systems(viewport_size)
@@ -520,16 +650,150 @@ func _draw_center_crosshair(center: Vector2) -> void:
 	draw_line(Vector2(center.x - 36, center.y), Vector2(center.x - 36, center.y + 6), COLOR_CYAN, 2.0)
 	draw_line(Vector2(center.x + 36, center.y), Vector2(center.x + 36, center.y + 6), COLOR_CYAN, 2.0)
 
-	# Tactical Hitmarker 'X' Flash
+	# Tactical Hitmarker 'X' Flash & Expanding Kinetic Shock Ring
 	if hitmarker_timer > 0.0:
-		var hm_size = 14.0
+		var hm_size = 15.0
 		var hm_gap = 5.0
-		var hm_alpha = clamp(hitmarker_timer / 0.1, 0.0, 1.0)
-		var hm_col = Color(1.0, 0.85, 0.2, hm_alpha)
+		var hm_alpha = clamp(hitmarker_timer / 0.12, 0.0, 1.0)
+		var hm_col = Color(1.0, 0.88, 0.2, hm_alpha)
+		
+		# 4 Diagonal Fangs
 		draw_line(center + Vector2(-hm_gap, -hm_gap), center + Vector2(-hm_size, -hm_size), hm_col, 2.5)
 		draw_line(center + Vector2(hm_gap, -hm_gap), center + Vector2(hm_size, -hm_size), hm_col, 2.5)
 		draw_line(center + Vector2(-hm_gap, hm_gap), center + Vector2(-hm_size, hm_size), hm_col, 2.5)
 		draw_line(center + Vector2(hm_gap, hm_gap), center + Vector2(hm_size, hm_size), hm_col, 2.5)
+		
+		# Expanding Kinetic Shockwave Ring
+		var ring_radius = 16.0 + (0.25 - hitmarker_timer) * 55.0
+		var ring_col = Color(0.0, 0.95, 1.0, hm_alpha * 0.75)
+		draw_arc(center, ring_radius, 0, TAU, 28, ring_col, 1.5)
+
+# -----------------------------------------------------------------
+# 3c. LCOS Ballistic Lead-Computing Optical Sight
+# -----------------------------------------------------------------
+func _calculate_lcos_lead(target_node: Node3D, target_pos: Vector3, delta: float) -> Dictionary:
+	if not is_instance_valid(target_node) or not is_instance_valid(ship):
+		return {}
+	
+	var ship_pos = ship.global_position
+	var ship_vel = ship.velocity if "velocity" in ship else Vector3.ZERO
+	
+	# Determine target velocity
+	var target_vel = Vector3.ZERO
+	if target_node.get("velocity") != null:
+		target_vel = target_node.get("velocity")
+	elif target_node.get("linear_velocity") != null:
+		target_vel = target_node.get("linear_velocity")
+	elif target_node.has_meta("velocity"):
+		target_vel = target_node.get_meta("velocity")
+	elif target_node.has_meta("lcos_prev_pos"):
+		var prev_pos = target_node.get_meta("lcos_prev_pos") as Vector3
+		if delta > 0.001:
+			target_vel = (target_pos - prev_pos) / delta
+	target_node.set_meta("lcos_prev_pos", target_pos)
+	
+	var rel_pos = target_pos - ship_pos
+	var dist = rel_pos.length()
+	if dist > 1400.0 or dist < 15.0:
+		return {}
+	
+	# Effective muzzle velocity = projectile muzzle velocity (650 m/s) + ship forward velocity
+	var bullet_speed = 650.0 + max(0.0, ship.current_speed if "current_speed" in ship else 0.0)
+	var rel_vel = target_vel - ship_vel
+	
+	# First-order flight time estimate
+	var t_flight = dist / bullet_speed
+	# Second-order iterative refinement for curving trajectories
+	var lead_pos = target_pos + rel_vel * t_flight
+	t_flight = lead_pos.distance_to(ship_pos) / bullet_speed
+	lead_pos = target_pos + rel_vel * t_flight
+	
+	return {
+		"lead_pos": lead_pos,
+		"time_of_flight": t_flight,
+		"target_vel": target_vel,
+		"distance": dist
+	}
+
+func _draw_lcos_lead_reticle(center: Vector2, vp: Vector2) -> void:
+	if not lcos_is_valid or not camera:
+		return
+	if camera.is_position_behind(lcos_lead_world_pos):
+		return
+	
+	var screen_pos = camera.unproject_position(lcos_lead_world_pos)
+	if not Rect2(Vector2.ZERO, vp).has_point(screen_pos):
+		return
+	
+	lcos_lead_screen_pos = screen_pos
+	var dist_to_center = (screen_pos - center).length()
+	lcos_is_aligned = (dist_to_center < 32.0)
+	
+	var col = Color(0.1, 1.0, 0.45, 0.95) if lcos_is_aligned else Color(1.0, 0.82, 0.1, 0.85)
+	
+	# 1. Predictive Funnel Line connecting boresight to the lead solution
+	_draw_dashed_line_2d(center, screen_pos, col * 0.55, 1.5, 6.0, 4.0)
+	
+	# 2. Lead Pipper Diamond
+	var dia_size = 8.5 if not lcos_is_aligned else 12.0
+	var diamond = PackedVector2Array([
+		screen_pos + Vector2(0, -dia_size),
+		screen_pos + Vector2(dia_size, 0),
+		screen_pos + Vector2(0, dia_size),
+		screen_pos + Vector2(-dia_size, 0)
+	])
+	draw_colored_polygon(diamond, col * 0.25)
+	draw_polyline(PackedVector2Array([
+		screen_pos + Vector2(0, -dia_size),
+		screen_pos + Vector2(dia_size, 0),
+		screen_pos + Vector2(0, dia_size),
+		screen_pos + Vector2(-dia_size, 0),
+		screen_pos + Vector2(0, -dia_size)
+	]), col, 2.0)
+	draw_circle(screen_pos, 2.0, col)
+	
+	# 3. Alignment Bracket and Lock Cue
+	if lcos_is_aligned:
+		var b_gap = 17.0
+		var b_arm = 7.0
+		draw_line(screen_pos + Vector2(-b_gap, -b_arm), screen_pos + Vector2(-b_gap, b_arm), col, 2.5)
+		draw_line(screen_pos + Vector2(b_gap, -b_arm), screen_pos + Vector2(b_gap, b_arm), col, 2.5)
+		
+		# Audio lock chirp
+		if lcos_tone_cooldown <= 0.0:
+			lcos_tone_cooldown = 0.35
+			if lcos_lock_player and not lcos_lock_player.playing:
+				lcos_lock_player.play()
+		
+		draw_string(ThemeDB.fallback_font, screen_pos + Vector2(-54, dia_size + 16), "GUN SOLUTION READY", HORIZONTAL_ALIGNMENT_CENTER, -1, 10, col)
+	else:
+		var tof_text = "%.1fs" % lcos_time_to_impact
+		draw_string(ThemeDB.fallback_font, screen_pos + Vector2(-16, dia_size + 14), tof_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 10, col * 0.8)
+
+# -----------------------------------------------------------------
+# 4b. High-G Blackout / Redout Atmospheric Vignette
+# -----------------------------------------------------------------
+func _draw_high_g_vignette(vp: Vector2) -> void:
+	if not blackout_vignette_texture:
+		_create_vignette_textures()
+
+	if blackout_alpha > 0.01 and blackout_vignette_texture:
+		var col = Color(1.0, 1.0, 1.0, blackout_alpha)
+		draw_texture_rect(blackout_vignette_texture, Rect2(Vector2.ZERO, vp), false, col)
+		
+		# Tactical HUD G-meter callout when pulling extreme Gs (>5.8G)
+		if current_g_force >= 5.8:
+			var pulse = 0.7 + sin(Time.get_ticks_msec() * 0.012) * 0.3
+			var g_col = Color(1.0, 0.4, 0.1, pulse * blackout_alpha)
+			var g_text = "// G-LOC CAUTION // LOAD: +%.1f G //" % current_g_force
+			draw_string(ThemeDB.fallback_font, Vector2(vp.x * 0.5 - 110, vp.y * 0.15), g_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 11, g_col)
+
+	if redout_alpha > 0.01 and redout_vignette_texture:
+		var rcol = Color(1.0, 1.0, 1.0, redout_alpha)
+		draw_texture_rect(redout_vignette_texture, Rect2(Vector2.ZERO, vp), false, rcol)
+		var r_pulse = 0.7 + sin(Time.get_ticks_msec() * 0.012) * 0.3
+		var r_text = "// REDOUT CAUTION // NEGATIVE G PUSHOVER //"
+		draw_string(ThemeDB.fallback_font, Vector2(vp.x * 0.5 - 130, vp.y * 0.15), r_text, HORIZONTAL_ALIGNMENT_CENTER, -1, 11, Color(1.0, 0.15, 0.15, r_pulse * redout_alpha))
 
 # -----------------------------------------------------------------
 # 4. Target Acquisition & Missile Lock-On Reticle
@@ -646,23 +910,36 @@ func _draw_target_tracking(vp: Vector2, center: Vector2) -> void:
 					draw_arc(s_pos, ring_r, -PI*0.5, -PI*0.5 + sweep, 28, COLOR_GOLD, 2.5)
 					draw_string(ThemeDB.fallback_font, Vector2(s_pos.x - 40, s_pos.y - ring_r - 8), "ACQUIRING...", HORIZONTAL_ALIGNMENT_CENTER, -1, 11, COLOR_GOLD)
 		else:
-			# Target Off-Screen: Draw edge chevron indicator
+			# Target Off-Screen: Draw directional edge chevron indicator pointing towards threat
 			var screen_center = vp * 0.5
 			var dir_2d = (s_pos - screen_center).normalized()
 			if is_behind:
 				dir_2d = -dir_2d # Invert for behind camera
-			var edge_pos = screen_center + dir_2d * (min(vp.x, vp.y) * 0.44)
+			var edge_radius = min(vp.x, vp.y) * 0.44
+			var edge_pos = screen_center + dir_2d * edge_radius
 			var arrow_col = COLOR_RED if t["is_hostile"] else COLOR_GOLD
+			var dist_m = round(t["distance"])
 			var is_offscreen_boss = t["name"].begins_with("Boss") or (t["node"] != null and "hull" in t["node"])
 			var is_offscreen_relay = t["name"].begins_with("JammingRelay")
+			
+			# Draw directional chevron triangle pointing outward
+			var perp = Vector2(-dir_2d.y, dir_2d.x)
+			var tip = edge_pos + dir_2d * 8.0
+			var base_left = edge_pos - dir_2d * 6.0 + perp * 6.0
+			var base_right = edge_pos - dir_2d * 6.0 - perp * 6.0
+			
 			if is_offscreen_boss:
-				draw_circle(edge_pos, 9.0, Color(1.0, 0.15, 0.2, 0.95))
-				draw_arc(edge_pos, 12.0, 0, TAU, 16, Color(1.0, 0.85, 0.1, 0.95), 2.0)
+				draw_colored_polygon(PackedVector2Array([tip + dir_2d * 3.0, base_left - perp * 2.0, base_right + perp * 2.0]), Color(1.0, 0.15, 0.2, 0.95))
+				draw_polyline(PackedVector2Array([base_left, tip, base_right]), Color(1.0, 0.85, 0.1, 0.95), 2.2)
 			elif is_offscreen_relay:
-				draw_circle(edge_pos, 8.0, Color(1.0, 0.2, 0.25, 0.95))
-				draw_circle(edge_pos, 3.5, Color(1.0, 0.9, 0.9, 1.0))
+				draw_colored_polygon(PackedVector2Array([tip, base_left, base_right]), Color(1.0, 0.25, 0.3, 0.95))
 			else:
-				draw_circle(edge_pos, 5.0, arrow_col)
+				draw_colored_polygon(PackedVector2Array([tip, base_left, base_right]), arrow_col)
+			
+			# Range text next to off-screen indicator
+			var dist_txt = "%dm" % dist_m
+			var txt_offset = edge_pos - dir_2d * 14.0 - Vector2(16, 5)
+			draw_string(ThemeDB.fallback_font, txt_offset, dist_txt, HORIZONTAL_ALIGNMENT_CENTER, -1, 9, arrow_col * 0.85)
 
 func _draw_diamond_box(pos: Vector2, size: float, col: Color) -> void:
 	var r = size * 0.6

@@ -35,6 +35,7 @@ extends Control
 
 @onready var pair_phone_lobby_btn: Button = %PairPhoneLobbyBtn
 @onready var launch_arena_btn: Button = %LaunchArenaBtn
+@onready var fleet_telemetry_label: Label = %FleetTelemetryLabel
 
 var network_manager: Node = null
 var qr_dialog: Control = null
@@ -43,6 +44,10 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	
 	network_manager = get_node_or_null("/root/NetworkManager")
+	if network_manager:
+		if not network_manager.network_stats_updated.is_connected(_on_network_stats_updated):
+			network_manager.network_stats_updated.connect(_on_network_stats_updated)
+		_update_fleet_telemetry(network_manager.registered_pilots, network_manager.online_pilots, network_manager.active_lobbies)
 	
 	if split_screen_btn:
 		split_screen_btn.pressed.connect(_on_split_screen_pressed)
@@ -339,15 +344,24 @@ func _update_party_deck() -> void:
 	if bravo_crew_label:
 		bravo_crew_label.text = "TACTICAL CREW: " + (", ".join(bravo_crew) if not bravo_crew.is_empty() else "(NONE)")
 
+func _process(_delta: float) -> void:
+	if Input.mouse_mode != Input.MOUSE_MODE_VISIBLE:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
 func _on_pair_phone_lobby_pressed() -> void:
 	if not qr_dialog:
 		var scene = load("res://qr_join_dialog.tscn")
 		if scene:
 			qr_dialog = scene.instantiate()
 			add_child(qr_dialog)
+			if not qr_dialog.closed.is_connected(_on_qr_dialog_closed):
+				qr_dialog.closed.connect(_on_qr_dialog_closed)
 	if qr_dialog and qr_dialog.has_method("show_dialog"):
 		# In lobby, target Controller 1 for Main Pilot!
 		qr_dialog.show_dialog(1)
+
+func _on_qr_dialog_closed() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _on_launch_arena_pressed() -> void:
 	if network_manager and network_manager.is_host:
@@ -365,6 +379,14 @@ func _set_status(msg: String, col: Color = Color(0.0, 0.85, 1.0)) -> void:
 	if status_label:
 		status_label.text = "// " + msg + " //"
 		status_label.modulate = col
+
+func _on_network_stats_updated(reg: int, online: int, lobbies: int) -> void:
+	_update_fleet_telemetry(reg, online, lobbies)
+
+func _update_fleet_telemetry(_reg: int, online: int, lobbies: int) -> void:
+	if fleet_telemetry_label:
+		var dot = "🟢" if online > 0 else "⚪"
+		fleet_telemetry_label.text = "%s GLOBAL FLEET RADAR: %d PILOTS ONLINE // %d COMBAT LOBBIES ACTIVE" % [dot, online, lobbies]
 
 func _on_back_pressed() -> void:
 	if network_manager:

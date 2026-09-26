@@ -61,10 +61,17 @@ func _ready() -> void:
 		slam_audio_player.stream = s_sfx
 	add_child(slam_audio_player)
 	
-	var mm = get_node_or_null("/root/MissionManager")
+	var mm = _get_autoload_node("MissionManager")
 	if mm:
 		mm.mission_completed.connect(_on_mission_completed)
 		mm.mission_failed.connect(_on_mission_failed)
+
+func _get_autoload_node(node_name: String) -> Node:
+	if is_inside_tree():
+		return get_node_or_null("/root/" + node_name)
+	elif Engine.get_main_loop() and "root" in Engine.get_main_loop() and Engine.get_main_loop().root:
+		return Engine.get_main_loop().root.get_node_or_null(node_name)
+	return null
 
 func _input(event: InputEvent) -> void:
 	if not visible:
@@ -165,6 +172,11 @@ func show_victory_debrief(stats: Dictionary) -> void:
 	replay_btn.text = "[ REPLAY SORTIE ]"
 	hangar_btn.text = "[ RETURN TO HANGAR ]"
 	
+	# Log combat sortie to AuthManager career telemetry
+	var auth_mgr = _get_autoload_node("AuthManager")
+	if auth_mgr and auth_mgr.has_method("record_battle_result"):
+		auth_mgr.record_battle_result("SORTIE [%s] %s" % [current_mission_id, codename], "VICTORY", destroyed, elapsed)
+	
 	_start_victory_animation(elapsed, destroyed, hit_rate, hull_rem, cannon_rds, score_data)
 
 func _start_victory_animation(elapsed: float, destroyed: int, hit_rate: float, hull_rem: float, cannon_rds: int, score_data: Dictionary) -> void:
@@ -252,6 +264,14 @@ func show_failure_debrief(reason: String) -> void:
 	scramble_next_btn.visible = false
 	replay_btn.text = "[ RETRY SORTIE ]"
 	hangar_btn.text = "[ RETURN TO HANGAR ]"
+	
+	# Log failed sortie to AuthManager career telemetry
+	var auth_mgr = _get_autoload_node("AuthManager")
+	if auth_mgr and auth_mgr.has_method("record_battle_result"):
+		var mm = _get_autoload_node("MissionManager")
+		var destroyed = mm.mission_targets_destroyed if (mm and "mission_targets_destroyed" in mm) else 0
+		var elapsed = mm.mission_elapsed_time if (mm and "mission_elapsed_time" in mm) else 0.0
+		auth_mgr.record_battle_result("SORTIE [%s] FAILED" % current_mission_id, "DEFEAT", destroyed, elapsed)
 	
 	_display_modal()
 	is_animating = true

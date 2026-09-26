@@ -13,11 +13,13 @@ signal connection_failed()
 signal disconnected_from_server()
 
 signal party_updated(parties: Dictionary)
+signal network_stats_updated(registered_count: int, online_count: int, lobby_count: int)
 
 const DEFAULT_GAME_PORT: int = 7777
 const DEFAULT_BEACON_PORT: int = 7778
 const BEACON_INTERVAL: float = 1.0
 const BEACON_MAGIC: String = "VANGUARD_PVP_BEACON"
+const CLOUD_NETWORK_API: String = "https://project-vanguard.pages.dev/api/network"
 
 var peer: ENetMultiplayerPeer = null
 var udp_broadcaster: PacketPeerUDP = null
@@ -30,6 +32,22 @@ var beacon_timer: float = 0.0
 var server_name: String = "VANGUARD ARENA"
 var player_callsign: String = "Vanguard-1"
 var current_map_name: String = "Dusk Canyon"
+
+# Fleet Operations Presence & Telemetry
+var registered_pilots: int = 1420
+var online_pilots: int = 1
+var active_lobbies: int = 0
+var remote_lobbies: Array[Dictionary] = []
+
+var client_session_id: String = ""
+var session_type: String = "PILOT" # "PILOT" or "LOBBY"
+var stats_http: HTTPRequest = null
+var heartbeat_http: HTTPRequest = null
+var leave_http: HTTPRequest = null
+var heartbeat_timer: float = 0.0
+var stats_poll_timer: float = 0.0
+const HEARTBEAT_INTERVAL: float = 25.0
+const STATS_POLL_INTERVAL: float = 20.0
 
 var parties: Dictionary = {
 	"Alpha": { "name": "Squadron Alpha", "pilot_callsign": "LEAD", "pilot_input": "AZERTY", "crew": [] },
@@ -49,7 +67,103 @@ func _ready() -> void:
 	multiplayer.connection_failed.connect(_on_connection_failed)
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
 
+	_init_network_presence()
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_PREDELETE or what == NOTIFICATION_WM_CLOSE_REQUEST:
+		send_leave()
+
+func _init_network_presence() -> void:
+	client_session_id = "vng-client-" + str(randi() % 900000 + 100000)
+	
+	stats_http = HTTPRequest.new()
+	stats_http.timeout = 5.0
+	stats_http.name = "StatsHTTP"
+	add_child(stats_http)
+	stats_http.request_completed.connect(_on_stats_request_completed)
+	
+	heartbeat_http = HTTPRequest.new()
+	heartbeat_http.timeout = 5.0
+	heartbeat_http.name = "HeartbeatHTTP"
+	add_child(heartbeat_http)
+	
+	leave_http = HTTPRequest.new()
+	leave_http.timeout = 3.0
+	leave_http.name = "LeaveHTTP"
+	add_child(leave_http)
+	
+	fetch_network_stats()
+	send_heartbeat()
+
+func fetch_network_stats() -> void:
+	if not stats_http or not is_inside_tree():
+		return
+	if stats_http.get_http_client_status() != HTTPClient.STATUS_DISCONNECTED:
+		return
+	stats_http.request(CLOUD_NETWORK_API + "/stats")
+
+func _on_stats_request_completed(_result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	if response_code >= 200 and response_code < 300:
+		var json = JSON.new()
+		if json.parse(body.get_string_from_utf8()) == OK and typeof(json.data) == TYPE_DICTIONARY:
+			var data: Dictionary = json.data
+			if data.get("success", false):
+				registered_pilots = int(data.get("registered_pilots", registered_pilots))
+				online_pilots = int(data.get("online_pilots", online_pilots))
+				active_lobbies = int(data.get("active_lobbies", active_lobbies))
+				if data.has("lobbies") and typeof(data["lobbies"]) == TYPE_ARRAY:
+					remote_lobbies.clear()
+					for l in data["lobbies"]:
+						if typeof(l) == TYPE_DICTIONARY:
+							remote_lobbies.append(l)
+				network_stats_updated.emit(registered_pilots, online_pilots, active_lobbies)
+
+func send_heartbeat() -> void:
+	if not heartbeat_http or not is_inside_tree():
+		return
+	if heartbeat_http.get_http_client_status() != HTTPClient.STATUS_DISCONNECTED:
+		return
+	var auth_mgr = get_node_or_null("/root/AuthManager")
+	var cs = auth_mgr.callsign if (auth_mgr and auth_mgr.is_authenticated and not auth_mgr.callsign.is_empty()) else player_callsign
+	var pid = auth_mgr.pilot_id if auth_mgr else ""
+	var peer_count = 1
+	if multiplayer and multiplayer.has_multiplayer_peer() and is_host:
+		peer_count = multiplayer.get_peers().size() + 1
+	var meta = {
+		"lobby_name": server_name,
+		"players": peer_count,
+		"max_players": 2,
+		"map": current_map_name
+	}
+	var payload = {
+		"session_id": client_session_id,
+		"callsign": cs,
+		"pilot_id": pid,
+		"session_type": session_type,
+		"metadata": meta
+	}
+	var headers = ["Content-Type: application/json"]
+	heartbeat_http.request(CLOUD_NETWORK_API + "/heartbeat", headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
+
+func send_leave() -> void:
+	if not leave_http or not is_inside_tree() or client_session_id.is_empty():
+		return
+	var payload = { "session_id": client_session_id }
+	var headers = ["Content-Type: application/json"]
+	leave_http.request(CLOUD_NETWORK_API + "/leave", headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
+
 func _process(delta: float) -> void:
+	# Fleet Operations Periodic Telemetry
+	stats_poll_timer += delta
+	if stats_poll_timer >= STATS_POLL_INTERVAL:
+		stats_poll_timer = 0.0
+		fetch_network_stats()
+
+	heartbeat_timer += delta
+	if heartbeat_timer >= HEARTBEAT_INTERVAL:
+		heartbeat_timer = 0.0
+		send_heartbeat()
+
 	# 1. Host Beacon Broadcasting
 	if is_host and udp_broadcaster != null:
 		beacon_timer -= delta
@@ -77,6 +191,8 @@ func host_game(host_server_name: String = "VANGUARD ARENA", port: int = DEFAULT_
 	
 	multiplayer.multiplayer_peer = peer
 	is_host = true
+	session_type = "LOBBY"
+	send_heartbeat()
 	
 	# Start UDP Broadcaster
 	udp_broadcaster = PacketPeerUDP.new()
@@ -201,6 +317,9 @@ func stop_network() -> void:
 		peer = null
 	multiplayer.multiplayer_peer = null
 	is_host = false
+	if session_type == "LOBBY":
+		session_type = "PILOT"
+		send_heartbeat()
 	print("[NetworkManager] Network session stopped.")
 
 # -----------------------------------------------------------------------------

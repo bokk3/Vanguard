@@ -119,7 +119,8 @@ def execute_blender_pipeline(args):
             setup_asset_materials(root, config["materials"])
             create_sockets(root, config["sockets"])
             generate_collision_hulls(config["name"], root, config.get("collision_parts"))
-            generate_lods(root)
+            if config.get("generate_lods", True):
+                generate_lods(root)
             print(f"[SUCCESS] Polishing complete: {asset_name}")
 
     elif args.command == "export":
@@ -150,8 +151,9 @@ def execute_blender_pipeline(args):
             builder = BUILDERS[asset_name]
             root = builder(config)
 
-            # 2. Automated LOD generation
-            generate_lods(root)
+            # 2. Automated LOD generation (if enabled)
+            if config.get("generate_lods", True):
+                generate_lods(root)
 
             # 3. Export to Engines
             results = export_asset(config, export_format=args.format)

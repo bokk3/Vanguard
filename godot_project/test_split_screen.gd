@@ -57,5 +57,6 @@ func _run_test() -> void:
 	assert(inst.p1_score == 1, "P1 score should be 1")
 	print("  [OK] Kill scoring logic verified.")
 	
+	inst.free()
 	print("ALL SPLIT-SCREEN TESTS PASSED!")
 	quit(0)

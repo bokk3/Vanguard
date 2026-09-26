@@ -140,7 +140,11 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	
 	# Immediately cut off any remaining mission comms
-	var mm = get_node_or_null("/root/MissionManager")
+	var mm: Node = null
+	if is_inside_tree():
+		mm = get_node_or_null("/root/MissionManager")
+	elif Engine.get_main_loop() and "root" in Engine.get_main_loop() and Engine.get_main_loop().root:
+		mm = Engine.get_main_loop().root.get_node_or_null("MissionManager")
 	if mm and mm.has_method("stop_all_comms"):
 		mm.stop_all_comms()
 	

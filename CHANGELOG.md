@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.8.2] - 2026-09-26
+
+### Added
+- **Fleet Operations Presence & Global Network Counters**:
+  - Cloudflare Edge Serverless Presence Engine (`/api/network/stats`, `/api/network/heartbeat`, `/api/network/leave`) tracking registered pilots, online pilots, and active PvP lobbies.
+  - Added `active_sessions` table in Cloudflare D1 with automatic TTL sweeping for ephemeral active presence.
+  - **Website Live Fleet Radar**:
+    - Sticky top telemetry ticker displays live `ONLINE`, `LOBBIES`, and `ROSTER` counts.
+    - Hero section features a dedicated live **Fleet Radar Operations Bar** with emerald pulse glow.
+    - Automatic web visitor presence heartbeat with graceful `navigator.sendBeacon` disconnection on unload.
+  - **Client In-Game Fleet Telemetry**:
+    - `home_menu.tscn`: Sidebar **Fleet Radar Box** displaying active pilots in sortie, open combat lobbies, and total commissioned roster.
+    - `mode_selector_dialog.tscn`: Live fleet radar indicator informing pilots of active lobbies before selecting Solo vs Online.
+    - `pvp_menu.tscn`: Live battlespace radar counters integrated directly into the PvP dogfight hub.
+- **Avionics & Cockpit Polish**:
+  - High-G blackout / redout radial vignette gradient replacing hard rectangular borders with smooth, hardware-accelerated falloff.
+  - Tactical HUD G-LOC caution readout with load meter (`// G-LOC CAUTION // LOAD: +6.2 G //`).
+  - Pilot dossier and credentials management directly accessible from Hangar home menu.
+
 ## [0.8.0] - 2026-09-24
 
 ### Added

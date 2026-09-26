@@ -90,10 +90,10 @@ func _init() -> void:
 				var dread = dummy_root.find_child("Dreadnought_Nemesis9", true, false)
 				assert(dread != null, "M08 Dreadnought Nemesis9 missing")
 				assert(dread.is_in_group("enemies"), "Dreadnought not in group enemies")
-				assert(dummy_root.find_child("FlakPod_01", true, false) != null, "M08 Flak pod missing")
+				assert(dummy_root.find_child("Flak_Turret_01", true, false) != null or dummy_root.find_child("FlakPod_01", true, false) != null, "M08 Flak turret/pod missing")
 				assert(dummy_root.find_child("ReactorCore", true, false) != null, "M08 Reactor core missing")
 		
-		dummy_root.queue_free()
+		dummy_root.free()
 	
 	# 3. Test Mission Selector Scene
 	var selector_scene = load("res://mission_selector.tscn")
@@ -104,7 +104,7 @@ func _init() -> void:
 	for mid in ["M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08"]:
 		selector.select_mission(mid)
 		print("  -> MissionSelector selected ", mid, " successfully.")
-	selector.queue_free()
+	selector.free()
 	
 	# 4. Test Debrief Screen Animations & Scorecard
 	var debrief_scene = load("res://debrief_screen.tscn")
@@ -126,7 +126,7 @@ func _init() -> void:
 	assert(debrief.is_animating == false, "Debrief animation should be finished after skip")
 	assert(debrief.rank_badge.text == "S", "Expected S-rank for flawless run, got: " + debrief.rank_badge.text)
 	print("  -> DebriefScreen animated scorecard & skip validated successfully (Rank: ", debrief.rank_badge.text, ").")
-	debrief.queue_free()
+	debrief.free()
 	
 	# 5. Test HUD & Flight Telemetry
 	var hud_script = load("res://hud.gd")
@@ -137,7 +137,7 @@ func _init() -> void:
 	hud._ready()
 	assert(hud.high_g_audio_player != null, "High-G audio player not initialized")
 	print("  -> In-flight HUD flight telemetry & avionics validated successfully.")
-	hud.queue_free()
+	hud.free()
 	
 	# 6. Test Cinematic Interlude Cutscenes & Chapter 1/2 Finales
 	var cutscene_scene = load("res://interlude_cutscene.tscn")
@@ -162,8 +162,8 @@ func _init() -> void:
 		assert(cutscene.playback_time >= 1.0, "Cutscene playback_time did not advance")
 		
 		print("  -> Interlude cutscene [", i_id, "] validated successfully (Audio: ", a_path, ").")
-		cutscene.queue_free()
+		cutscene.free()
 	
-	mm.queue_free()
+	mm.free()
 	print("--- ALL CAMPAIGN MISSIONS, DEBRIEF, FLIGHT TELEMETRY & CUTSCENES PASSED (100%) ---")
 	quit(0)

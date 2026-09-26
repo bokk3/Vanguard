@@ -271,12 +271,21 @@ func record_battle_result(theater: String, outcome: String, kills: int, duration
 	else:
 		stats["battles_lost"] = int(stats["battles_lost"]) + 1
 		
+	var cfg = get_node_or_null("/root/ConfigManager") if is_inside_tree() else null
+	var net_ctrl = get_node_or_null("/root/NetworkControllerServer") if is_inside_tree() else null
+	var is_phone = net_ctrl and net_ctrl.connected_clients.size() > 0
+	var is_az = cfg.is_azerty if cfg else true
+	var controls_str = "PHONE GYRO" if is_phone else ("AZERTY" if is_az else "QWERTY")
+	stats["preferred_controls"] = controls_str
+		
 	var entry = {
+		"timestamp": Time.get_datetime_string_from_system(),
 		"date": Time.get_date_string_from_system(),
 		"theater": theater,
 		"outcome": outcome,
 		"kills": kills,
-		"duration_sec": round(duration_sec)
+		"duration_sec": round(duration_sec),
+		"controls": controls_str
 	}
 	var hist: Array = stats["battle_history"]
 	hist.append(entry)

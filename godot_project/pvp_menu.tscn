@@ -111,6 +111,13 @@ theme_override_colors/font_color = Color(0.8, 0.88, 0.95, 0.75)
 theme_override_font_sizes/font_size = 13
 text = "TACTICAL 1v1 AIR COMBAT // LOCAL SPLIT-SCREEN & LAN AUTO-DISCOVERY"
 
+[node name="FleetTelemetryLabel" type="Label" parent="MainLayout/HeaderBox/TitleBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.95, 0.5, 0.95)
+theme_override_font_sizes/font_size = 11
+text = "🟢 GLOBAL FLEET RADAR: 1 PILOTS ONLINE // 0 LOBBIES ACTIVE"
+
 [node name="BackBtn" type="Button" parent="MainLayout/HeaderBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 36)

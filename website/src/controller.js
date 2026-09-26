@@ -18,6 +18,7 @@ const state = {
   fire_primary: false,
   fire_missile: false,
   target_lock: false,
+  tare_pulse: false,
   power_divert: 'BALANCED', // 'ENGINES', 'SHIELDS', 'WEAPONS', 'BALANCED'
 
   // Mode & connection settings
@@ -28,10 +29,12 @@ const state = {
   connected: false,
   audioEnabled: true,
 
-  // Gyroscope calibration
-  gyroNeutral: { beta: 45, gamma: 0 },
-  gyroMaxDeflection: 30, // degrees
+  // Gyroscope calibration (screen-orientation-aware)
+  gyroNeutral: { screenX: 0.0, screenY: 0.65, calibrated: false },
+  gyroMaxDeflection: 0.42, // ~25 degrees of hand deflection in gravity units
 };
+
+let yawButtonPressed = false;
 
 let ws = null;
 let transmitTimer = null;
@@ -48,6 +51,7 @@ const els = {
   connectionDot: document.getElementById('connectionDot'),
   connectionText: document.getElementById('connectionText'),
   headerCallsign: document.getElementById('headerCallsign'),
+  tareHorizonBtn: document.getElementById('tareHorizonBtn'),
   toggleSteerModeBtn: document.getElementById('toggleSteerModeBtn'),
   steerModeIcon: document.getElementById('steerModeIcon'),
   steerModeText: document.getElementById('steerModeText'),
@@ -438,31 +442,67 @@ function handleIncomingTelemetry(telem) {
   }
 }
 
+// ============================================================================
+// 5b. Kinesthetic Response Curve (Aerospace Exponential Deadzone)
+// ============================================================================
+
+function applyExponentialDeadzone(val, deadzone = 0.04, exponent = 1.6) {
+  const absVal = Math.abs(val);
+  if (absVal <= deadzone) return 0.0;
+  const normalized = (absVal - deadzone) / (1.0 - deadzone);
+  return Math.sign(val) * Math.min(1.0, Math.pow(normalized, exponent));
+}
+
+// Reusable 16-byte buffer for ultra-low-latency binary control streaming (<5ms latency)
+const binaryBuffer = new ArrayBuffer(16);
+const floatView = new Float32Array(binaryBuffer);
+const int16View = new Int16Array(binaryBuffer);
+const uint8View = new Uint8Array(binaryBuffer);
+let packetSeq = 0;
+
 function startTransmitLoop() {
   if (transmitTimer) clearInterval(transmitTimer);
 
-  // 30Hz high-frequency transmit loop (every ~33ms)
+  // 30Hz high-frequency binary transmit loop (every ~33ms)
   transmitTimer = setInterval(() => {
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
 
-    const packet = {
-      t: Date.now(),
-      pitch: Number(state.pitch.toFixed(3)),
-      roll: Number(state.roll.toFixed(3)),
-      yaw: Number(state.yaw.toFixed(3)),
-      throttle: Number(state.throttle.toFixed(3)),
-      boost: state.boost,
-      fire_primary: state.fire_primary,
-      fire_missile: state.fire_missile,
-      target_lock: state.target_lock,
-      power_divert: state.power_divert,
-    };
+    // Bytes 0-3: pitch (Float32, Little-Endian)
+    floatView[0] = state.pitch;
+    // Bytes 4-7: roll (Float32, Little-Endian)
+    floatView[1] = state.roll;
+    // Bytes 8-11: throttle (Float32, Little-Endian)
+    floatView[2] = state.throttle;
+    // Bytes 12-13: yaw (Int16, Little-Endian, scaled to [-32767, 32767])
+    int16View[6] = Math.max(-32767, Math.min(32767, Math.round(state.yaw * 32767)));
 
-    ws.send(JSON.stringify(packet));
+    // Byte 14: Flags bitmask (fire=1, boost=2, missile=4, power=bits 3-4, lock=32, tare=64)
+    let flags = 0;
+    if (state.fire_primary) flags |= 1;
+    if (state.boost) flags |= 2;
+    if (state.fire_missile) flags |= 4;
+
+    let powerCode = 0;
+    if (state.power_divert === 'ENGINES') powerCode = 1;
+    else if (state.power_divert === 'SHIELDS') powerCode = 2;
+    else if (state.power_divert === 'WEAPONS') powerCode = 3;
+    flags |= (powerCode & 3) << 3;
+
+    if (state.target_lock) flags |= 32;
+    if (state.tare_pulse) flags |= 64;
+    uint8View[14] = flags;
+
+    // Byte 15: Sequence counter (0-255)
+    packetSeq = (packetSeq + 1) & 0xFF;
+    uint8View[15] = packetSeq;
+
+    // Raw 16-byte binary send over WebSocket (<5ms latency)
+    ws.send(binaryBuffer);
 
     // Reset single-pulse action flags
     state.fire_missile = false;
     state.target_lock = false;
+    state.tare_pulse = false;
   }, 33);
 }
 
@@ -516,10 +556,11 @@ function setupFlightStick() {
       clampedY = Math.sin(angle) * stickMaxRadius;
     }
 
-    // Set normalized inputs [-1.0, 1.0]
-    state.roll = clampedX / stickMaxRadius;
-    // Pulling stick back (downwards touch) pitches UP (+1.0)
-    state.pitch = -(clampedY / stickMaxRadius);
+    // Set normalized inputs [-1.0, 1.0] with aerospace exponential deadzone
+    const rawRoll = clampedX / stickMaxRadius;
+    const rawPitch = -(clampedY / stickMaxRadius);
+    state.roll = applyExponentialDeadzone(rawRoll, 0.04, 1.6);
+    state.pitch = applyExponentialDeadzone(rawPitch, 0.04, 1.6);
 
     // Update UI knob position
     knob.style.transform = `translate(calc(-50% + ${clampedX}px), calc(-50% + ${clampedY}px))`;
@@ -590,45 +631,138 @@ function setupThrottle() {
 }
 
 // ============================================================================
-// 8. Flight Controls: Gyroscope / Motion Steering
+// 8. Flight Controls: Gyroscope / Motion Steering & 1-Tap Tare
 // ============================================================================
+
+function getScreenOrientationAngle() {
+  if (window.screen && window.screen.orientation && typeof window.screen.orientation.angle === 'number') {
+    return window.screen.orientation.angle;
+  }
+  if (typeof window.orientation === 'number') {
+    return window.orientation;
+  }
+  return window.innerWidth > window.innerHeight ? 90 : 0;
+}
+
+function computeScreenGravity(betaDeg, gammaDeg) {
+  const rad = Math.PI / 180;
+  const b = betaDeg * rad;
+  const g = gammaDeg * rad;
+
+  // Physical device gravity components:
+  // gx: tilt right along phone short edge
+  // gy: tilt up along phone long edge
+  const gx = Math.cos(b) * Math.sin(g);
+  const gy = -Math.sin(b);
+
+  const angle = getScreenOrientationAngle();
+  const aRad = angle * rad;
+
+  // 2D rotation projecting physical device gravity onto the active display screen:
+  // screenX: positive when tilted right relative to screen
+  // screenY: positive when tilted forward/down relative to screen
+  const screenX = gx * Math.cos(aRad) - gy * Math.sin(aRad);
+  const screenY = -(gx * Math.sin(aRad) + gy * Math.cos(aRad));
+
+  return { screenX, screenY };
+}
 
 function setupGyroscope() {
   function handleOrientation(e) {
     if (state.steerMode !== 'gyro') return;
 
-    const beta = e.beta || 0;   // Pitch: [-180, 180]
-    const gamma = e.gamma || 0; // Roll: [-90, 90]
+    const beta = e.beta || 0;
+    const gamma = e.gamma || 0;
+
+    const { screenX, screenY } = computeScreenGravity(beta, gamma);
+
+    // Auto-calibrate on first received frame if not yet explicitly tared
+    if (!state.gyroNeutral.calibrated) {
+      state.gyroNeutral.screenX = screenX;
+      state.gyroNeutral.screenY = screenY;
+      state.gyroNeutral.calibrated = true;
+    }
 
     // Calculate delta relative to calibrated neutral angle
-    const deltaBeta = beta - state.gyroNeutral.beta;
-    const deltaGamma = gamma - state.gyroNeutral.gamma;
+    const deltaX = screenX - state.gyroNeutral.screenX;
+    const deltaY = screenY - state.gyroNeutral.screenY;
 
-    // Pitch: tilting device forward (deltaBeta > 0) pitches down (-1.0)
-    const normPitch = Math.max(-1.0, Math.min(1.0, -deltaBeta / state.gyroMaxDeflection));
-    // Roll: tilting device right (deltaGamma > 0) rolls right (+1.0)
-    const normRoll = Math.max(-1.0, Math.min(1.0, deltaGamma / state.gyroMaxDeflection));
+    // Aerospace sensitivity deflection limit (~24 degrees of natural hand motion)
+    const maxDeflection = state.gyroMaxDeflection || 0.42;
 
-    // Deadzone filter (3 degrees)
-    state.pitch = Math.abs(normPitch) < 0.08 ? 0.0 : normPitch;
-    state.roll = Math.abs(normRoll) < 0.08 ? 0.0 : normRoll;
+    // Roll: tilting right relative to screen (deltaX > 0) banks right (+1.0)
+    const normRoll = Math.max(-1.0, Math.min(1.0, deltaX / maxDeflection));
+    // Pitch: tilting top of screen forward (deltaY > 0) pitches down (-1.0), tilting back pitches up (+1.0)
+    const normPitch = Math.max(-1.0, Math.min(1.0, -deltaY / maxDeflection));
 
-    // Visual horizon reticle rotation
-    els.gyroReticle.style.transform = `rotate(${-state.roll * 35}deg) translateY(${-state.pitch * 20}px)`;
+    // Aerospace exponential deadzone response curve
+    state.roll = applyExponentialDeadzone(normRoll, 0.04, 1.5);
+    state.pitch = applyExponentialDeadzone(normPitch, 0.04, 1.5);
+
+    // Coordinated rudder / yaw steering: banking left/right smoothly yaws the nose into the turn for fluid space flight
+    if (!yawButtonPressed) {
+      state.yaw = state.roll * 0.40;
+    }
+
+    // Visual horizon reticle rotation & translation
+    if (els.gyroReticle) {
+      els.gyroReticle.style.transform = `rotate(${-state.roll * 35}deg) translateY(${-state.pitch * 20}px)`;
+    }
   }
 
   window.addEventListener('deviceorientation', handleOrientation);
 
-  els.calibrateGyroBtn.addEventListener('click', () => {
-    haptic(25);
-    // Center at current device orientation
-    window.addEventListener('deviceorientation', function onCalibrate(e) {
-      state.gyroNeutral.beta = e.beta || 45;
-      state.gyroNeutral.gamma = e.gamma || 0;
-      window.removeEventListener('deviceorientation', onCalibrate);
-      playSynthTone(700, 0.1);
-    }, { once: true });
+  // Auto re-zero when screen rotates between horizontal and vertical
+  window.addEventListener('orientationchange', () => {
+    state.gyroNeutral.calibrated = false;
   });
+  if (window.screen && window.screen.orientation) {
+    window.screen.orientation.addEventListener('change', () => {
+      state.gyroNeutral.calibrated = false;
+    });
+  }
+
+  // 1-Tap [ 🎯 TARE / ZERO HORIZON ] Calibration (CEObot Mandate)
+  function performTareZero() {
+    initAudio();
+    haptic([30, 20, 50]);
+    playSynthTone(880, 0.1, 'sine');
+    state.tare_pulse = true;
+
+    // Zero device orientation if sensor available
+    if (window.DeviceOrientationEvent) {
+      const onTare = function(e) {
+        const beta = e.beta || 0;
+        const gamma = e.gamma || 0;
+        const { screenX, screenY } = computeScreenGravity(beta, gamma);
+        state.gyroNeutral.screenX = screenX;
+        state.gyroNeutral.screenY = screenY;
+        state.gyroNeutral.calibrated = true;
+        window.removeEventListener('deviceorientation', onTare);
+      };
+      window.addEventListener('deviceorientation', onTare, { once: true });
+    }
+
+    triggerScreenFlash('ring-vanguard-amber', 250);
+    if (els.threatBanner) {
+      els.threatBanner.textContent = '🎯 // HORIZON ZEROED & CALIBRATED //';
+      els.threatBanner.className = 'text-vanguard-amber font-black tracking-widest truncate animate-pulse';
+    }
+
+    if (els.tareHorizonBtn) {
+      els.tareHorizonBtn.classList.add('scale-105', 'bg-vanguard-amber', 'text-black');
+      setTimeout(() => {
+        els.tareHorizonBtn.classList.remove('scale-105', 'bg-vanguard-amber', 'text-black');
+      }, 200);
+    }
+  }
+
+  if (els.tareHorizonBtn) {
+    els.tareHorizonBtn.addEventListener('click', performTareZero);
+  }
+  if (els.calibrateGyroBtn) {
+    els.calibrateGyroBtn.addEventListener('click', performTareZero);
+  }
 
   els.toggleSteerModeBtn.addEventListener('click', async () => {
     initAudio();
@@ -650,6 +784,7 @@ function setupGyroscope() {
       }
 
       state.steerMode = 'gyro';
+      state.gyroNeutral.calibrated = false; // Auto-zero on activate
       els.steerModeIcon.textContent = '🧭';
       els.steerModeText.textContent = 'GYRO STEER';
       els.stickKnob.classList.add('hidden');
@@ -664,6 +799,7 @@ function setupGyroscope() {
       els.calibrateGyroBtn.classList.add('hidden');
       state.pitch = 0.0;
       state.roll = 0.0;
+      if (!yawButtonPressed) state.yaw = 0.0;
     }
   });
 }
@@ -737,26 +873,44 @@ function setupCombatTriggers() {
   els.nitroBoostBtn.addEventListener('touchend', onBoostEnd);
   els.nitroBoostBtn.addEventListener('mouseup', onBoostEnd);
 
-  // Yaw Pedals
-  els.yawLeftBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
+  // Yaw Pedals (Rudder Control)
+  function onYawLeftStart(e) {
+    if (e.cancelable) e.preventDefault();
+    yawButtonPressed = true;
     state.yaw = -1.0;
     haptic(10);
-  }, { passive: false });
+  }
 
-  els.yawLeftBtn.addEventListener('touchend', () => {
-    state.yaw = 0.0;
-  });
+  function onYawLeftEnd() {
+    yawButtonPressed = false;
+    state.yaw = state.steerMode === 'gyro' ? (state.roll * 0.40) : 0.0;
+  }
 
-  els.yawRightBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
+  function onYawRightStart(e) {
+    if (e.cancelable) e.preventDefault();
+    yawButtonPressed = true;
     state.yaw = 1.0;
     haptic(10);
-  }, { passive: false });
+  }
 
-  els.yawRightBtn.addEventListener('touchend', () => {
-    state.yaw = 0.0;
-  });
+  function onYawRightEnd() {
+    yawButtonPressed = false;
+    state.yaw = state.steerMode === 'gyro' ? (state.roll * 0.40) : 0.0;
+  }
+
+  els.yawLeftBtn.addEventListener('touchstart', onYawLeftStart, { passive: false });
+  els.yawLeftBtn.addEventListener('touchend', onYawLeftEnd);
+  els.yawLeftBtn.addEventListener('touchcancel', onYawLeftEnd);
+  els.yawLeftBtn.addEventListener('mousedown', onYawLeftStart);
+  els.yawLeftBtn.addEventListener('mouseup', onYawLeftEnd);
+  els.yawLeftBtn.addEventListener('mouseleave', onYawLeftEnd);
+
+  els.yawRightBtn.addEventListener('touchstart', onYawRightStart, { passive: false });
+  els.yawRightBtn.addEventListener('touchend', onYawRightEnd);
+  els.yawRightBtn.addEventListener('touchcancel', onYawRightEnd);
+  els.yawRightBtn.addEventListener('mousedown', onYawRightStart);
+  els.yawRightBtn.addEventListener('mouseup', onYawRightEnd);
+  els.yawRightBtn.addEventListener('mouseleave', onYawRightEnd);
 
   // Audio Toggle
   els.toggleAudioBtn.addEventListener('click', () => {

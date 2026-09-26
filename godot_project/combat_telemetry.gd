@@ -88,8 +88,10 @@ func apply_damage(amount: float) -> void:
 	else:
 		current_hull = max(0.0, current_hull - effective_damage)
 	
-	# Notify mobile cockpit if shields broken
+	# Notify mobile cockpit and apply physical airframe shock if shields collapsed
 	if had_shield and current_shield <= 0.0:
+		if ship and "camera_shake_trauma" in ship:
+			ship.camera_shake_trauma = max(ship.camera_shake_trauma, 0.45)
 		var net_server = get_tree().root.get_node_or_null("NetworkControllerServer") if (is_inside_tree() and get_tree() and get_tree().root) else null
 		if net_server and net_server.has_method("notify_combat_event") and ship:
 			net_server.notify_combat_event(ship.player_id, "SHIELD_BROKEN")

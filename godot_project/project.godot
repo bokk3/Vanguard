@@ -7,7 +7,7 @@ config_version=5
 [application]
 
 config/name="Project Vanguard"
-config/version="0.8.1"
+config/version="0.8.2"
 run/main_scene="res://home_menu.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 

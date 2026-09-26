@@ -198,6 +198,16 @@ func initialize_level(root_node: Node3D) -> void:
 		active_ship.stall_speed = stall
 		print("[MissionManager] Aircraft stall speed configured to: ", stall, " m/s")
 	
+	# 2b. Acoustic Environment: Vacuum vs Atmospheric Sortie Filtering
+	var is_vacuum = m_data.get("stall_speed_ms", 25.0) == 0.0 or current_mission_id in ["M04", "M05", "M06", "M07", "M08"]
+	var sfx_bus_idx = AudioServer.get_bus_index("SFX")
+	if sfx_bus_idx >= 0 and AudioServer.get_bus_effect_count(sfx_bus_idx) > 1:
+		AudioServer.set_bus_effect_enabled(sfx_bus_idx, 1, is_vacuum)
+		if is_vacuum:
+			print("[MissionManager] Space sortie detected. Vacuum acoustic low-pass filtering engaged for external SFX.")
+		else:
+			print("[MissionManager] Atmospheric sortie detected. Full dynamic audio frequency engaged.")
+	
 	# 3. Setup Objectives
 	_setup_objectives(m_data)
 	
@@ -876,12 +886,15 @@ func _spawn_m07_carrier_and_torpedoes() -> void:
 	# We convert to world space and position + orient the ship there, then lock
 	# controls for m07_catapult_lock_timer seconds while the catapult fires.
 	var catapult_local = Vector3(-25.0, 80.0, 12.0)
-	var catapult_world = carrier.to_global(catapult_local)
+	var catapult_world = carrier.to_global(catapult_local) if carrier.is_inside_tree() else (carrier.transform * catapult_local)
 	
 	if is_instance_valid(active_ship):
-		active_ship.global_position = catapult_world
-		# Orient fighter along carrier's forward (+Z) catapult track
-		active_ship.global_rotation = carrier.global_rotation
+		if active_ship.is_inside_tree() and carrier.is_inside_tree():
+			active_ship.global_position = catapult_world
+			active_ship.global_rotation = carrier.global_rotation
+		else:
+			active_ship.position = catapult_world
+			active_ship.rotation = carrier.rotation
 		# Lock flight controls during the catapult acceleration phase
 		if "catapult_locked" in active_ship:
 			active_ship.catapult_locked = true
@@ -897,7 +910,7 @@ func _spawn_m07_carrier_and_torpedoes() -> void:
 	var viper_mesh = load("res://assets/meshes/vehicles/Spaceship_Viper_Supreme_HD.fbx")
 	var wingman = Node3D.new()
 	wingman.name = "Wingman_Miller"
-	var catapult2_world = carrier.to_global(Vector3(25.0, 80.0, 12.0))
+	var catapult2_world = carrier.to_global(Vector3(25.0, 80.0, 12.0)) if carrier.is_inside_tree() else (carrier.transform * Vector3(25.0, 80.0, 12.0))
 	wingman.position = catapult2_world
 	wingman.add_to_group("friendlies")
 	active_root.add_child(wingman)
@@ -1050,7 +1063,7 @@ func _evaluate_continuous_objectives(delta: float) -> void:
 	
 	# M02: Altitude below 120m (Canyon radar masking)
 	if current_mission_id == "M02":
-		var alt = active_ship.global_position.y
+		var alt = active_ship.global_position.y if active_ship.is_inside_tree() else active_ship.position.y
 		if alt > 120.0:
 			altitude_warning_timer += delta
 			if altitude_warning_timer > 1.5 and altitude_warning_timer - delta <= 1.5:
@@ -1063,7 +1076,7 @@ func _evaluate_continuous_objectives(delta: float) -> void:
 	
 	# M04: Near-vacuum altitude monitoring & thin air advisory + boss intercept tracking
 	if current_mission_id == "M04":
-		var alt = active_ship.global_position.y
+		var alt = active_ship.global_position.y if active_ship.is_inside_tree() else active_ship.position.y
 		if alt > 150.0 and altitude_warning_timer == 0.0:
 			altitude_warning_timer = 1.0
 			queue_transmission("AEGIS_7", "Atmospheric density below 5%. Aero-surfaces stalling. Switch to reaction thrusters.", 4.0, "res://audio/comms/m04_aegis_thin_air.mp3")
@@ -1071,7 +1084,9 @@ func _evaluate_continuous_objectives(delta: float) -> void:
 		# Intercept objective evaluation
 		var boss = active_root.get_node_or_null("Boss_CombineGhost")
 		if is_instance_valid(boss):
-			var d_boss = active_ship.global_position.distance_to(boss.global_position)
+			var ship_p = active_ship.global_position if active_ship.is_inside_tree() else active_ship.position
+			var boss_p = boss.global_position if boss.is_inside_tree() else boss.position
+			var d_boss = ship_p.distance_to(boss_p)
 			if d_boss < 480.0:
 				_set_objective_status("obj_intercept", "COMPLETED", 1, 1)
 	

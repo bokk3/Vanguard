@@ -289,40 +289,6 @@ text = "AVIONICS DOCK // HANGAR 07"
 [node name="Sep1" type="HSeparator" parent="UI/Sidebar/Margin/VBox"]
 layout_mode = 2
 
-[node name="PilotDossierBox" type="PanelContainer" parent="UI/Sidebar/Margin/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_status")
-
-[node name="VBox" type="VBoxContainer" parent="UI/Sidebar/Margin/VBox/PilotDossierBox"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="HBox" type="HBoxContainer" parent="UI/Sidebar/Margin/VBox/PilotDossierBox/VBox"]
-layout_mode = 2
-
-[node name="PilotLabel" type="Label" parent="UI/Sidebar/Margin/VBox/PilotDossierBox/VBox/HBox"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0, 0.92, 1, 1)
-theme_override_font_sizes/font_size = 12
-text = "PILOT: VANGUARD-LEAD"
-
-[node name="SwitchPilotBtn" type="Button" parent="UI/Sidebar/Margin/VBox/PilotDossierBox/VBox/HBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(54, 20)
-layout_mode = 2
-theme_override_font_sizes/font_size = 9
-text = "SWITCH"
-
-[node name="PilotRankLabel" type="Label" parent="UI/Sidebar/Margin/VBox/PilotDossierBox/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.84, 0, 0.9)
-theme_override_font_sizes/font_size = 10
-text = "RANK: LIEUTENANT // 404TH WING"
-
 [node name="StatusBox" type="PanelContainer" parent="UI/Sidebar/Margin/VBox"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_status")
@@ -379,6 +345,61 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_badge")
 text = "◈ UPDATE AVAILABLE // v0.8.0"
 alignment = 0
+
+[node name="PilotDossierBox" type="PanelContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_status")
+
+[node name="VBox" type="VBoxContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="PilotLabel" type="Label" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "PILOT: MAVERICK"
+
+[node name="PilotRankLabel" type="Label" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.85, 0.95, 0.85)
+theme_override_font_sizes/font_size = 10
+text = "RANK: LIEUTENANT // 404th Vanguard Strike Wing"
+
+[node name="SwitchPilotBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_badge")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "🧑‍✈️ [LOGIN / REGISTER / SWITCH]"
+
+[node name="FleetRadarBox" type="PanelContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_status")
+
+[node name="VBox" type="VBoxContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons/FleetRadarBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="FleetHeader" type="Label" parent="UI/Sidebar/Margin/VBox/MenuButtons/FleetRadarBox/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "◈ VANGUARD FLEET NETWORK // LIVE"
+
+[node name="FleetStatsLabel" type="Label" parent="UI/Sidebar/Margin/VBox/MenuButtons/FleetRadarBox/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.95, 0.85, 0.95)
+theme_override_font_sizes/font_size = 11
+text = "ONLINE: 1  |  LOBBIES: 0  |  ROSTER: 1,420"
 
 [node name="TheaterModeBox" type="PanelContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
 unique_name_in_owner = true

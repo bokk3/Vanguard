@@ -229,6 +229,13 @@ func _end_match(winner_id: int) -> void:
 		victory_title.modulate = Color(0.0, 0.9, 1.0) if winner_id == 1 else Color(1.0, 0.35, 0.2)
 	if victory_detail:
 		victory_detail.text = "FINAL SCORE: PLAYER 1 [ %d ] — PLAYER 2 [ %d ]\nAIR COMBAT SORTIE TERMINATED" % [p1_score, p2_score]
+	
+	# Log split-screen battle result to AuthManager career telemetry
+	var auth_mgr = get_node_or_null("/root/AuthManager")
+	if auth_mgr and auth_mgr.has_method("record_battle_result"):
+		var is_win = (winner_id == 1)
+		var my_kills = p1_score
+		auth_mgr.record_battle_result("SPLIT-SCREEN DOGFIGHT", "VICTORY" if is_win else "DEFEAT", my_kills, 75.0)
 	if victory_modal:
 		victory_modal.show()
 	if rematch_btn:

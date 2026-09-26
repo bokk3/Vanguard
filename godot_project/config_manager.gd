@@ -76,6 +76,34 @@ var _config: ConfigFile = ConfigFile.new()
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	load_settings()
+	_setup_custom_cursors()
+	if is_inside_tree() and get_tree():
+		get_tree().node_added.connect(_on_scene_node_added)
+
+func _setup_custom_cursors() -> void:
+	var arrow_tex: Texture2D = null
+	if ResourceLoader.has_cached("res://ui/cursor_tactical.png"):
+		arrow_tex = load("res://ui/cursor_tactical.png")
+	else:
+		var img = Image.load_from_file("res://ui/cursor_tactical.png")
+		if img and not img.is_empty():
+			arrow_tex = ImageTexture.create_from_image(img)
+	if arrow_tex:
+		Input.set_custom_mouse_cursor(arrow_tex, Input.CURSOR_ARROW, Vector2(1, 1))
+
+	var hand_tex: Texture2D = null
+	if ResourceLoader.has_cached("res://ui/cursor_pointer.png"):
+		hand_tex = load("res://ui/cursor_pointer.png")
+	else:
+		var img = Image.load_from_file("res://ui/cursor_pointer.png")
+		if img and not img.is_empty():
+			hand_tex = ImageTexture.create_from_image(img)
+	if hand_tex:
+		Input.set_custom_mouse_cursor(hand_tex, Input.CURSOR_POINTING_HAND, Vector2(16, 16))
+
+func _on_scene_node_added(node: Node) -> void:
+	if node is BaseButton:
+		node.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
 func get_default_keybindings(azerty: bool) -> Dictionary:
 	if azerty:
