@@ -389,21 +389,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const tagName = data.tag_name || 'v0.8.0';
     const releaseUrl = data.html_url || 'https://github.com/bokk3/Vanguard/releases';
 
-    // Find direct binary download asset if attached
+    // Detect user platform
+    const ua = (navigator.userAgent || '').toLowerCase();
+    const uaPlatform = (navigator.platform || '').toLowerCase();
+    let detectedOS = 'windows'; // default
+    if (ua.includes('mac') || uaPlatform.includes('mac')) {
+      detectedOS = 'macos';
+    } else if (ua.includes('linux') || uaPlatform.includes('linux')) {
+      detectedOS = 'linux';
+    }
+
+    const platformLabels = {
+      windows: 'Win64',
+      linux: 'Linux x86_64',
+      macos: 'macOS'
+    };
+    const platformAssetKeys = {
+      windows: 'windows',
+      linux: 'linux',
+      macos: 'macos'
+    };
+
+    // Find the platform-matching binary asset from the release
     let directDownloadUrl = releaseUrl;
     let assetSizeText = '';
-    if (data.assets && data.assets.length > 0) {
-      const winAsset = data.assets.find(a => 
-        a.name.toLowerCase().includes('win') || 
-        a.name.toLowerCase().endsWith('.zip') || 
-        a.name.toLowerCase().endsWith('.exe')
-      ) || data.assets[0];
+    let platformLabel = platformLabels[detectedOS];
 
-      if (winAsset) {
-        directDownloadUrl = winAsset.browser_download_url;
-        const sizeMb = (winAsset.size / (1024 * 1024)).toFixed(1);
+    if (data.assets && data.assets.length > 0) {
+      const key = platformAssetKeys[detectedOS];
+      const matchedAsset = data.assets.find(a =>
+        a.name.toLowerCase().includes(key)
+      );
+
+      if (matchedAsset) {
+        directDownloadUrl = matchedAsset.browser_download_url;
+        const sizeMb = (matchedAsset.size / (1024 * 1024)).toFixed(1);
         assetSizeText = ` (${sizeMb} MB)`;
       }
+      // If no platform match found, link to the release page (not a wrong-platform asset)
     }
 
     // Update DOM elements
@@ -419,12 +442,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const heroBtn = document.getElementById('hero-download-btn');
     const heroBtnText = document.getElementById('hero-download-text');
     if (heroBtn) heroBtn.href = directDownloadUrl;
-    if (heroBtnText) heroBtnText.textContent = `Download ${tagName} (Win64)${assetSizeText}`;
+    if (heroBtnText) heroBtnText.textContent = `Download ${tagName} (${platformLabel})${assetSizeText}`;
 
     const downloadSectionBtn = document.getElementById('download-section-btn');
     const downloadSectionText = document.getElementById('download-section-text');
     if (downloadSectionBtn) downloadSectionBtn.href = directDownloadUrl;
-    if (downloadSectionText) downloadSectionText.textContent = `Download ${tagName} (Win64)${assetSizeText}`;
+    if (downloadSectionText) downloadSectionText.textContent = `Download ${tagName} (${platformLabel})${assetSizeText}`;
 
     // Announcement status formatting
     const releaseStatusText = document.getElementById('release-status-text');
