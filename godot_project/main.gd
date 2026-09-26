@@ -2,7 +2,7 @@ extends Node3D
 
 ## Main: Level scene controller for Project Vanguard.
 ## Coordinates scene setup with MissionManager autoload on initialization.
-## Features dynamic drop-in split-screen co-op when Player 2 presses secondary controls.
+## Split-screen co-op is started from the menu or via mobile controller join.
 
 @onready var ship_p1: CharacterBody3D = $Spaceship
 @onready var single_cam: Camera3D = $Camera3D
@@ -78,40 +78,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 
-	if not is_coop_active:
-		if _is_secondary_control_event(event):
-			join_player_2()
-			get_viewport().set_input_as_handled()
-	else:
+	# F2: Toggle split layout when co-op is active
+	if is_coop_active:
 		if event is InputEventKey and event.pressed and event.keycode == KEY_F2:
 			toggle_split_layout()
 			get_viewport().set_input_as_handled()
-
-func _is_secondary_control_event(event: InputEvent) -> bool:
-	var cfg = get_node_or_null("/root/ConfigManager")
-	if cfg and "P2_ACTIONS" in cfg:
-		for action in cfg.P2_ACTIONS:
-			if event.is_action_pressed(action):
-				return true
-	
-	# Device index >= 1 (Second controller button or thumbstick)
-	if event is InputEventJoypadButton and event.pressed and event.device >= 1:
-		return true
-	if event is InputEventJoypadMotion and abs(event.axis_value) > 0.6 and event.device >= 1:
-		return true
-		
-	# Keyboard keys for Player 2 (IJKL, YH, UO, N, M, P, Enter, NumPad)
-	if event is InputEventKey and event.pressed:
-		var k = event.keycode
-		var p2_keys = [
-			KEY_I, KEY_K, KEY_J, KEY_L, KEY_U, KEY_O, KEY_Y, KEY_H,
-			KEY_N, KEY_M, KEY_P, KEY_ENTER, KEY_KP_ENTER,
-			KEY_KP_8, KEY_KP_2, KEY_KP_4, KEY_KP_6, KEY_KP_5, KEY_KP_7, KEY_KP_9, KEY_KP_0
-		]
-		if k in p2_keys:
-			return true
-			
-	return false
 
 func join_player_2() -> void:
 	if is_coop_active:
