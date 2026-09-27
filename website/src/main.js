@@ -631,6 +631,18 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPilotStats();
   }
 
+  // Stars wallet pill click -> open dossier
+  const starsClickTargets = ['header-stars-pill', 'mobile-stars-pill'];
+  starsClickTargets.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('click', () => {
+        audio.ping();
+        openPilotModal('dossier');
+      });
+    }
+  });
+
   function renderDossier() {
     const rawProfile = localStorage.getItem('vanguard_pilot_profile');
     if (!rawProfile) return;
