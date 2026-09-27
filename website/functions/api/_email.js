@@ -149,33 +149,23 @@ export async function sendVerificationEmail(env, { email, callsign, code, verify
                 Greetings, Pilot <strong>${callsign}</strong>. Your commission into the 404th Vanguard Strike Wing has been provisioned. To unlock full access to the <strong>Global P2P Radar</strong> and submit verified records to the <strong>Global Fleet Leaderboard</strong>, verify your military frequency below.
               </p>
 
-              <!-- 6-Digit In-Game Code Card -->
-              <div style="background-color: #030712; border: 1px solid #00e5ff; border-radius: 6px; padding: 20px; text-align: center; margin: 0 0 28px 0;">
-                <div style="color: #9ca3af; font-size: 11px; letter-spacing: 2px; margin-bottom: 8px;">IN-GAME CLEARANCE CODE (ENTER IN GODOT CLIENT)</div>
+              <!-- 6-Digit In-Game & Web Code Card -->
+              <div style="background-color: #030712; border: 1px solid #00e5ff; border-radius: 6px; padding: 20px; text-align: center; margin: 0 0 24px 0;">
+                <div style="color: #9ca3af; font-size: 11px; letter-spacing: 2px; margin-bottom: 8px;">6-DIGIT CLEARANCE CODE (WEB PORTAL &amp; CLIENT)</div>
                 <div style="color: #ffd700; font-size: 34px; font-weight: bold; letter-spacing: 8px; font-family: monospace;">${code}</div>
                 <div style="color: #6b7280; font-size: 10px; margin-top: 6px;">CODE VALID FOR 30 MINUTES</div>
               </div>
 
-              <!-- One-Click Web Verification Link -->
-              <div style="text-align: center; margin: 0 0 20px 0;">
-                <a href="${verifyUrl}" style="display: block; max-width: 520px; margin: 0 auto; background-color: #00e5ff; color: #000000; font-size: 13px; font-weight: bold; text-decoration: none; padding: 14px 20px; border-radius: 6px; letter-spacing: 1px; text-transform: uppercase; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); text-align: center;">
-                  <div style="font-size: 14px; font-weight: 900; letter-spacing: 2px;">⚡ CONFIRM FLIGHT CLEARANCE ⚡</div>
-                  <div style="font-size: 10px; font-family: monospace; color: #004d40; margin-top: 6px; font-weight: normal; word-break: break-all; text-transform: none;">
-                    ${verifyUrl}
-                  </div>
-                </a>
-              </div>
-
-              <!-- Direct Clean Verification URL Box -->
-              <div style="background-color: #030712; border: 1px dashed #334155; border-radius: 6px; padding: 12px 16px; margin: 0 auto 24px auto; max-width: 520px; text-align: left;">
-                <div style="color: #94a3b8; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">
-                  DIRECT FLIGHT CLEARANCE URL (COPY OR TAP DIRECTLY):
+              <!-- Direct Copyable Clearance URL Box (No a-href to avoid Brevo tracking domain SSL rewrite) -->
+              <div style="background-color: #030712; border: 1px solid #1f293d; border-radius: 6px; padding: 16px 20px; margin: 0 0 24px 0; text-align: left;">
+                <div style="color: #00e5ff; font-size: 11px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;">
+                  ▶ DIRECT CLEARANCE URL (COPY &amp; PASTE INTO BROWSER):
                 </div>
-                <div style="word-break: break-all;">
-                  <a href="${verifyUrl}" style="color: #38bdf8; font-size: 11px; font-family: monospace; text-decoration: underline; word-break: break-all;">${verifyUrl}</a>
+                <div style="background-color: #091322; border: 1px solid rgba(0, 229, 255, 0.25); border-radius: 4px; padding: 12px; font-family: monospace; font-size: 12px; color: #38bdf8; word-break: break-all; user-select: all; -webkit-user-select: all;">
+                  ${verifyUrl}
                 </div>
-                <div style="color: #64748b; font-size: 10px; margin-top: 6px;">
-                  Tip: If your mail client blocks button redirects, paste this direct URL into your browser address bar.
+                <div style="color: #6b7280; font-size: 10px; margin-top: 8px; line-height: 1.4;">
+                  Copy and paste the URL above into your browser address bar to verify instantly, or enter the 6-digit clearance code directly at <span style="color: #9ca3af; font-family: monospace;">project-vanguard.pages.dev/verify.html</span>.
                 </div>
               </div>
 
@@ -206,8 +196,8 @@ export async function sendVerificationEmail(env, { email, callsign, code, verify
 [ PROJECT VANGUARD - 404TH STRIKE WING ]
 COMMISSION VERIFICATION FOR PILOT: ${callsign}
 
-Your in-game 6-digit clearance code is: ${code}
-(Valid for 30 minutes in the Vanguard Godot desktop client)
+Your 6-digit clearance code is: ${code}
+(Valid for 30 minutes in the Vanguard game client and web portal)
 
 Or verify your flight clearance directly online:
 ${verifyUrl}
