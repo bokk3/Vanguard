@@ -4,10 +4,12 @@ pages_build_output_dir = "dist"
 
 [vars]
 ENVIRONMENT = "production"
-VERSION = "0.9.1"
+VERSION = "0.9.2"
 GAME_TITLE = "Project Vanguard"
 REPOSITORY = "https://github.com/bokk3/Vanguard"
 AUTH_SECRET = "vanguard-strike-wing-404th-secret-key-2026"
+BREVO_SENDER_EMAIL = "vanguard@truyens.pro"
+BREVO_SENDER_NAME = "Vanguard HQ"
 
 [[d1_databases]]
 binding = "DB"

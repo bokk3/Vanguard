@@ -87,7 +87,7 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	
 	# Dynamic version string from project settings
-	var ver = ProjectSettings.get_setting("application/config/version", "0.9.1")
+	var ver = ProjectSettings.get_setting("application/config/version", "0.9.2")
 	if footer_label:
 		footer_label.text = "PROJECT VANGUARD v%s\nSYSTEMS INITIALIZED // READY" % ver
 	

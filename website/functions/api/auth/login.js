@@ -10,6 +10,7 @@ import {
     verifyPassword,
     createPilotToken,
 } from "../_utils.js";
+import { ensureVerificationSchema } from "../_db_utils.js";
 
 export async function onRequestOptions() {
     return handleOptions();
@@ -39,9 +40,11 @@ export async function onRequestPost({ request, env }) {
     }
 
     try {
+        await ensureVerificationSchema(env.DB);
+
         // Find pilot by callsign (case-insensitive) or email
         const pilot = await env.DB.prepare(
-            `SELECT id, callsign, email, password_hash, salt, rank, squadron, created_at 
+            `SELECT id, callsign, email, password_hash, salt, rank, squadron, email_verified, created_at 
              FROM pilots 
              WHERE callsign = ? OR email = ? 
              LIMIT 1`
@@ -76,6 +79,7 @@ export async function onRequestPost({ request, env }) {
                 callsign: pilot.callsign,
                 rank: pilot.rank,
                 squadron: pilot.squadron,
+                email_verified: Boolean(pilot.email_verified),
             },
             env.AUTH_SECRET
         );
@@ -89,6 +93,7 @@ export async function onRequestPost({ request, env }) {
                 email: pilot.email,
                 rank: pilot.rank,
                 squadron: pilot.squadron,
+                email_verified: pilot.email_verified ? 1 : 0,
                 created_at: pilot.created_at,
                 stats: record || {
                     total_sorties: 0,

@@ -5,6 +5,28 @@ All notable changes to **Project Vanguard** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.2] - 2026-09-27
+
+### Added
+- **Zero-Cost Email Verification Engine (Brevo & Cloudflare Edge)**:
+  - Full-stack transactional email dispatch powered by Brevo (formerly Sendinblue) REST API (`POST https://api.brevo.com/v3/smtp/email`) on the 300 emails/day free tier quota (\$0/month forever).
+  - Production sender configured on custom domain (`vanguard@truyens.pro` via `truyens.pro` with DKIM/SPF DNS records).
+  - Tactical military-themed responsive HTML and plain text email templates featuring official Vanguard Directorate insignia and direct activation links.
+  - **Dual Verification Mechanism**:
+    - **1-Click Web Magic Link**: HMAC-SHA256 signed stateless tokens with 24-hour expiration (`/verify.html?token=...` & `GET /api/auth/verify`).
+    - **6-Digit Tactical Clearance Code**: Numeric one-time password allowing direct verification from within the game client or browser dossier.
+  - **Self-Healing Edge Database Migration**: Automatic column verification and safe non-destructive migration in Cloudflare D1 (`email_verified`, `verification_code`, `verification_expires_at`).
+  - **Resend Rate-Limiting**: 90-second cooldown protection on `/api/auth/resend-verification` preventing mailbox flooding and quota exhaustion.
+  - **In-Game Clearance Terminal (`login_dialog.gd` & `login_dialog.tscn`)**:
+    - Added dedicated email input field in registration mode.
+    - Added in-terminal 6-digit clearance verification prompt with `[ CONFIRM ]`, `[ RESEND ]`, and `[ SKIP FOR NOW & SORTIE ]` options (unverified pilots can still sortie without being blocked).
+  - **Web Portal Pilot Dossier Clearance Badge**:
+    - Displays `[ ⚡ VERIFIED ]` vs `[ ⚠️ UNVERIFIED ]` status badges in the pilot dossier header.
+    - Inline verification box with instant 6-digit confirmation and a 60-second cooldown resend countdown.
+  - Standalone HUD verification landing page (`website/verify.html`).
+
+---
+
 ## [0.9.1] - 2026-09-27
 
 ### Added

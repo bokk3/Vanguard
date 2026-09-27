@@ -12,12 +12,16 @@ CREATE TABLE IF NOT EXISTS pilots (
     salt TEXT NOT NULL,                              -- Hex string of random salt
     rank TEXT DEFAULT 'FLIGHT LIEUTENANT',           -- Military rank designation
     squadron TEXT DEFAULT '404th Vanguard Strike Wing',
+    email_verified INTEGER DEFAULT 0,                -- 0 = pending, 1 = verified clearance
+    verification_code TEXT,                          -- 6-digit in-game code (e.g. "749281")
+    verification_expires_at DATETIME,                -- Expiration timestamp
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Index for instant callsign / email lookup
 CREATE INDEX IF NOT EXISTS idx_pilots_callsign ON pilots(callsign);
 CREATE INDEX IF NOT EXISTS idx_pilots_email ON pilots(email);
+CREATE INDEX IF NOT EXISTS idx_pilots_verified ON pilots(email_verified);
 
 -- 2. Pilot Service Records & Cloud Savegames
 CREATE TABLE IF NOT EXISTS pilot_records (

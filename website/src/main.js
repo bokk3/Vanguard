@@ -597,6 +597,31 @@ document.addEventListener('DOMContentLoaded', () => {
       if (recordEl) recordEl.textContent = `${won}W - ${lost}L`;
       if (winRateEl) winRateEl.textContent = total > 0 ? `${((won / total) * 100).toFixed(1)}%` : '0.0%';
       if (controlsEl) controlsEl.textContent = stats.preferred_controls || 'AZERTY';
+
+      // Verification status handling
+      const verifiedBadge = document.getElementById('dossier-verified-badge');
+      const unverifiedBox = document.getElementById('dossier-unverified-box');
+      const unverifiedEmail = document.getElementById('dossier-unverified-email');
+
+      const isVerified = pilot.email_verified === 1 || pilot.email_verified === true;
+      if (verifiedBadge) {
+        if (isVerified) {
+          verifiedBadge.className = 'inline-block px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-bold';
+          verifiedBadge.textContent = '⚡ VERIFIED';
+        } else {
+          verifiedBadge.className = 'inline-block px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/40 text-[10px] font-bold';
+          verifiedBadge.textContent = '⚠️ UNVERIFIED';
+        }
+      }
+
+      if (unverifiedBox) {
+        if (isVerified) {
+          unverifiedBox.classList.add('hidden');
+        } else {
+          unverifiedBox.classList.remove('hidden');
+          if (unverifiedEmail) unverifiedEmail.textContent = pilot.email || '';
+        }
+      }
     } catch {}
   }
 
@@ -960,6 +985,107 @@ document.addEventListener('DOMContentLoaded', () => {
       } finally {
         btnApproveStation.disabled = false;
         btnApproveStation.textContent = 'Authorize';
+      }
+    });
+  }
+
+  // Handle In-Dossier Verification & Resend
+  const btnDossierSubmitVerify = document.getElementById('btn-dossier-submit-verify');
+  const inputDossierVerifyCode = document.getElementById('input-dossier-verify-code');
+  const dossierVerifyFeedback = document.getElementById('dossier-verify-feedback');
+  const btnDossierResendVerify = document.getElementById('btn-dossier-resend-verify');
+
+  if (btnDossierSubmitVerify) {
+    btnDossierSubmitVerify.addEventListener('click', async () => {
+      const code = inputDossierVerifyCode ? inputDossierVerifyCode.value.trim() : '';
+      if (!code) return;
+      btnDossierSubmitVerify.disabled = true;
+      btnDossierSubmitVerify.textContent = '...';
+
+      try {
+        const rawProfile = localStorage.getItem('vanguard_pilot_profile');
+        const pilot = rawProfile ? JSON.parse(rawProfile) : {};
+        const res = await fetch('/api/auth/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, email: pilot.email })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          audio.lock();
+          if (dossierVerifyFeedback) {
+            dossierVerifyFeedback.className = 'text-[10px] font-bold text-emerald-400 block pt-1';
+            dossierVerifyFeedback.textContent = '// CLEARANCE CONFIRMED // Email verified.';
+          }
+          pilot.email_verified = 1;
+          localStorage.setItem('vanguard_pilot_profile', JSON.stringify(pilot));
+          renderDossier();
+        } else {
+          if (dossierVerifyFeedback) {
+            dossierVerifyFeedback.className = 'text-[10px] font-bold text-red-400 block pt-1';
+            dossierVerifyFeedback.textContent = data.error || 'Invalid or expired code.';
+          }
+        }
+      } catch {
+        if (dossierVerifyFeedback) {
+          dossierVerifyFeedback.className = 'text-[10px] font-bold text-red-400 block pt-1';
+          dossierVerifyFeedback.textContent = 'Network error verifying code.';
+        }
+      } finally {
+        btnDossierSubmitVerify.disabled = false;
+        btnDossierSubmitVerify.textContent = 'Confirm';
+      }
+    });
+  }
+
+  if (btnDossierResendVerify) {
+    btnDossierResendVerify.addEventListener('click', async () => {
+      const rawProfile = localStorage.getItem('vanguard_pilot_profile');
+      const pilot = rawProfile ? JSON.parse(rawProfile) : {};
+      if (!pilot.email) return;
+
+      btnDossierResendVerify.disabled = true;
+      btnDossierResendVerify.textContent = 'Sending...';
+
+      try {
+        const token = localStorage.getItem('vanguard_pilot_token');
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+
+        const res = await fetch('/api/auth/resend-verification', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ email: pilot.email })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          audio.ping();
+          if (dossierVerifyFeedback) {
+            dossierVerifyFeedback.className = 'text-[10px] font-bold text-amber-300 block pt-1';
+            dossierVerifyFeedback.textContent = '// CLEARANCE CODE DISPATCHED // Check inbox.';
+          }
+          let secondsLeft = 60;
+          const timer = setInterval(() => {
+            secondsLeft--;
+            if (secondsLeft <= 0) {
+              clearInterval(timer);
+              btnDossierResendVerify.disabled = false;
+              btnDossierResendVerify.textContent = 'Resend';
+            } else {
+              btnDossierResendVerify.textContent = `${secondsLeft}s`;
+            }
+          }, 1000);
+        } else {
+          btnDossierResendVerify.disabled = false;
+          btnDossierResendVerify.textContent = 'Resend';
+          if (dossierVerifyFeedback) {
+            dossierVerifyFeedback.className = 'text-[10px] font-bold text-red-400 block pt-1';
+            dossierVerifyFeedback.textContent = data.error || 'Resend rate limited.';
+          }
+        }
+      } catch {
+        btnDossierResendVerify.disabled = false;
+        btnDossierResendVerify.textContent = 'Resend';
       }
     });
   }

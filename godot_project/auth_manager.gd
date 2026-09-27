@@ -7,6 +7,10 @@ extends Node
 signal auth_success(profile: Dictionary)
 signal auth_failed(reason: String)
 signal logged_out()
+signal email_verification_required(email: String)
+signal email_verified_success()
+signal email_verification_failed(reason: String)
+signal verification_code_resent()
 
 const SAVE_PATH = "user://pilot_profile.json"
 const CLOUD_API_BASE = "https://project-vanguard.pages.dev/api/auth"
@@ -17,6 +21,8 @@ var rank: String = "FLIGHT CADET"
 var squadron: String = "404th Vanguard Strike Wing"
 var token: String = ""
 var pilot_id: String = ""
+var email: String = ""
+var is_email_verified: bool = false
 var remember_me: bool = true
 var stats: Dictionary = {
 	"total_sorties": 0,
@@ -31,7 +37,7 @@ var stats: Dictionary = {
 }
 
 var http_request: HTTPRequest = null
-var pending_action: String = "" # "login" or "register"
+var pending_action: String = "" # "login", "register", "verify_code", "resend_code"
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -51,6 +57,8 @@ func get_active_profile() -> Dictionary:
 		"squadron": squadron,
 		"token": token,
 		"pilot_id": pilot_id,
+		"email": email,
+		"is_email_verified": is_email_verified,
 		"is_authenticated": is_authenticated,
 		"stats": stats.duplicate()
 	}
@@ -80,6 +88,8 @@ func _load_saved_profile() -> void:
 	squadron = data.get("squadron", "404th Vanguard Strike Wing")
 	token = data.get("token", "")
 	pilot_id = data.get("pilot_id", "")
+	email = data.get("email", "")
+	is_email_verified = data.get("is_email_verified", false)
 	remember_me = true
 	if data.has("stats") and typeof(data["stats"]) == TYPE_DICTIONARY:
 		stats = data["stats"]
@@ -98,6 +108,8 @@ func login_local(p_callsign: String, p_squadron: String = "404th Vanguard Strike
 	rank = "LIEUTENANT"
 	squadron = p_squadron if not p_squadron.strip_edges().is_empty() else "404th Vanguard Strike Wing"
 	token = ""
+	email = ""
+	is_email_verified = false
 	pilot_id = "local-" + str(randi() % 10000)
 	remember_me = p_remember
 	is_authenticated = true
@@ -159,22 +171,44 @@ func register_cloud(p_callsign: String, email: String, password: String, p_squad
 
 func _on_http_request_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray) -> void:
 	if result != HTTPRequest.RESULT_SUCCESS:
-		auth_failed.emit("Network connection failed (Result code %d)" % result)
+		var err_str = "Network connection failed (Result code %d)" % result
+		if pending_action in ["verify_code", "resend_code"]:
+			email_verification_failed.emit(err_str)
+		else:
+			auth_failed.emit(err_str)
 		return
 		
 	var body_str = body.get_string_from_utf8()
 	var parsed = JSON.parse_string(body_str)
 	if typeof(parsed) != TYPE_DICTIONARY:
-		auth_failed.emit("Invalid server response format (HTTP %d)" % response_code)
+		var err_str = "Invalid server response format (HTTP %d)" % response_code
+		if pending_action in ["verify_code", "resend_code"]:
+			email_verification_failed.emit(err_str)
+		else:
+			auth_failed.emit(err_str)
 		return
 		
 	var data: Dictionary = parsed
 	if response_code >= 200 and response_code < 300:
+		if pending_action == "verify_code":
+			is_email_verified = true
+			if remember_me:
+				_save_profile()
+			print(">>> [AuthManager] Email verified successfully with Brevo clearance code.")
+			email_verified_success.emit()
+			return
+		elif pending_action == "resend_code":
+			print(">>> [AuthManager] Brevo verification code re-dispatched.")
+			verification_code_resent.emit()
+			return
+
 		var pilot_data = data.get("pilot", {})
 		callsign = pilot_data.get("callsign", "PILOT").to_upper()
 		rank = pilot_data.get("rank", "FLIGHT CADET")
 		squadron = pilot_data.get("squadron", "404th Vanguard Strike Wing")
 		pilot_id = str(pilot_data.get("id", ""))
+		email = pilot_data.get("email", "")
+		is_email_verified = bool(pilot_data.get("email_verified", 0))
 		token = data.get("token", "")
 		if pilot_data.has("stats") and typeof(pilot_data["stats"]) == TYPE_DICTIONARY:
 			stats = pilot_data["stats"]
@@ -186,12 +220,55 @@ func _on_http_request_completed(result: int, response_code: int, headers: Packed
 		else:
 			_clear_saved_file()
 			
-		print(">>> [AuthManager] Cloud Pilot Authenticated: %s [%s] (%s)" % [callsign, rank, squadron])
+		print(">>> [AuthManager] Cloud Pilot Authenticated: %s [%s] (%s) // Verified: %s" % [callsign, rank, squadron, str(is_email_verified)])
 		_sync_pilot_to_systems()
 		auth_success.emit(get_active_profile())
+		if not is_email_verified and not email.is_empty():
+			email_verification_required.emit(email)
 	else:
 		var error_msg = data.get("error", data.get("message", "Authentication rejected by station command."))
-		auth_failed.emit(error_msg)
+		if pending_action in ["verify_code", "resend_code"]:
+			email_verification_failed.emit(error_msg)
+		else:
+			auth_failed.emit(error_msg)
+
+## Submits 6-digit email verification code to /api/auth/verify
+func verify_email_code(code: String) -> void:
+	var clean_code = code.strip_edges().to_upper()
+	if clean_code.is_empty():
+		email_verification_failed.emit("Clearance code cannot be empty.")
+		return
+		
+	pending_action = "verify_code"
+	var payload = {
+		"code": clean_code,
+		"email": email
+	}
+	var headers = ["Content-Type: application/json"]
+	if not token.is_empty():
+		headers.append("Authorization: Bearer " + token)
+		
+	var err = http_request.request(CLOUD_API_BASE + "/verify", headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
+	if err != OK:
+		email_verification_failed.emit("Failed to connect to verification server: %d" % err)
+
+## Requests re-dispatch of the 6-digit verification code via /api/auth/resend-verification
+func resend_verification_email() -> void:
+	if email.is_empty():
+		email_verification_failed.emit("No email associated with current pilot.")
+		return
+		
+	pending_action = "resend_code"
+	var payload = {
+		"email": email
+	}
+	var headers = ["Content-Type: application/json"]
+	if not token.is_empty():
+		headers.append("Authorization: Bearer " + token)
+		
+	var err = http_request.request(CLOUD_API_BASE + "/resend-verification", headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
+	if err != OK:
+		email_verification_failed.emit("Failed to connect to verification server: %d" % err)
 
 ## Logs out active pilot, clears memory and saved state
 func logout() -> void:
@@ -201,6 +278,8 @@ func logout() -> void:
 	squadron = "404th Vanguard Strike Wing"
 	token = ""
 	pilot_id = ""
+	email = ""
+	is_email_verified = false
 	stats = {
 		"total_sorties": 0,
 		"total_kills": 0,
@@ -218,6 +297,8 @@ func _save_profile() -> void:
 		"squadron": squadron,
 		"token": token,
 		"pilot_id": pilot_id,
+		"email": email,
+		"is_email_verified": is_email_verified,
 		"remember_me": true,
 		"stats": stats
 	}

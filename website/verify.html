@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flight Clearance Verification | Project Vanguard</title>
+  <link rel="icon" type="image/svg+xml" href="/images/vanguard_vector_emblem.svg">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body class="bg-vanguard-dark text-slate-100 min-h-screen flex flex-col justify-between font-mono">
+
+  <!-- Header -->
+  <header class="border-b border-vanguard-border/80 bg-vanguard-deep/90 py-4 px-6 backdrop-blur-md">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <a href="/" class="flex items-center space-x-3 group">
+        <img src="/images/vanguard_squadron_patch_cropped.png" alt="404th Wing" class="w-9 h-9 object-contain drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]">
+        <div>
+          <span class="font-display font-bold text-lg tracking-wider text-white group-hover:text-vanguard-cyan transition-colors">PROJECT VANGUARD</span>
+          <span class="block text-[10px] text-vanguard-textMuted tracking-widest uppercase -mt-0.5">404th Strike Wing // Avionics Command</span>
+        </div>
+      </a>
+      <a href="/" class="text-xs text-vanguard-cyan hover:underline tracking-wider">[ ◀ RETURN TO PORTAL ]</a>
+    </div>
+  </header>
+
+  <!-- Main Card -->
+  <main class="flex-grow flex items-center justify-center p-4 sm:p-6 my-8">
+    <div class="tactical-box max-w-lg w-full p-8 sm:p-10 rounded-2xl border border-vanguard-border/90 bg-black/75 shadow-2xl relative overflow-hidden">
+      
+      <!-- Top Tactical Badge -->
+      <div class="flex items-center justify-between mb-6 border-b border-vanguard-border/60 pb-4">
+        <span class="text-xs text-vanguard-gold font-bold tracking-widest uppercase flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-vanguard-gold animate-pulse"></span>
+          MILITARY FREQUENCY VERIFICATION
+        </span>
+        <span class="text-[10px] text-slate-500 uppercase">SYS // CLEARANCE-V1</span>
+      </div>
+
+      <!-- State 1: Verified Success -->
+      <div id="panel-verified" class="hidden text-center space-y-6">
+        <div class="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-3xl shadow-[0_0_25px_rgba(52,211,153,0.4)]">
+          ⚡
+        </div>
+        <div>
+          <h1 class="text-2xl sm:text-3xl font-display font-bold text-white tracking-wider">
+            FLIGHT CLEARANCE APPROVED
+          </h1>
+          <p id="verified-pilot-text" class="text-xs text-vanguard-cyan mt-2 font-bold tracking-wider">
+            PILOT COMMISSION ACTIVE // 404TH VANGUARD STRIKE WING
+          </p>
+          <p class="text-xs text-slate-400 mt-3 leading-relaxed">
+            Your military frequency has been cryptographically confirmed. Full access to the <strong>Global P2P Radar</strong> and <strong>Fleet Combat Leaderboard</strong> has been unlocked for your pilot profile.
+          </p>
+        </div>
+
+        <div class="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
+          <a href="/" class="px-6 py-3 bg-vanguard-cyan text-black font-display font-bold text-sm tracking-wider uppercase rounded hover:bg-white hover:shadow-cyan-glow transition-all text-center">
+            Launch Web Operations Portal
+          </a>
+        </div>
+      </div>
+
+      <!-- State 2: Code Entry / Unverified Form -->
+      <div id="panel-form" class="space-y-6">
+        <div class="text-center">
+          <div class="text-3xl mb-2">🎖️</div>
+          <h1 class="text-xl sm:text-2xl font-display font-bold text-white tracking-wider">
+            COMMISSION CLEARANCE
+          </h1>
+          <p class="text-xs text-slate-400 mt-2">
+            Enter the 6-digit tactical clearance code dispatched to your email address by Fleet Command.
+          </p>
+        </div>
+
+        <form id="verify-code-form" class="space-y-4">
+          <div>
+            <label for="code-input" class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+              6-Digit Clearance Code
+            </label>
+            <input 
+              id="code-input" 
+              type="text" 
+              maxlength="6" 
+              placeholder="e.g. 749281" 
+              class="w-full px-4 py-3 bg-vanguard-deep/80 border border-vanguard-border rounded-lg text-center text-2xl font-bold tracking-[6px] text-vanguard-gold placeholder:text-slate-600 focus:outline-none focus:border-vanguard-cyan transition-colors"
+              required
+            />
+          </div>
+
+          <div id="email-field-container">
+            <label for="email-input" class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">
+              Registered Email (If not logged in)
+            </label>
+            <input 
+              id="email-input" 
+              type="email" 
+              placeholder="pilot@domain.com" 
+              class="w-full px-3.5 py-2.5 bg-vanguard-deep/80 border border-vanguard-border rounded-lg text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-vanguard-cyan transition-colors"
+            />
+          </div>
+
+          <div id="verify-feedback" class="hidden p-3 rounded-lg text-xs font-bold"></div>
+
+          <button 
+            type="submit" 
+            id="btn-verify-submit" 
+            class="w-full py-3.5 bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/30 border-2 border-vanguard-gold text-vanguard-gold hover:from-vanguard-gold hover:to-amber-400 hover:text-black font-display font-black text-sm uppercase tracking-wider rounded-lg transition-all shadow-[0_0_15px_rgba(255,215,0,0.3)] cursor-pointer"
+          >
+            CONFIRM PILOT CLEARANCE
+          </button>
+        </form>
+
+        <div class="border-t border-vanguard-border/60 pt-4 flex items-center justify-between text-[11px] text-slate-400">
+          <span>Didn't receive the dispatch?</span>
+          <button id="btn-resend" class="text-vanguard-cyan hover:underline cursor-pointer font-bold">
+            [ RESEND CODE ]
+          </button>
+        </div>
+      </div>
+
+      <!-- State 3: Error Banner -->
+      <div id="panel-error" class="hidden text-center space-y-4">
+        <div class="w-14 h-14 mx-auto rounded-full bg-red-500/20 border-2 border-red-500 flex items-center justify-center text-2xl text-red-400">
+          ✕
+        </div>
+        <h2 class="text-xl font-display font-bold text-white">CLEARANCE VERIFICATION FAILED</h2>
+        <p id="error-desc" class="text-xs text-red-300 leading-relaxed">
+          The link or token has expired or is invalid. Please request a new clearance code below.
+        </p>
+        <button id="btn-show-form" class="mt-2 px-5 py-2 text-xs border border-vanguard-border rounded hover:border-vanguard-cyan text-slate-300 hover:text-vanguard-cyan">
+          Enter 6-Digit Code Manually
+        </button>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-vanguard-border/60 py-6 text-center text-xs text-slate-500">
+    <p>// PROJECT VANGUARD // 404TH STRIKE WING // ZERO-COST BREVO TELEMETRY //</p>
+  </footer>
+
+  <script type="module">
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('status');
+    const callsign = params.get('callsign') || 'PILOT';
+    const rank = params.get('rank') || 'LIEUTENANT';
+    const err = params.get('error');
+
+    const panelVerified = document.getElementById('panel-verified');
+    const panelForm = document.getElementById('panel-form');
+    const panelError = document.getElementById('panel-error');
+    const verifiedPilotText = document.getElementById('verified-pilot-text');
+    const errorDesc = document.getElementById('error-desc');
+    const codeForm = document.getElementById('verify-code-form');
+    const codeInput = document.getElementById('code-input');
+    const emailInput = document.getElementById('email-input');
+    const verifyFeedback = document.getElementById('verify-feedback');
+    const btnResend = document.getElementById('btn-resend');
+    const btnShowForm = document.getElementById('btn-show-form');
+
+    // Pre-populate email from local profile if available
+    try {
+      const profile = JSON.parse(localStorage.getItem('vanguard_pilot_profile') || '{}');
+      if (profile.email) {
+        emailInput.value = profile.email;
+      }
+    } catch {}
+
+    if (status === 'verified') {
+      panelVerified.classList.remove('hidden');
+      panelForm.classList.add('hidden');
+      panelError.classList.add('hidden');
+      verifiedPilotText.textContent = `CLEARANCE ACTIVE // ${rank.toUpperCase()} ${callsign.toUpperCase()}`;
+      
+      // Update local storage status
+      try {
+        const raw = localStorage.getItem('vanguard_pilot_profile');
+        if (raw) {
+          const p = JSON.parse(raw);
+          p.email_verified = 1;
+          localStorage.setItem('vanguard_pilot_profile', JSON.stringify(p));
+        }
+      } catch {}
+    } else if (err) {
+      panelError.classList.remove('hidden');
+      panelForm.classList.add('hidden');
+      panelVerified.classList.add('hidden');
+      if (err === 'expired_or_invalid') {
+        errorDesc.textContent = "The verification token has expired or is cryptographically invalid. Please request a new code.";
+      }
+    }
+
+    if (btnShowForm) {
+      btnShowForm.addEventListener('click', () => {
+        panelError.classList.add('hidden');
+        panelForm.classList.remove('hidden');
+      });
+    }
+
+    // Handle code verification submission
+    codeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      verifyFeedback.classList.add('hidden');
+
+      const code = codeInput.value.trim();
+      const email = emailInput.value.trim();
+      const token = localStorage.getItem('vanguard_pilot_token');
+
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const submitBtn = document.getElementById('btn-verify-submit');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'TRANSMITTING CLEARANCE...';
+
+      try {
+        const res = await fetch('/api/auth/verify', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ code, email })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          // Update profile in localStorage
+          try {
+            const raw = localStorage.getItem('vanguard_pilot_profile');
+            let p = raw ? JSON.parse(raw) : (data.pilot || {});
+            p.email_verified = 1;
+            localStorage.setItem('vanguard_pilot_profile', JSON.stringify(p));
+            if (data.token) localStorage.setItem('vanguard_pilot_token', data.token);
+          } catch {}
+
+          panelVerified.classList.remove('hidden');
+          panelForm.classList.add('hidden');
+          verifiedPilotText.textContent = `CLEARANCE ACTIVE // ${data.pilot?.rank || rank} ${data.pilot?.callsign || callsign}`;
+        } else {
+          verifyFeedback.className = 'p-3 rounded-lg text-xs font-bold border border-red-500/50 bg-red-950/40 text-red-400 block';
+          verifyFeedback.textContent = data.error || 'Clearance rejected. Check the code and try again.';
+        }
+      } catch (err) {
+        verifyFeedback.className = 'p-3 rounded-lg text-xs font-bold border border-red-500/50 bg-red-950/40 text-red-400 block';
+        verifyFeedback.textContent = 'Connection failed. Please check network telemetry.';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'CONFIRM PILOT CLEARANCE';
+      }
+    });
+
+    // Handle Resend button
+    btnResend.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const token = localStorage.getItem('vanguard_pilot_token');
+      if (!email && !token) {
+        verifyFeedback.className = 'p-3 rounded-lg text-xs font-bold border border-amber-500/50 bg-amber-950/40 text-amber-400 block';
+        verifyFeedback.textContent = 'Please enter your registered email address first.';
+        emailInput.focus();
+        return;
+      }
+
+      btnResend.disabled = true;
+      btnResend.textContent = '[ DISPATCHING... ]';
+
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      try {
+        const res = await fetch('/api/auth/resend-verification', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          verifyFeedback.className = 'p-3 rounded-lg text-xs font-bold border border-emerald-500/50 bg-emerald-950/40 text-emerald-400 block';
+          verifyFeedback.textContent = data.message || 'New clearance code dispatched to your inbox.';
+          if (data.verification?.dev_code) {
+            verifyFeedback.textContent += ` [Dev Code: ${data.verification.dev_code}]`;
+          }
+        } else {
+          verifyFeedback.className = 'p-3 rounded-lg text-xs font-bold border border-amber-500/50 bg-amber-950/40 text-amber-400 block';
+          verifyFeedback.textContent = data.error || 'Failed to dispatch code.';
+        }
+      } catch {
+        verifyFeedback.className = 'p-3 rounded-lg text-xs font-bold border border-red-500/50 bg-red-950/40 text-red-400 block';
+        verifyFeedback.textContent = 'Dispatch failed due to network error.';
+      } finally {
+        btnResend.disabled = false;
+        btnResend.textContent = '[ RESEND CODE ]';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -11,6 +11,12 @@ import {
     hashPassword,
     createPilotToken,
 } from "../_utils.js";
+import { ensureVerificationSchema } from "../_db_utils.js";
+import {
+    generateVerificationCode,
+    createVerificationToken,
+    sendVerificationEmail,
+} from "../_email.js";
 
 export async function onRequestOptions() {
     return handleOptions();
@@ -67,17 +73,25 @@ export async function onRequestPost({ request, env }) {
             return errorResponse("Email address is already in use.", 409);
         }
 
-        // 3. Cryptographic password hashing (PBKDF2-HMAC-SHA256)
+        // 3. Ensure DB schema has email_verified columns
+        await ensureVerificationSchema(env.DB);
+
+        // 4. Cryptographic password hashing (PBKDF2-HMAC-SHA256)
         const salt = generateSalt(16);
         const passwordHash = await hashPassword(password, salt);
         const pilotId = crypto.randomUUID();
 
-        // 4. Atomic insertion into pilots & initial pilot_records
+        // 5. Generate 6-digit in-game verification code & 24h HMAC verification token
+        const verificationCode = generateVerificationCode();
+        const verificationExpiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 mins
+        const verificationToken = await createVerificationToken(pilotId, email, env.AUTH_SECRET);
+
+        // 6. Atomic insertion into pilots & initial pilot_records
         const batch = await env.DB.batch([
             env.DB.prepare(
-                `INSERT INTO pilots (id, callsign, email, password_hash, salt, rank, squadron) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?)`
-            ).bind(pilotId, callsign, email, passwordHash, salt, rank, squadron),
+                `INSERT INTO pilots (id, callsign, email, password_hash, salt, rank, squadron, email_verified, verification_code, verification_expires_at) 
+                 VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`
+            ).bind(pilotId, callsign, email, passwordHash, salt, rank, squadron, verificationCode, verificationExpiresAt),
 
             env.DB.prepare(
                 `INSERT INTO pilot_records (pilot_id, total_sorties, total_kills, highest_mission_unlocked) 
@@ -85,13 +99,24 @@ export async function onRequestPost({ request, env }) {
             ).bind(pilotId),
         ]);
 
-        // 5. Generate secure Pilot Bearer Token (30 days validity)
+        // 7. Dispatch verification email via Brevo REST API
+        const origin = new URL(request.url).origin;
+        const verifyUrl = `${origin}/verify.html?token=${verificationToken}`;
+        const emailResult = await sendVerificationEmail(env, {
+            email,
+            callsign,
+            code: verificationCode,
+            verifyUrl,
+        });
+
+        // 8. Generate secure Pilot Bearer Token (30 days validity)
         const token = await createPilotToken(
             {
                 sub: pilotId,
                 callsign,
                 rank,
                 squadron,
+                email_verified: false,
             },
             env.AUTH_SECRET
         );
@@ -99,16 +124,23 @@ export async function onRequestPost({ request, env }) {
         return jsonResponse(
             {
                 success: true,
-                message: `Pilot ${callsign} commissioned into the 404th Vanguard Strike Wing.`,
+                message: `Pilot ${callsign} commissioned into the 404th Vanguard Strike Wing. Flight clearance verification dispatched to ${email}.`,
                 pilot: {
                     id: pilotId,
                     callsign,
                     email,
                     rank,
                     squadron,
+                    email_verified: 0,
                     created_at: new Date().toISOString(),
                 },
                 token,
+                verification: {
+                    email_sent: emailResult.success,
+                    simulated: Boolean(emailResult.simulated),
+                    // For local development when BREVO_API_KEY is not set yet:
+                    dev_code: emailResult.simulated ? verificationCode : undefined,
+                },
             },
             201
         );

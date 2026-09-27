@@ -118,6 +118,25 @@ custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
 
+[node name="EmailContainer" type="VBoxContainer" parent="CenterContainer/Panel/VBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Label" type="Label" parent="CenterContainer/Panel/VBox/EmailContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.9, 0.6, 1)
+theme_override_font_sizes/font_size = 13
+text = "EMAIL (FOR VERIFICATION & RECOVERY)"
+
+[node name="EmailInput" type="LineEdit" parent="CenterContainer/Panel/VBox/EmailContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+placeholder_text = "e.g. pilot@domain.com"
+
 [node name="PasswordContainer" type="VBoxContainer" parent="CenterContainer/Panel/VBox"]
 unique_name_in_owner = true
 visible = false
@@ -137,6 +156,55 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 14
 secret = true
 placeholder_text = "Cloud access password"
+
+[node name="VerifyContainer" type="VBoxContainer" parent="CenterContainer/Panel/VBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="VerifyLabel" type="Label" parent="CenterContainer/Panel/VBox/VerifyContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+theme_override_font_sizes/font_size = 12
+text = "CLEARANCE CODE SENT TO YOUR EMAIL // ENTER 6-DIGIT CODE:"
+
+[node name="VerifyHBox" type="HBoxContainer" parent="CenterContainer/Panel/VBox/VerifyContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="VerifyCodeInput" type="LineEdit" parent="CenterContainer/Panel/VBox/VerifyContainer/VerifyHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 15
+placeholder_text = "6-DIGIT CODE"
+alignment = 1
+max_length = 6
+
+[node name="VerifyConfirmBtn" type="Button" parent="CenterContainer/Panel/VBox/VerifyContainer/VerifyHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "CONFIRM"
+
+[node name="VerifyResendBtn" type="Button" parent="CenterContainer/Panel/VBox/VerifyContainer/VerifyHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 38)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "RESEND"
+
+[node name="VerifySkipBtn" type="Button" parent="CenterContainer/Panel/VBox/VerifyContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.7, 0.8, 0.8)
+theme_override_font_sizes/font_size = 11
+flat = true
+text = "Skip for now and sortie (Unverified)"
 
 [node name="CloudHelpLabel" type="Label" parent="CenterContainer/Panel/VBox"]
 unique_name_in_owner = true
