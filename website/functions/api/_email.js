@@ -165,8 +165,8 @@ export async function sendVerificationEmail(env, { email, callsign, code, verify
               </div>
 
               <div style="border-top: 1px solid #1f293d; padding-top: 18px; margin-top: 24px;">
-                <p style="color: #9ca3af; font-size: 12px; line-height: 1.5; margin: 0;">
-                  If you did not request this flight commission, you may disregard this dispatch. No flight telemetry will be logged under this frequency.
+                <p style="color: #9ca3af; font-size: 11px; line-height: 1.5; margin: 0;">
+                  This is an automated transactional verification message for your Project Vanguard account (${email}). If you did not initiate this registration, please disregard.
                 </p>
               </div>
             </td>
@@ -174,8 +174,8 @@ export async function sendVerificationEmail(env, { email, callsign, code, verify
 
           <!-- Footer -->
           <tr>
-            <td style="background-color: #050a12; padding: 16px 30px; border-top: 1px solid #1f293d; text-align: center; color: #6b7280; font-size: 10px; letter-spacing: 1px;">
-              // PROJECT VANGUARD // CIPHER SHA-256 // CLOUDFLARE EDGE & BREVO INTEGRATION //
+            <td style="background-color: #050a12; padding: 16px 30px; border-top: 1px solid #1f293d; text-align: center; color: #6b7280; font-size: 10px; letter-spacing: 0.5px;">
+              Project Vanguard &bull; Sol Orbital Operations &bull; Vanguard HQ (vanguard@truyens.pro)
             </td>
           </tr>
 
@@ -213,13 +213,17 @@ ${verifyUrl}
                     name: senderName,
                     email: senderEmail,
                 },
+                replyTo: {
+                    name: senderName,
+                    email: senderEmail,
+                },
                 to: [
                     {
                         email: email,
                         name: callsign,
                     },
                 ],
-                subject: `◈ VANGUARD FLIGHT CLEARANCE // Pilot: ${callsign} [Code: ${code}]`,
+                subject: `Project Vanguard - Verification Code: ${code} [${callsign}]`,
                 htmlContent: htmlContent,
                 textContent: textContent,
             }),
