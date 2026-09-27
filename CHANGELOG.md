@@ -5,6 +5,21 @@ All notable changes to **Project Vanguard** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.5] - 2026-09-27
+
+### Added
+- **Custom Vanguard Text Logo Boot Splash**:
+  - Replaced the default Godot engine boot splash with the crisp `res://ui/project_vanguard_title.png` logo.
+  - Deep space navy background (`Color(0.015, 0.025, 0.045, 1)`) matching Vanguard UI palette with 1.0s minimum presentation time.
+
+### Changed
+- **Menu & Authentication Streamlining**:
+  - Redesigned `login_dialog.tscn`: larger panel, clearer status readouts, prominent primary "PLAY" action, and "QUICK PLAY (GUEST)" / "CLOUD LOGIN" toggles.
+  - Removed intrusive post-login mode selector dialog popup; pilots transition directly to the Hangar operations hub.
+  - Renamed dogfight button to "MULTIPLAYER / SPLIT-SCREEN" with explicit menu-driven launch.
+- **Website Enhancements**:
+  - Platform-aware download buttons automatically detecting Windows, Linux, or macOS.
+
 ---
 
 ## [0.8.2] - 2026-09-26
