@@ -1368,19 +1368,51 @@ document.addEventListener('DOMContentLoaded', () => {
               : (pilot.stats?.battle_history || [])
           };
 
-          if (data.save_data?.rewards) {
-            pilot.rewards = data.save_data.rewards;
-          } else if (!pilot.rewards) {
+          const incomingRewards = data.rewards || data.save_data?.rewards || {};
+          const incomingStars = Math.max(
+            Number(data.stars) || 0,
+            Number(data.record?.stars) || 0,
+            Number(incomingRewards.stars) || 0,
+            Number(pilot.rewards?.stars) || 0
+          );
+
+          if (!pilot.rewards) {
             pilot.rewards = {
-              stars: data.record?.stars || 0,
+              stars: incomingStars,
               streak: 1,
               badges: ["FIRST_SORTIE"],
               unlocked_skins: ["CLASSIC_CYAN"],
               active_skin: "CLASSIC_CYAN",
               upgrades: { PULSE_CANNON: 1, HYDRA_MISSILES: 1, DEFLECTOR_SHIELD: 1, AFTERBURNER_TURBO: 1 }
             };
-          } else if (data.record?.stars !== undefined) {
-            pilot.rewards.stars = data.record.stars;
+          }
+
+          pilot.rewards.stars = incomingStars;
+          if (incomingRewards.streak) {
+            pilot.rewards.streak = Math.max(pilot.rewards.streak || 1, incomingRewards.streak);
+          }
+          if (incomingRewards.last_login_date) {
+            pilot.rewards.last_login_date = incomingRewards.last_login_date;
+          }
+          if (incomingRewards.last_wheel_date) {
+            pilot.rewards.last_wheel_date = incomingRewards.last_wheel_date;
+          }
+          if (Array.isArray(incomingRewards.badges)) {
+            const bSet = new Set([...(pilot.rewards.badges || []), ...incomingRewards.badges]);
+            pilot.rewards.badges = Array.from(bSet);
+          }
+          if (Array.isArray(incomingRewards.unlocked_skins)) {
+            const sSet = new Set([...(pilot.rewards.unlocked_skins || []), ...incomingRewards.unlocked_skins]);
+            pilot.rewards.unlocked_skins = Array.from(sSet);
+          }
+          if (incomingRewards.active_skin) {
+            pilot.rewards.active_skin = incomingRewards.active_skin;
+          }
+          if (incomingRewards.upgrades && typeof incomingRewards.upgrades === 'object') {
+            pilot.rewards.upgrades = pilot.rewards.upgrades || {};
+            for (const [k, v] of Object.entries(incomingRewards.upgrades)) {
+              pilot.rewards.upgrades[k] = Math.max(pilot.rewards.upgrades[k] || 1, Number(v) || 1);
+            }
           }
 
           localStorage.setItem('vanguard_pilot_profile', JSON.stringify(pilot));

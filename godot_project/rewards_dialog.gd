@@ -725,8 +725,11 @@ func _on_sync_pressed() -> void:
 		status_banner_label.modulate = Color(1.0, 0.84, 0.0)
 		
 	var auth = get_node_or_null("/root/AuthManager")
-	if auth and auth.has_method("sync_cloud_save"):
-		auth.sync_cloud_save()
+	if auth:
+		if auth.has_method("fetch_cloud_save"):
+			auth.fetch_cloud_save()
+		if auth.has_method("sync_cloud_save"):
+			auth.sync_cloud_save()
 		
 	if is_inside_tree() and get_tree():
 		get_tree().create_timer(1.2).timeout.connect(func():

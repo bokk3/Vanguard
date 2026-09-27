@@ -10,7 +10,7 @@ import {
     verifyPassword,
     createPilotToken,
 } from "../_utils.js";
-import { ensureVerificationSchema } from "../_db_utils.js";
+import { ensureVerificationSchema, ensureRewardSchema } from "../_db_utils.js";
 
 export async function onRequestOptions() {
     return handleOptions();
@@ -41,6 +41,7 @@ export async function onRequestPost({ request, env }) {
 
     try {
         await ensureVerificationSchema(env.DB);
+        await ensureRewardSchema(env.DB);
 
         // Find pilot by callsign (case-insensitive) or email
         const pilot = await env.DB.prepare(
@@ -62,15 +63,37 @@ export async function onRequestPost({ request, env }) {
             return errorResponse("Invalid flight callsign or password.", 401);
         }
 
-        // Fetch pilot combat records
+        // Fetch pilot combat records, stars, and save_blob
         const record = await env.DB.prepare(
-            `SELECT total_sorties, total_kills, total_flight_time_sec, highest_mission_unlocked, updated_at 
+            `SELECT total_sorties, total_kills, total_flight_time_sec, highest_mission_unlocked, 
+                    COALESCE(stars, 0) as stars, save_blob, updated_at 
              FROM pilot_records 
              WHERE pilot_id = ? 
              LIMIT 1`
         )
             .bind(pilot.id)
             .first();
+
+        let parsedSave = null;
+        if (record && record.save_blob) {
+            try {
+                parsedSave = JSON.parse(record.save_blob);
+            } catch {
+                parsedSave = null;
+            }
+        }
+
+        const rewards = (parsedSave && parsedSave.rewards) ? parsedSave.rewards : {
+            stars: record ? (record.stars || 0) : 0,
+            streak: 1,
+            badges: ["FIRST_SORTIE"],
+            unlocked_skins: ["CLASSIC_CYAN"],
+            active_skin: "CLASSIC_CYAN",
+            upgrades: { PULSE_CANNON: 1, HYDRA_MISSILES: 1, DEFLECTOR_SHIELD: 1, AFTERBURNER_TURBO: 1 }
+        };
+        if (record && record.stars !== undefined) {
+            rewards.stars = Math.max(rewards.stars || 0, record.stars || 0);
+        }
 
         // Issue signed Bearer token
         const token = await createPilotToken(
@@ -95,13 +118,20 @@ export async function onRequestPost({ request, env }) {
                 squadron: pilot.squadron,
                 email_verified: pilot.email_verified ? 1 : 0,
                 created_at: pilot.created_at,
+                stars: rewards.stars,
+                rewards: rewards,
+                save_data: parsedSave,
                 stats: record || {
                     total_sorties: 0,
                     total_kills: 0,
                     total_flight_time_sec: 0,
                     highest_mission_unlocked: "M01",
+                    stars: rewards.stars,
                 },
             },
+            stars: rewards.stars,
+            rewards: rewards,
+            save_data: parsedSave,
             token,
         });
     } catch (err) {

@@ -68,6 +68,26 @@ var upgrades: Dictionary = {
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_load_local_cache()
+
+func _load_local_cache() -> void:
+	const SAVE_PATH = "user://pilot_profile.json"
+	if not FileAccess.file_exists(SAVE_PATH):
+		return
+	var file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if not file:
+		return
+	var content = file.get_as_text()
+	file.close()
+	var parsed = JSON.parse_string(content)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	if parsed.has("rewards") and typeof(parsed["rewards"]) == TYPE_DICTIONARY:
+		load_save_data(parsed["rewards"])
+	elif parsed.has("stars"):
+		stars = max(stars, int(parsed["stars"]))
+		stars_changed.emit(stars)
+		rewards_updated.emit()
 
 ## Adds Stars currency to pilot wallet and persists
 func add_stars(amount: int) -> void:
@@ -260,7 +280,7 @@ func get_save_data() -> Dictionary:
 ## Restores saved rewards data
 func load_save_data(data: Dictionary) -> void:
 	if data.is_empty(): return
-	stars = int(data.get("stars", stars))
+	stars = max(stars, int(data.get("stars", stars)))
 	streak = int(data.get("streak", streak))
 	last_login_date = str(data.get("last_login_date", last_login_date))
 	last_wheel_date = str(data.get("last_wheel_date", last_wheel_date))
@@ -283,6 +303,60 @@ func load_save_data(data: Dictionary) -> void:
 			
 	stars_changed.emit(stars)
 	rewards_updated.emit()
+
+## Merges rewards from cloud response non-destructively
+func merge_cloud_rewards(cloud_data: Dictionary) -> void:
+	if cloud_data.is_empty():
+		return
+		
+	var c_stars = int(cloud_data.get("stars", 0))
+	stars = max(stars, c_stars)
+	
+	var c_streak = int(cloud_data.get("streak", 1))
+	streak = max(streak, c_streak)
+	
+	var c_login_date = str(cloud_data.get("last_login_date", ""))
+	if not c_login_date.is_empty():
+		last_login_date = c_login_date
+		
+	var c_wheel_date = str(cloud_data.get("last_wheel_date", ""))
+	if not c_wheel_date.is_empty():
+		last_wheel_date = c_wheel_date
+		
+	if cloud_data.has("badges") and typeof(cloud_data["badges"]) == TYPE_ARRAY:
+		for b in cloud_data["badges"]:
+			var b_str = str(b)
+			if not unlocked_badges.has(b_str):
+				unlocked_badges.append(b_str)
+				
+	if cloud_data.has("unlocked_skins") and typeof(cloud_data["unlocked_skins"]) == TYPE_ARRAY:
+		for s in cloud_data["unlocked_skins"]:
+			var s_str = str(s)
+			if not unlocked_skins.has(s_str):
+				unlocked_skins.append(s_str)
+				
+	var c_skin = str(cloud_data.get("active_skin", ""))
+	if not c_skin.is_empty() and unlocked_skins.has(c_skin):
+		active_skin = c_skin
+		
+	if cloud_data.has("upgrades") and typeof(cloud_data["upgrades"]) == TYPE_DICTIONARY:
+		for k in cloud_data["upgrades"]:
+			var key = str(k)
+			var tier = int(cloud_data["upgrades"][k])
+			upgrades[key] = max(upgrades.get(key, 1), tier)
+			
+	print(">>> [RewardManager] Cloud rewards merged. Total Stars: ⭐ %d | Streak: %d | Badges: %d" % [
+		stars, streak, unlocked_badges.size()
+	])
+	
+	stars_changed.emit(stars)
+	rewards_updated.emit()
+	_persist_local_only()
+
+func _persist_local_only() -> void:
+	var auth = get_node_or_null("/root/AuthManager")
+	if auth and auth.has_method("_save_profile"):
+		auth._save_profile()
 
 func _persist_and_sync() -> void:
 	var auth = get_node_or_null("/root/AuthManager")

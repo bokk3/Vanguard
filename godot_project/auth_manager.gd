@@ -102,6 +102,8 @@ func _load_saved_profile() -> void:
 	is_authenticated = true
 	print("[AuthManager] Restored remembered pilot profile: %s [%s] (%s)" % [callsign, rank, squadron])
 	_sync_pilot_to_systems()
+	if not token.is_empty():
+		call_deferred("fetch_cloud_save")
 
 ## Authenticates locally without cloud network dependency
 func login_local(p_callsign: String, p_squadron: String = "404th Vanguard Strike Wing", p_remember: bool = true) -> void:
@@ -219,13 +221,17 @@ func _on_http_request_completed(result: int, response_code: int, headers: Packed
 			stats = pilot_data["stats"]
 			
 		var rm = get_node_or_null("/root/RewardManager")
-		if rm and rm.has_method("load_save_data"):
-			if data.has("save_data") and typeof(data["save_data"]) == TYPE_DICTIONARY and data["save_data"].has("rewards"):
-				rm.load_save_data(data["save_data"]["rewards"])
+		if rm and rm.has_method("merge_cloud_rewards"):
+			if data.has("rewards") and typeof(data["rewards"]) == TYPE_DICTIONARY:
+				rm.merge_cloud_rewards(data["rewards"])
+			elif data.has("save_data") and typeof(data["save_data"]) == TYPE_DICTIONARY and data["save_data"].has("rewards"):
+				rm.merge_cloud_rewards(data["save_data"]["rewards"])
 			elif pilot_data.has("rewards"):
-				rm.load_save_data(pilot_data["rewards"])
+				rm.merge_cloud_rewards(pilot_data["rewards"])
 			elif data.has("record") and typeof(data["record"]) == TYPE_DICTIONARY and data["record"].has("stars"):
-				rm.stars = int(data["record"]["stars"])
+				rm.merge_cloud_rewards({"stars": int(data["record"]["stars"])})
+			elif data.has("stars"):
+				rm.merge_cloud_rewards({"stars": int(data["stars"])})
 			
 		is_authenticated = true
 		
@@ -236,6 +242,8 @@ func _on_http_request_completed(result: int, response_code: int, headers: Packed
 			
 		print(">>> [AuthManager] Cloud Pilot Authenticated: %s [%s] (%s) // Verified: %s" % [callsign, rank, squadron, str(is_email_verified)])
 		_sync_pilot_to_systems()
+		if not token.is_empty():
+			call_deferred("fetch_cloud_save")
 		auth_success.emit(get_active_profile())
 		if not is_email_verified and not email.is_empty():
 			email_verification_required.emit(email)
@@ -305,6 +313,9 @@ func logout() -> void:
 	logged_out.emit()
 
 func _save_profile() -> void:
+	var rm = get_node_or_null("/root/RewardManager")
+	var rm_data = rm.get_save_data() if rm and rm.has_method("get_save_data") else {}
+	var rm_stars = rm.stars if rm and "stars" in rm else 0
 	var data = {
 		"callsign": callsign,
 		"rank": rank,
@@ -314,6 +325,8 @@ func _save_profile() -> void:
 		"email": email,
 		"is_email_verified": is_email_verified,
 		"remember_me": true,
+		"stars": rm_stars,
+		"rewards": rm_data,
 		"stats": stats
 	}
 	var file = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
@@ -406,16 +419,23 @@ func sync_cloud_save() -> void:
 	add_child(sync_request)
 	sync_request.timeout = 6.0
 	
+	var rm = get_node_or_null("/root/RewardManager")
+	var r_data = rm.get_save_data() if rm and rm.has_method("get_save_data") else {}
+	var r_stars = rm.stars if rm and "stars" in rm else 0
+	
 	var payload = {
 		"total_sorties": stats.get("total_sorties", 0),
 		"total_kills": stats.get("total_kills", 0),
 		"total_flight_time_sec": stats.get("total_flight_time_sec", 0.0),
 		"highest_mission_unlocked": stats.get("highest_mission_unlocked", "M01"),
+		"stars": r_stars,
+		"rewards": r_data,
 		"save_data": {
 			"stats": stats,
 			"rank": rank,
 			"squadron": squadron,
-			"callsign": callsign
+			"callsign": callsign,
+			"rewards": r_data
 		}
 	}
 	
@@ -424,7 +444,68 @@ func sync_cloud_save() -> void:
 		"Authorization: Bearer " + token
 	]
 	
-	sync_request.request_completed.connect(func(_res, _code, _h, _b):
+	sync_request.request_completed.connect(func(_res, code, _h, body):
+		if code == 200:
+			var text = body.get_string_from_utf8()
+			var parsed = JSON.parse_string(text)
+			if typeof(parsed) == TYPE_DICTIONARY:
+				var r_node = get_node_or_null("/root/RewardManager")
+				if r_node and r_node.has_method("merge_cloud_rewards"):
+					if parsed.has("rewards") and typeof(parsed["rewards"]) == TYPE_DICTIONARY:
+						r_node.merge_cloud_rewards(parsed["rewards"])
+					elif parsed.has("save_data") and typeof(parsed["save_data"]) == TYPE_DICTIONARY and parsed["save_data"].has("rewards"):
+						r_node.merge_cloud_rewards(parsed["save_data"]["rewards"])
+					if parsed.has("stars"):
+						r_node.merge_cloud_rewards({"stars": int(parsed["stars"])})
 		sync_request.queue_free()
 	)
 	sync_request.request("https://project-vanguard.pages.dev/api/pilot/sync", headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
+
+## Pulls latest pilot stats, stars, and rewards from Cloudflare D1 via GET /api/pilot/sync
+func fetch_cloud_save() -> void:
+	if token.is_empty():
+		return
+		
+	var fetch_request = HTTPRequest.new()
+	add_child(fetch_request)
+	fetch_request.timeout = 6.0
+	
+	var headers = [
+		"Authorization: Bearer " + token
+	]
+	
+	fetch_request.request_completed.connect(func(_res, code, _h, body):
+		if code == 200:
+			var text = body.get_string_from_utf8()
+			var parsed = JSON.parse_string(text)
+			if typeof(parsed) == TYPE_DICTIONARY:
+				var r_node = get_node_or_null("/root/RewardManager")
+				if r_node and r_node.has_method("merge_cloud_rewards"):
+					if parsed.has("rewards") and typeof(parsed["rewards"]) == TYPE_DICTIONARY:
+						r_node.merge_cloud_rewards(parsed["rewards"])
+					elif parsed.has("save_data") and typeof(parsed["save_data"]) == TYPE_DICTIONARY and parsed["save_data"].has("rewards"):
+						r_node.merge_cloud_rewards(parsed["save_data"]["rewards"])
+					if parsed.has("stars"):
+						r_node.merge_cloud_rewards({"stars": int(parsed["stars"])})
+				if parsed.has("save_data") and typeof(parsed["save_data"]) == TYPE_DICTIONARY:
+					var sd = parsed["save_data"]
+					if sd.has("stats") and typeof(sd["stats"]) == TYPE_DICTIONARY:
+						for k in sd["stats"]:
+							if typeof(sd["stats"][k]) in [TYPE_INT, TYPE_FLOAT]:
+								stats[k] = max(stats.get(k, 0), sd["stats"][k])
+							else:
+								stats[k] = sd["stats"][k]
+					if sd.has("rank"): rank = str(sd["rank"])
+					if sd.has("squadron"): squadron = str(sd["squadron"])
+				elif parsed.has("record") and typeof(parsed["record"]) == TYPE_DICTIONARY:
+					var rec = parsed["record"]
+					if rec.has("total_sorties"): stats["total_sorties"] = max(stats.get("total_sorties", 0), int(rec["total_sorties"]))
+					if rec.has("total_kills"): stats["total_kills"] = max(stats.get("total_kills", 0), int(rec["total_kills"]))
+					if rec.has("total_flight_time_sec"): stats["total_flight_time_sec"] = max(stats.get("total_flight_time_sec", 0.0), float(rec["total_flight_time_sec"]))
+				if remember_me:
+					_save_profile()
+				_sync_pilot_to_systems()
+				print(">>> [AuthManager] Cloud save fetched and merged successfully.")
+		fetch_request.queue_free()
+	)
+	fetch_request.request("https://project-vanguard.pages.dev/api/pilot/sync", headers, HTTPClient.METHOD_GET)
