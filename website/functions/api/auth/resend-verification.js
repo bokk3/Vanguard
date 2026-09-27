@@ -95,7 +95,7 @@ export async function onRequestPost({ request, env }) {
 
         // Dispatch via Brevo
         const origin = new URL(request.url).origin;
-        const verifyUrl = `${origin}/verify.html?token=${verificationToken}`;
+        const verifyUrl = `${origin}/api/auth/verify?token=${verificationToken}`;
         const emailResult = await sendVerificationEmail(env, {
             email: pilot.email,
             callsign: pilot.callsign,

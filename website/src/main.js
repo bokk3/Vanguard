@@ -487,11 +487,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const mobilePilotLabel = document.getElementById('mobile-pilot-label');
   const pilotPortalIcon = document.getElementById('pilot-portal-icon');
 
-  function openPilotModal() {
+  function openPilotModal(preferredTab = null) {
     audio.beep(880, 0.05);
     if (pilotModal) pilotModal.classList.remove('hidden');
-    // If logged in, jump straight to dossier
-    if (localStorage.getItem('vanguard_pilot_token')) {
+    if (preferredTab) {
+      switchTab(preferredTab);
+    } else if (localStorage.getItem('vanguard_pilot_token')) {
       switchTab('dossier');
     }
   }
@@ -1460,4 +1461,41 @@ document.addEventListener('DOMContentLoaded', () => {
   initLeaderboard();
   setInterval(fetchNetworkStats, 20000);
   setInterval(sendWebHeartbeat, 30000);
+
+  // Tactical Deep Link & Verification Auto-Login Resolver
+  const urlParams = new URLSearchParams(window.location.search);
+  const actionParam = urlParams.get('action');
+  const authtokenParam = urlParams.get('authtoken');
+
+  if (authtokenParam) {
+    localStorage.setItem('vanguard_pilot_token', authtokenParam);
+    const callsignParam = urlParams.get('callsign');
+    const rankParam = urlParams.get('rank');
+    const emailParam = urlParams.get('email');
+    try {
+      const existing = JSON.parse(localStorage.getItem('vanguard_pilot_profile') || '{}');
+      if (callsignParam) existing.callsign = callsignParam;
+      if (rankParam) existing.rank = rankParam;
+      if (emailParam) existing.email = emailParam;
+      existing.email_verified = 1;
+      localStorage.setItem('vanguard_pilot_profile', JSON.stringify(existing));
+    } catch {}
+    updateAuthUI();
+    syncStatsFromCloud(false);
+  }
+
+  const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+  const isLoggedIn = !!localStorage.getItem('vanguard_pilot_token');
+
+  if (actionParam === 'login') {
+    openPilotModal('login');
+  } else if (actionParam === 'dossier') {
+    openPilotModal('dossier');
+  } else if (actionParam === 'register') {
+    openPilotModal('register');
+  } else if (urlParams.has('verified') || urlParams.has('verify') || urlParams.get('from') === 'email') {
+    if (!isLoggedIn) {
+      openPilotModal('login');
+    }
+  }
 });

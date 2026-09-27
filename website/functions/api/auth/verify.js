@@ -65,9 +65,21 @@ export async function onRequestGet({ request, env }) {
             .bind(pilot.id)
             .run();
 
-        // Redirect to successful clearance confirmation landing page
+        // Issue fresh auth bearer token so pilot is immediately logged in on mobile/web
+        const authToken = await createPilotToken(
+            {
+                sub: pilot.id,
+                callsign: pilot.callsign,
+                rank: pilot.rank,
+                squadron: pilot.squadron,
+                email_verified: true,
+            },
+            env.AUTH_SECRET
+        );
+
+        // Redirect to successful clearance confirmation landing page with session token
         return Response.redirect(
-            `${url.origin}/verify.html?status=verified&callsign=${encodeURIComponent(pilot.callsign)}&rank=${encodeURIComponent(pilot.rank)}`,
+            `${url.origin}/verify.html?status=verified&callsign=${encodeURIComponent(pilot.callsign)}&rank=${encodeURIComponent(pilot.rank)}&email=${encodeURIComponent(pilot.email || '')}&authtoken=${encodeURIComponent(authToken)}`,
             302
         );
     } catch (err) {

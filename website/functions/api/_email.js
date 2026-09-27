@@ -157,11 +157,26 @@ export async function sendVerificationEmail(env, { email, callsign, code, verify
               </div>
 
               <!-- One-Click Web Verification Link -->
-              <div style="text-align: center; margin: 0 0 28px 0;">
-                <a href="${verifyUrl}" style="display: inline-block; background-color: #00e5ff; color: #000000; font-size: 13px; font-weight: bold; text-decoration: none; padding: 14px 28px; border-radius: 4px; letter-spacing: 1.5px; text-transform: uppercase; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);">
-                  [ CONFIRM FLIGHT CLEARANCE ]
+              <div style="text-align: center; margin: 0 0 20px 0;">
+                <a href="${verifyUrl}" style="display: block; max-width: 520px; margin: 0 auto; background-color: #00e5ff; color: #000000; font-size: 13px; font-weight: bold; text-decoration: none; padding: 14px 20px; border-radius: 6px; letter-spacing: 1px; text-transform: uppercase; box-shadow: 0 0 15px rgba(0, 229, 255, 0.4); text-align: center;">
+                  <div style="font-size: 14px; font-weight: 900; letter-spacing: 2px;">⚡ CONFIRM FLIGHT CLEARANCE ⚡</div>
+                  <div style="font-size: 10px; font-family: monospace; color: #004d40; margin-top: 6px; font-weight: normal; word-break: break-all; text-transform: none;">
+                    ${verifyUrl}
+                  </div>
                 </a>
-                <div style="color: #9ca3af; font-size: 11px; margin-top: 10px;">Or click: <a href="${verifyUrl}" style="color: #00e5ff; text-decoration: underline;">${verifyUrl}</a></div>
+              </div>
+
+              <!-- Direct Clean Verification URL Box -->
+              <div style="background-color: #030712; border: 1px dashed #334155; border-radius: 6px; padding: 12px 16px; margin: 0 auto 24px auto; max-width: 520px; text-align: left;">
+                <div style="color: #94a3b8; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">
+                  DIRECT FLIGHT CLEARANCE URL (COPY OR TAP DIRECTLY):
+                </div>
+                <div style="word-break: break-all;">
+                  <a href="${verifyUrl}" style="color: #38bdf8; font-size: 11px; font-family: monospace; text-decoration: underline; word-break: break-all;">${verifyUrl}</a>
+                </div>
+                <div style="color: #64748b; font-size: 10px; margin-top: 6px;">
+                  Tip: If your mail client blocks button redirects, paste this direct URL into your browser address bar.
+                </div>
               </div>
 
               <div style="border-top: 1px solid #1f293d; padding-top: 18px; margin-top: 24px;">

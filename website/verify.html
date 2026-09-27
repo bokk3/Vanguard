@@ -53,15 +53,31 @@
           </p>
         </div>
 
-        <div class="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
-          <a href="/" class="px-6 py-3 bg-vanguard-cyan text-black font-display font-bold text-sm tracking-wider uppercase rounded hover:bg-white hover:shadow-cyan-glow transition-all text-center">
+        <div id="verified-actions" class="pt-4 flex flex-col sm:flex-row gap-3 justify-center">
+          <a id="btn-verified-portal" href="/" class="px-6 py-3 bg-vanguard-cyan text-black font-display font-bold text-sm tracking-wider uppercase rounded hover:bg-white hover:shadow-cyan-glow transition-all text-center">
             Launch Web Operations Portal
+          </a>
+          <a id="btn-verified-login" href="/?action=login" class="px-6 py-3 border border-vanguard-amber/60 bg-vanguard-amber/10 text-vanguard-amber font-display font-bold text-sm tracking-wider uppercase rounded hover:bg-vanguard-amber/20 transition-all text-center">
+            🔐 Log In On Mobile / Terminal
           </a>
         </div>
       </div>
 
       <!-- State 2: Code Entry / Unverified Form -->
       <div id="panel-form" class="space-y-6">
+        <!-- Mobile Login Helper Banner -->
+        <div id="mobile-login-prompt" class="hidden p-3.5 rounded-xl border border-vanguard-amber/80 bg-vanguard-amber/10 text-center space-y-2">
+          <div class="text-xs font-bold text-vanguard-amber flex items-center justify-center gap-1.5 uppercase">
+            <span>📱</span> Mobile Pilot Access
+          </div>
+          <p class="text-[11px] text-slate-300">
+            Arriving on mobile? Log in directly to sync your pilot dossier and active session.
+          </p>
+          <a href="/?action=login" class="inline-block px-4 py-2 bg-vanguard-gold text-black font-bold text-xs uppercase tracking-wider rounded hover:bg-white transition-all shadow-md">
+            🔐 Log In to Mobile Cockpit
+          </a>
+        </div>
+
         <div class="text-center">
           <div class="text-3xl mb-2">🎖️</div>
           <h1 class="text-xl sm:text-2xl font-display font-bold text-white tracking-wider">
@@ -142,10 +158,21 @@
 
   <script type="module">
     const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const authtoken = params.get('authtoken');
     const status = params.get('status');
     const callsign = params.get('callsign') || 'PILOT';
     const rank = params.get('rank') || 'LIEUTENANT';
+    const email = params.get('email') || '';
     const err = params.get('error');
+
+    const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+    const existingToken = localStorage.getItem('vanguard_pilot_token');
+
+    // 1. If arriving with email token parameter, immediately bounce to server verification endpoint
+    if (token && status !== 'verified') {
+      window.location.replace('/api/auth/verify?token=' + encodeURIComponent(token));
+    }
 
     const panelVerified = document.getElementById('panel-verified');
     const panelForm = document.getElementById('panel-form');
@@ -158,6 +185,7 @@
     const verifyFeedback = document.getElementById('verify-feedback');
     const btnResend = document.getElementById('btn-resend');
     const btnShowForm = document.getElementById('btn-show-form');
+    const mobileLoginPrompt = document.getElementById('mobile-login-prompt');
 
     // Pre-populate email from local profile if available
     try {
@@ -173,21 +201,67 @@
       panelError.classList.add('hidden');
       verifiedPilotText.textContent = `CLEARANCE ACTIVE // ${rank.toUpperCase()} ${callsign.toUpperCase()}`;
       
-      // Update local storage status
-      try {
-        const raw = localStorage.getItem('vanguard_pilot_profile');
-        if (raw) {
-          const p = JSON.parse(raw);
-          p.email_verified = 1;
+      // Auto-login: Store fresh auth token from verification redirect
+      if (authtoken) {
+        localStorage.setItem('vanguard_pilot_token', authtoken);
+        try {
+          const p = {
+            callsign,
+            rank,
+            email,
+            email_verified: 1
+          };
           localStorage.setItem('vanguard_pilot_profile', JSON.stringify(p));
+        } catch {}
+      } else {
+        try {
+          const raw = localStorage.getItem('vanguard_pilot_profile');
+          if (raw) {
+            const p = JSON.parse(raw);
+            p.email_verified = 1;
+            localStorage.setItem('vanguard_pilot_profile', JSON.stringify(p));
+          }
+        } catch {}
+      }
+
+      const activeToken = authtoken || existingToken;
+      const btnPortal = document.getElementById('btn-verified-portal');
+      const btnLogin = document.getElementById('btn-verified-login');
+
+      if (btnPortal) {
+        btnPortal.href = activeToken ? `/?authtoken=${encodeURIComponent(activeToken)}` : '/?action=login';
+        btnPortal.textContent = '🚀 Launch Web Operations Portal';
+      }
+
+      if (btnLogin) {
+        if (activeToken) {
+          btnLogin.href = '/?action=dossier';
+          btnLogin.textContent = '👤 View Pilot Dossier';
+        } else {
+          btnLogin.href = '/?action=login';
+          btnLogin.textContent = '🔐 Log In On Mobile / Terminal';
         }
-      } catch {}
+      }
+
+      // If arriving on mobile without authentication, immediately present login prompt
+      if (isMobile && !activeToken) {
+        window.location.replace('/?action=login');
+      }
     } else if (err) {
       panelError.classList.remove('hidden');
       panelForm.classList.add('hidden');
       panelVerified.classList.add('hidden');
       if (err === 'expired_or_invalid') {
         errorDesc.textContent = "The verification token has expired or is cryptographically invalid. Please request a new code.";
+      } else if (err === 'pilot_not_found') {
+        errorDesc.textContent = "Pilot record was not found for this clearance dispatch. Please sign in or register.";
+      }
+      if (isMobile && !existingToken && mobileLoginPrompt) {
+        mobileLoginPrompt.classList.remove('hidden');
+      }
+    } else {
+      if (isMobile && !existingToken && mobileLoginPrompt) {
+        mobileLoginPrompt.classList.remove('hidden');
       }
     }
 
