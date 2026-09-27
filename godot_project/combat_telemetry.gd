@@ -56,6 +56,47 @@ var ship: CharacterBody3D
 
 func _ready() -> void:
 	ship = get_parent() as CharacterBody3D
+	
+	# Apply Vanguard Armory Upgrades if available
+	var rm = get_tree().root.get_node_or_null("RewardManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
+	if rm:
+		# DEFLECTOR_SHIELD upgrade:
+		# Tier 1: 100 HP (base)
+		# Tier 2: 120 HP, recharge rate +35% (20.25)
+		# Tier 3: 140 HP, recharge rate +60% (24.0)
+		var s_tier = rm.get_upgrade_tier("DEFLECTOR_SHIELD")
+		if s_tier == 2:
+			max_shield = 120.0
+			shield_recharge_rate = 20.25
+		elif s_tier >= 3:
+			max_shield = 140.0
+			shield_recharge_rate = 24.0
+
+		# AFTERBURNER_TURBO upgrade:
+		# Tier 1: 100 max nitro, 24.0 drain
+		# Tier 2: 125 max nitro, 20.0 drain
+		# Tier 3: 150 max nitro, 16.8 drain (-30%)
+		var b_tier = rm.get_upgrade_tier("AFTERBURNER_TURBO")
+		if b_tier == 2:
+			max_nitro = 125.0
+			nitro_drain_rate = 20.0
+		elif b_tier >= 3:
+			max_nitro = 150.0
+			nitro_drain_rate = 16.8
+
+		# HYDRA_MISSILES upgrade:
+		# Tier 1: 4 missiles, 1.2s lock, 6.5s reload
+		# Tier 2: 4 missiles, 0.9s lock (-25%), 5.5s reload
+		# Tier 3: 6 missiles, 0.8s lock, 4.2s reload (-35%)
+		var m_tier = rm.get_upgrade_tier("HYDRA_MISSILES")
+		if m_tier == 2:
+			lock_duration = 0.9
+			missile_reload_cooldown = 5.5
+		elif m_tier >= 3:
+			max_missiles = 6
+			lock_duration = 0.8
+			missile_reload_cooldown = 4.2
+
 	current_shield = max_shield
 	current_hull = max_hull
 	current_nitro = max_nitro

@@ -545,16 +545,55 @@ document.addEventListener('DOMContentLoaded', () => {
   if (tabLoginBtn) tabLoginBtn.addEventListener('click', () => switchTab('login'));
   if (tabDossierBtn) tabDossierBtn.addEventListener('click', () => switchTab('dossier'));
 
+  const BADGES_CATALOG = [
+    { id: "FIRST_SORTIE", icon: "🎖️", name: "First Sortie", desc: "Complete initial flight qualification or combat sortie.", condition: "Awarded upon flight commissioning." },
+    { id: "ACE_INTERCEPTOR", icon: "⚡", name: "Ace Interceptor", desc: "Confirm 25 or more hostile targets destroyed in combat.", condition: "Destroy 25 enemies." },
+    { id: "WAR_GOD_OF_SOL", icon: "👑", name: "War God of Sol", desc: "Legendary combat standing: 100 confirmed career kills.", condition: "Confirm 100 kills." },
+    { id: "GHOST_PROTOCOL", icon: "🛡️", name: "Ghost Protocol", desc: "Flawless sortie execution: Survive an engagement taking zero hull damage.", condition: "Flawless mission outcome." },
+    { id: "CAMPAIGN_HERO", icon: "🌌", name: "Campaign Hero", desc: "Unlock and conquer Chapter / Mission 05: Silent Orbit.", condition: "Complete Mission 05." },
+    { id: "FLEET_DEDICATION", icon: "📅", name: "Fleet Dedication", desc: "Demonstrate relentless discipline: Maintain a 7-day login streak.", condition: "Reach Day 7 streak." },
+    { id: "LUCKY_STRIKE", icon: "🎯", name: "Lucky Strike", desc: "Hit the Grand Prize Jackpot (1,000★) on the Daily Tactical Wheel.", condition: "Wheel Jackpot hit." },
+    { id: "PVP_GLADIATOR", icon: "⚔️", name: "PVP Gladiator", desc: "Score victory against a rival pilot in local or online dogfight arena.", condition: "Win a PvP match." },
+    { id: "ARSENAL_OVERLORD", icon: "🛠️", name: "Arsenal Overlord", desc: "Upgrade any weapon or kinetic defense system to Tier III.", condition: "Upgrade system to Tier 3." },
+    { id: "SOLAR_FASHION", icon: "🎨", name: "Solar Fashion", desc: "Acquire and equip a custom aerospace livery from the Hangar.", condition: "Equip custom livery." },
+  ];
+
+  const SKINS_CATALOG = {
+    "CLASSIC_CYAN": { id: "CLASSIC_CYAN", name: "Interceptor Classic", cost: 0, color: "#00e5ff", desc: "Standard Vanguard titanium-composite hull with cyan avionics." },
+    "SOLAR_FLARE": { id: "SOLAR_FLARE", name: "Solar Flare", cost: 250, color: "#ffd700", desc: "Radiant high-albedo gold plating reflecting intense coronal bursts." },
+    "VOID_STEALTH": { id: "VOID_STEALTH", name: "Void Stealth", cost: 500, color: "#a855f7", desc: "Radar-absorbent matte carbon black finish with violet impulse glow." },
+    "CRIMSON_FURY": { id: "CRIMSON_FURY", name: "Crimson Fury", cost: 750, color: "#ef4444", desc: "Aggressive blood-red aerofoil livery with scorched titanium trim." },
+    "CYBER_NEON": { id: "CYBER_NEON", name: "Cyberpunk Neon", cost: 1000, color: "#ec4899", desc: "Overclocked holographic dual-tone synthwave neon coating." },
+  };
+
+  const UPGRADES_CATALOG = {
+    "PULSE_CANNON": { name: "Pulse Laser Cannons", icon: "⚡", tiers: ["Tier I (Base)", "Tier II (+20% Dmg)", "Tier III (Plasma Punch)"], costs: [100, 250, 600] },
+    "HYDRA_MISSILES": { name: "Hydra Missile Pods", icon: "🚀", tiers: ["Tier I (4 Racks)", "Tier II (-25% Lock)", "Tier III (-35% Reload)"], costs: [150, 300, 700] },
+    "DEFLECTOR_SHIELD": { name: "Deflector Kinetic Shields", icon: "🛡️", tiers: ["Tier I (100 HP)", "Tier II (+35% Recharge)", "Tier III (50% Divert)"], costs: [120, 280, 650] },
+    "AFTERBURNER_TURBO": { name: "Afterburner Turbo Capacitor", icon: "🔥", tiers: ["Tier I (120 m/s)", "Tier II (+25 Nitro)", "Tier III (-30% Drain)"], costs: [100, 220, 500] },
+  };
+
+  const STREAK_AMOUNTS = [50, 75, 100, 150, 200, 300, 500];
+
   function updateAuthUI() {
     const rawProfile = localStorage.getItem('vanguard_pilot_profile');
+    const token = localStorage.getItem('vanguard_pilot_token');
+    const headerStarsPill = document.getElementById('header-stars-pill');
+    const headerStarsVal = document.getElementById('header-stars-val');
+    const mobileStarsPill = document.getElementById('mobile-stars-pill');
+    const mobileStarsVal = document.getElementById('mobile-stars-val');
+
+    let starsCount = 0;
+
     if (rawProfile && pilotPortalLabel) {
       try {
         const pilot = JSON.parse(rawProfile);
+        starsCount = pilot.rewards?.stars || 0;
         pilotPortalLabel.textContent = pilot.callsign;
         if (mobilePilotLabel) mobilePilotLabel.textContent = `${pilot.rank} ${pilot.callsign}`;
         if (pilotPortalIcon) pilotPortalIcon.textContent = '⚡';
         if (heroRegisterBtn) {
-          heroRegisterBtn.innerHTML = `<span class="text-xl">⚡</span><span>PILOT DOSSIER // ${pilot.callsign}</span>`;
+          heroRegisterBtn.innerHTML = `<span class="text-xl">⚡</span><span>PILOT DOSSIER // ${pilot.callsign} [${starsCount}★]</span>`;
         }
         if (tabDossierBtn) tabDossierBtn.classList.remove('hidden');
       } catch {}
@@ -566,6 +605,27 @@ document.addEventListener('DOMContentLoaded', () => {
         heroRegisterBtn.innerHTML = `<span class="text-2xl">🎖️</span><span id="hero-register-text">COMMISSION CALLSIGN (FREE)</span>`;
       }
       if (tabDossierBtn) tabDossierBtn.classList.add('hidden');
+    }
+
+    if (headerStarsPill) {
+      if (token) {
+        headerStarsPill.classList.remove('hidden');
+        headerStarsPill.classList.add('flex');
+        if (headerStarsVal) headerStarsVal.textContent = starsCount.toLocaleString();
+      } else {
+        headerStarsPill.classList.add('hidden');
+        headerStarsPill.classList.remove('flex');
+      }
+    }
+    if (mobileStarsPill) {
+      if (token) {
+        mobileStarsPill.classList.remove('hidden');
+        mobileStarsPill.classList.add('flex');
+        if (mobileStarsVal) mobileStarsVal.textContent = `${starsCount.toLocaleString()} ★`;
+      } else {
+        mobileStarsPill.classList.add('hidden');
+        mobileStarsPill.classList.remove('flex');
+      }
     }
 
     renderPilotStats();
@@ -581,6 +641,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if (callEl) callEl.textContent = pilot.callsign;
       if (rankEl) rankEl.textContent = `${pilot.rank} // ${pilot.squadron}`;
       const stats = pilot.stats || {};
+      const rewards = pilot.rewards || {
+        stars: 0,
+        streak: 1,
+        badges: ["FIRST_SORTIE"],
+        unlocked_skins: ["CLASSIC_CYAN"],
+        active_skin: "CLASSIC_CYAN",
+        upgrades: { PULSE_CANNON: 1, HYDRA_MISSILES: 1, DEFLECTOR_SHIELD: 1, AFTERBURNER_TURBO: 1 }
+      };
+
       const sortiesEl = document.getElementById('dossier-sorties');
       const killsEl = document.getElementById('dossier-kills');
       const campEl = document.getElementById('dossier-campaign');
@@ -598,6 +667,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (recordEl) recordEl.textContent = `${won}W - ${lost}L`;
       if (winRateEl) winRateEl.textContent = total > 0 ? `${((won / total) * 100).toFixed(1)}%` : '0.0%';
       if (controlsEl) controlsEl.textContent = stats.preferred_controls || 'AZERTY';
+
+      // Stars Currency update
+      const starsValEl = document.getElementById('dossier-stars-val');
+      if (starsValEl) starsValEl.textContent = (rewards.stars || 0).toLocaleString();
 
       // Verification status handling
       const verifiedBadge = document.getElementById('dossier-verified-badge');
@@ -623,7 +696,517 @@ document.addEventListener('DOMContentLoaded', () => {
           if (unverifiedEmail) unverifiedEmail.textContent = pilot.email || '';
         }
       }
+
+      // Render Rewards Systems
+      renderStreakPips(rewards);
+      renderBadges(rewards, stats);
+      renderArmory(rewards);
+
+    } catch (err) {
+      console.warn('[Dossier Error]', err);
+    }
+  }
+
+  function renderStreakPips(rewards) {
+    const container = document.getElementById('streak-pips-container');
+    const countText = document.getElementById('streak-count-text');
+    const claimBtn = document.getElementById('btn-claim-streak');
+    const claimLabel = document.getElementById('streak-claim-label');
+    const wheelBtn = document.getElementById('btn-open-wheel');
+    const wheelLabel = document.getElementById('wheel-btn-label');
+
+    const streak = Math.max(1, Math.min(rewards.streak || 1, 7));
+    if (countText) countText.textContent = `Day ${streak} / 7`;
+
+    const today = new Date().toISOString().split('T')[0];
+    const canClaim = rewards.last_login_date !== today;
+    const canSpin = rewards.last_wheel_date !== today;
+
+    if (claimBtn && claimLabel) {
+      if (canClaim) {
+        claimBtn.disabled = false;
+        claimBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        claimLabel.textContent = `CLAIM +${STREAK_AMOUNTS[streak - 1]}★`;
+      } else {
+        claimBtn.disabled = true;
+        claimBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        claimLabel.textContent = `✓ CLAIMED TODAY`;
+      }
+    }
+
+    if (wheelBtn && wheelLabel) {
+      if (canSpin) {
+        wheelLabel.textContent = 'REWARD WHEEL (1 FREE)';
+        wheelBtn.classList.add('animate-pulse');
+      } else {
+        wheelLabel.textContent = 'REWARD WHEEL';
+        wheelBtn.classList.remove('animate-pulse');
+      }
+    }
+
+    if (container) {
+      container.innerHTML = Array.from({ length: 7 }, (_, i) => {
+        const dayNum = i + 1;
+        const isDone = dayNum < streak || (dayNum === streak && !canClaim);
+        const isCurrent = dayNum === streak && canClaim;
+        const rewardText = `+${STREAK_AMOUNTS[i]}★`;
+
+        let borderClass = 'border-vanguard-border/50 bg-black/40 text-slate-500';
+        if (isDone) {
+          borderClass = 'border-emerald-500/80 bg-emerald-950/40 text-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.3)]';
+        } else if (isCurrent) {
+          borderClass = 'border-vanguard-gold bg-amber-950/50 text-vanguard-gold animate-pulse shadow-[0_0_10px_rgba(255,215,0,0.4)]';
+        }
+
+        return `
+          <div class="p-1.5 rounded-lg border text-center font-mono ${borderClass}">
+            <div class="text-[9px] uppercase font-bold">D${dayNum}</div>
+            <div class="text-[10px] font-bold mt-0.5">${dayNum === 7 ? '🎖️ 500★' : rewardText}</div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  function renderBadges(rewards, stats) {
+    const container = document.getElementById('badges-grid-container');
+    const countBadge = document.getElementById('badges-unlocked-badge');
+    if (!container) return;
+
+    const unlockedSet = new Set(rewards.badges || []);
+    unlockedSet.add("FIRST_SORTIE");
+    if ((stats.total_kills || 0) >= 25) unlockedSet.add("ACE_INTERCEPTOR");
+    if ((stats.total_kills || 0) >= 100) unlockedSet.add("WAR_GOD_OF_SOL");
+    if (['M05', 'M06', 'M07', 'M08'].includes(stats.highest_mission_unlocked)) unlockedSet.add("CAMPAIGN_HERO");
+    if ((stats.battles_won || 0) >= 1) unlockedSet.add("PVP_GLADIATOR");
+    if ((rewards.streak || 0) >= 7) unlockedSet.add("FLEET_DEDICATION");
+
+    const totalUnlocked = BADGES_CATALOG.filter(b => unlockedSet.has(b.id)).length;
+    if (countBadge) countBadge.textContent = `${totalUnlocked}/${BADGES_CATALOG.length}`;
+
+    container.innerHTML = BADGES_CATALOG.map(b => {
+      const isUnlocked = unlockedSet.has(b.id);
+      return `
+        <div class="p-3 rounded-xl border ${isUnlocked ? 'border-vanguard-cyan/60 bg-gradient-to-r from-vanguard-deep to-black/80 shadow-[0_0_15px_rgba(0,229,255,0.15)]' : 'border-vanguard-border/40 bg-black/40 opacity-60'} flex items-start gap-3 transition-all hover:scale-[1.01]">
+          <div class="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0 ${isUnlocked ? 'bg-vanguard-cyan/20 border border-vanguard-cyan/50 shadow-cyan-glow' : 'bg-slate-800/50 border border-slate-700/50 grayscale'}">
+            ${b.icon}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between">
+              <h5 class="text-xs font-bold font-display ${isUnlocked ? 'text-white' : 'text-slate-400'} truncate">${b.name}</h5>
+              <span class="text-[9px] font-mono px-1.5 py-0.5 rounded font-bold ${isUnlocked ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-slate-800 text-slate-500'}">
+                ${isUnlocked ? 'UNLOCKED' : 'LOCKED'}
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-300 font-sans mt-0.5 line-clamp-2">${b.desc}</p>
+            <div class="text-[9px] font-mono text-vanguard-cyan/80 mt-1 uppercase">// REQUIREMENT: ${b.condition}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderArmory(rewards) {
+    const skinsContainer = document.getElementById('skins-grid-container');
+    const upgradesContainer = document.getElementById('upgrades-list-container');
+    const stars = rewards.stars || 0;
+    const unlockedSkins = rewards.unlocked_skins || ['CLASSIC_CYAN'];
+    const activeSkin = rewards.active_skin || 'CLASSIC_CYAN';
+    const upgrades = rewards.upgrades || { PULSE_CANNON: 1, HYDRA_MISSILES: 1, DEFLECTOR_SHIELD: 1, AFTERBURNER_TURBO: 1 };
+
+    if (skinsContainer) {
+      skinsContainer.innerHTML = Object.values(SKINS_CATALOG).map(skin => {
+        const isOwned = unlockedSkins.includes(skin.id);
+        const isEquipped = activeSkin === skin.id;
+
+        let btnMarkup = '';
+        if (isEquipped) {
+          btnMarkup = `<span class="px-3 py-1 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-bold font-mono">✓ EQUIPPED</span>`;
+        } else if (isOwned) {
+          btnMarkup = `<button data-action="equip_skin" data-id="${skin.id}" class="armory-action-btn px-3 py-1 rounded bg-vanguard-cyan text-black hover:bg-white text-[10px] font-bold uppercase tracking-wider font-display transition-all cursor-pointer">EQUIP</button>`;
+        } else {
+          const canAfford = stars >= skin.cost;
+          btnMarkup = `<button data-action="buy_skin" data-id="${skin.id}" class="armory-action-btn px-3 py-1 rounded ${canAfford ? 'bg-vanguard-gold text-black hover:bg-white' : 'bg-slate-800 text-slate-500 cursor-not-allowed'} text-[10px] font-bold uppercase tracking-wider font-display transition-all cursor-pointer">UNLOCK (${skin.cost}★)</button>`;
+        }
+
+        return `
+          <div class="p-3 rounded-xl border border-vanguard-border/60 bg-black/60 flex items-center justify-between gap-2.5">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-8 h-8 rounded-lg shrink-0 border flex items-center justify-center font-bold text-xs" style="background-color: ${skin.color}22; color: ${skin.color}; border-color: ${skin.color}66;">
+                ✈
+              </div>
+              <div class="min-w-0">
+                <div class="text-xs font-bold text-white truncate font-display">${skin.name}</div>
+                <div class="text-[10px] text-slate-400 truncate">${skin.desc}</div>
+              </div>
+            </div>
+            <div class="shrink-0">${btnMarkup}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    if (upgradesContainer) {
+      upgradesContainer.innerHTML = Object.entries(UPGRADES_CATALOG).map(([key, up]) => {
+        const curTier = upgrades[key] || 1;
+        const isMax = curTier >= 3;
+        const nextCost = !isMax ? up.costs[curTier - 1] : 0;
+        const canAfford = !isMax && stars >= nextCost;
+
+        let btnMarkup = '';
+        if (isMax) {
+          btnMarkup = `<span class="px-3 py-1 rounded bg-vanguard-gold/20 text-vanguard-gold border border-vanguard-gold/40 text-[10px] font-bold font-mono">MAX TIER III</span>`;
+        } else {
+          btnMarkup = `<button data-action="buy_upgrade" data-id="${key}" class="armory-action-btn px-3 py-1 rounded ${canAfford ? 'bg-vanguard-gold text-black hover:bg-white shadow-[0_0_10px_rgba(255,215,0,0.3)]' : 'bg-slate-800 text-slate-500 cursor-not-allowed'} text-[10px] font-bold uppercase tracking-wider font-display transition-all cursor-pointer">UPGRADE (${nextCost}★)</button>`;
+        }
+
+        return `
+          <div class="p-3 rounded-xl border border-vanguard-border/60 bg-black/60 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+              <span class="text-xl">${up.icon}</span>
+              <div>
+                <div class="text-xs font-bold text-white font-display">${up.name}</div>
+                <div class="text-[10px] text-vanguard-cyan font-mono mt-0.5">${up.tiers[curTier - 1]}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="flex gap-1">
+                ${[1, 2, 3].map(t => `<span class="w-2.5 h-2.5 rounded-full ${t <= curTier ? 'bg-vanguard-gold shadow-[0_0_6px_#ffd700]' : 'bg-slate-800 border border-slate-700'}"></span>`).join('')}
+              </div>
+              <div>${btnMarkup}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Attach click listeners to armory buttons
+    document.querySelectorAll('.armory-action-btn').forEach(btn => {
+      btn.onclick = async () => {
+        const action = btn.dataset.action;
+        const id = btn.dataset.id;
+        const token = localStorage.getItem('vanguard_pilot_token');
+        if (!token) {
+          alert("Please authenticate your pilot credentials first.");
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'TRANSMITTING...';
+        audio.beep(1200, 0.05);
+
+        try {
+          const bodyPayload = { action };
+          if (action === 'buy_skin' || action === 'equip_skin') bodyPayload.skin_id = id;
+          if (action === 'buy_upgrade') bodyPayload.upgrade_id = id;
+
+          const res = await fetch('/api/pilot/reward', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(bodyPayload)
+          });
+
+          const data = await res.json();
+          if (res.ok && data.success) {
+            audio.lock();
+            const rawProfile = localStorage.getItem('vanguard_pilot_profile');
+            let p = rawProfile ? JSON.parse(rawProfile) : {};
+            p.rewards = data.rewards;
+            localStorage.setItem('vanguard_pilot_profile', JSON.stringify(p));
+            updateAuthUI();
+            renderDossier();
+          } else {
+            alert(data.error || 'Armory transaction failed.');
+            renderDossier();
+          }
+        } catch {
+          alert('Network communication failed.');
+          renderDossier();
+        }
+      };
+    });
+  }
+
+  // Dossier Subtab Switcher
+  const subtabRecordBtn = document.getElementById('subtab-record-btn');
+  const subtabBadgesBtn = document.getElementById('subtab-badges-btn');
+  const subtabArmoryBtn = document.getElementById('subtab-armory-btn');
+
+  const dossierViewRecord = document.getElementById('dossier-view-record');
+  const dossierViewBadges = document.getElementById('dossier-view-badges');
+  const dossierViewArmory = document.getElementById('dossier-view-armory');
+
+  function switchDossierSubtab(tab) {
+    audio.beep(1100, 0.03);
+    [subtabRecordBtn, subtabBadgesBtn, subtabArmoryBtn].forEach(b => {
+      if (b) {
+        b.classList.remove('border-vanguard-cyan', 'text-vanguard-cyan', 'font-bold');
+        b.classList.add('border-transparent', 'text-slate-400');
+      }
+    });
+
+    [dossierViewRecord, dossierViewBadges, dossierViewArmory].forEach(v => {
+      if (v) v.classList.add('hidden');
+    });
+
+    if (tab === 'record' && subtabRecordBtn && dossierViewRecord) {
+      subtabRecordBtn.classList.add('border-vanguard-cyan', 'text-vanguard-cyan', 'font-bold');
+      subtabRecordBtn.classList.remove('border-transparent', 'text-slate-400');
+      dossierViewRecord.classList.remove('hidden');
+    } else if (tab === 'badges' && subtabBadgesBtn && dossierViewBadges) {
+      subtabBadgesBtn.classList.add('border-vanguard-cyan', 'text-vanguard-cyan', 'font-bold');
+      subtabBadgesBtn.classList.remove('border-transparent', 'text-slate-400');
+      dossierViewBadges.classList.remove('hidden');
+    } else if (tab === 'armory' && subtabArmoryBtn && dossierViewArmory) {
+      subtabArmoryBtn.classList.add('border-vanguard-cyan', 'text-vanguard-cyan', 'font-bold');
+      subtabArmoryBtn.classList.remove('border-transparent', 'text-slate-400');
+      dossierViewArmory.classList.remove('hidden');
+    }
+  }
+
+  if (subtabRecordBtn) subtabRecordBtn.addEventListener('click', () => switchDossierSubtab('record'));
+  if (subtabBadgesBtn) subtabBadgesBtn.addEventListener('click', () => switchDossierSubtab('badges'));
+  if (subtabArmoryBtn) subtabArmoryBtn.addEventListener('click', () => switchDossierSubtab('armory'));
+
+  // Claim Daily Streak Bonus Handler
+  const btnClaimStreak = document.getElementById('btn-claim-streak');
+  if (btnClaimStreak) {
+    btnClaimStreak.addEventListener('click', async () => {
+      const token = localStorage.getItem('vanguard_pilot_token');
+      if (!token) return;
+
+      btnClaimStreak.disabled = true;
+      btnClaimStreak.innerHTML = `<span>⏳</span><span>CLAIMING...</span>`;
+      audio.ping();
+
+      try {
+        const res = await fetch('/api/pilot/reward', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ action: 'claim_streak' })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          audio.lock();
+          const rawProfile = localStorage.getItem('vanguard_pilot_profile');
+          let p = rawProfile ? JSON.parse(rawProfile) : {};
+          p.rewards = data.rewards;
+          localStorage.setItem('vanguard_pilot_profile', JSON.stringify(p));
+          updateAuthUI();
+          renderDossier();
+        } else {
+          alert(data.error || 'Failed to claim daily bonus.');
+          renderDossier();
+        }
+      } catch {
+        alert('Network connection error.');
+        renderDossier();
+      }
+    });
+  }
+
+  // --- Tactical Daily Reward Wheel Controller ---
+  const wheelModal = document.getElementById('wheel-modal');
+  const btnOpenWheel = document.getElementById('btn-open-wheel');
+  const closeWheelModalBtn = document.getElementById('close-wheel-modal-btn');
+  const btnSpinWheelAction = document.getElementById('btn-spin-wheel-action');
+  const wheelCanvas = document.getElementById('wheel-canvas');
+  const wheelFeedback = document.getElementById('wheel-feedback');
+
+  const WHEEL_SEGMENTS = [
+    { label: "50 ★", color: "#0f172a", textColor: "#38bdf8" },
+    { label: "100 ★", color: "#1e293b", textColor: "#ffd700" },
+    { label: "250 ★", color: "#0f233a", textColor: "#00e5ff" },
+    { label: "500 ★", color: "#2e1065", textColor: "#c084fc" },
+    { label: "JACKPOT 1K★", color: "#78350f", textColor: "#fde047" },
+    { label: "LIVERY", color: "#14532d", textColor: "#4ade80" },
+    { label: "CANNON +1", color: "#1e1b4b", textColor: "#818cf8" },
+    { label: "SHIELD +1", color: "#450a0a", textColor: "#f87171" }
+  ];
+
+  let currentWheelAngle = 0;
+  let isWheelSpinning = false;
+
+  function drawWheel(angle = 0) {
+    if (!wheelCanvas) return;
+    const ctx = wheelCanvas.getContext('2d');
+    const width = wheelCanvas.width;
+    const height = wheelCanvas.height;
+    const cx = width / 2;
+    const cy = height / 2;
+    const radius = cx - 4;
+    const numSlices = WHEEL_SEGMENTS.length;
+    const sliceAngle = (2 * Math.PI) / numSlices;
+
+    ctx.clearRect(0, 0, width, height);
+
+    for (let i = 0; i < numSlices; i++) {
+      const startA = angle + i * sliceAngle;
+      const endA = startA + sliceAngle;
+      const seg = WHEEL_SEGMENTS[i];
+
+      // Slice background
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, radius, startA, endA);
+      ctx.closePath();
+      ctx.fillStyle = seg.color;
+      ctx.fill();
+
+      // Border outline
+      ctx.strokeStyle = "rgba(0, 229, 255, 0.4)";
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Text label
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(startA + sliceAngle / 2);
+      ctx.textAlign = "right";
+      ctx.fillStyle = seg.textColor;
+      ctx.font = "bold 11px monospace";
+      ctx.fillText(seg.label, radius - 16, 4);
+      ctx.restore();
+    }
+  }
+
+  if (wheelCanvas) drawWheel(0);
+
+  function openWheelModal() {
+    audio.beep(880, 0.05);
+    if (wheelModal) wheelModal.classList.remove('hidden');
+    if (wheelFeedback) wheelFeedback.textContent = '';
+    const rawProfile = localStorage.getItem('vanguard_pilot_profile');
+    try {
+      const p = JSON.parse(rawProfile || '{}');
+      const today = new Date().toISOString().split('T')[0];
+      const canSpin = p.rewards?.last_wheel_date !== today;
+      if (btnSpinWheelAction) {
+        btnSpinWheelAction.disabled = !canSpin;
+        btnSpinWheelAction.textContent = canSpin ? '🎡 SPIN TACTICAL WHEEL' : '✓ SPUN TODAY // RESETS AT 00:00 UTC';
+        btnSpinWheelAction.classList.toggle('opacity-50', !canSpin);
+        btnSpinWheelAction.classList.toggle('cursor-not-allowed', !canSpin);
+      }
     } catch {}
+    drawWheel(currentWheelAngle);
+  }
+
+  function closeWheelModal() {
+    if (!isWheelSpinning && wheelModal) {
+      wheelModal.classList.add('hidden');
+    }
+  }
+
+  if (btnOpenWheel) btnOpenWheel.addEventListener('click', openWheelModal);
+  if (closeWheelModalBtn) closeWheelModalBtn.addEventListener('click', closeWheelModal);
+  if (wheelModal) {
+    wheelModal.addEventListener('click', (e) => {
+      if (e.target === wheelModal) closeWheelModal();
+    });
+  }
+
+  if (btnSpinWheelAction) {
+    btnSpinWheelAction.addEventListener('click', async () => {
+      if (isWheelSpinning) return;
+      const token = localStorage.getItem('vanguard_pilot_token');
+      if (!token) {
+        alert("Please authenticate pilot credentials first.");
+        return;
+      }
+
+      isWheelSpinning = true;
+      btnSpinWheelAction.disabled = true;
+      btnSpinWheelAction.textContent = 'CALCULATING ORBITAL TRAJECTORY...';
+      audio.ping();
+
+      try {
+        const res = await fetch('/api/pilot/reward', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ action: 'spin_wheel' })
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          alert(data.error || 'Daily spin already claimed or unavailable.');
+          isWheelSpinning = false;
+          openWheelModal();
+          return;
+        }
+
+        const prizeIdx = data.prize_index ?? 0;
+        const numSlices = WHEEL_SEGMENTS.length;
+        const sliceAngle = (2 * Math.PI) / numSlices;
+
+        // Pointer is at the top (-PI/2). To align slice prizeIdx with top pointer:
+        // sliceCenterAngle = angle + prizeIdx * sliceAngle + sliceAngle/2
+        // targetAngle = -PI/2 - (prizeIdx * sliceAngle + sliceAngle/2)
+        const targetOffset = -Math.PI / 2 - (prizeIdx * sliceAngle + sliceAngle / 2);
+        const fullSpins = (5 + Math.floor(Math.random() * 3)) * (2 * Math.PI);
+        const finalTargetAngle = fullSpins + targetOffset;
+
+        const startAngle = currentWheelAngle % (2 * Math.PI);
+        const totalDelta = finalTargetAngle - startAngle;
+        const durationMs = 4200;
+        const startTime = performance.now();
+
+        let lastTickQuarter = -1;
+
+        function animateWheel(now) {
+          const elapsed = now - startTime;
+          const progress = Math.min(1.0, elapsed / durationMs);
+          // Ease out cubic
+          const easeOut = 1 - Math.pow(1 - progress, 3);
+          const currentA = startAngle + totalDelta * easeOut;
+          currentWheelAngle = currentA;
+          drawWheel(currentA);
+
+          // Audio ticking
+          const tickStep = Math.floor(currentA / (sliceAngle / 2));
+          if (tickStep !== lastTickQuarter) {
+            lastTickQuarter = tickStep;
+            audio.beep(1600, 0.015);
+          }
+
+          if (progress < 1.0) {
+            requestAnimationFrame(animateWheel);
+          } else {
+            isWheelSpinning = false;
+            audio.lock();
+            const rawProfile = localStorage.getItem('vanguard_pilot_profile');
+            let p = rawProfile ? JSON.parse(rawProfile) : {};
+            p.rewards = data.rewards;
+            localStorage.setItem('vanguard_pilot_profile', JSON.stringify(p));
+
+            if (wheelFeedback) {
+              wheelFeedback.innerHTML = `<span class="text-vanguard-gold text-sm animate-bounce">⚡ WON: ${data.prize?.label || 'REWARD GRANTED'}!</span>`;
+            }
+            btnSpinWheelAction.textContent = '✓ SPUN TODAY // DISPATCH COMPLETE';
+            btnSpinWheelAction.classList.add('opacity-50', 'cursor-not-allowed');
+
+            updateAuthUI();
+            renderDossier();
+          }
+        }
+
+        requestAnimationFrame(animateWheel);
+
+      } catch (err) {
+        console.error(err);
+        alert('Network communication failed.');
+        isWheelSpinning = false;
+        openWheelModal();
+      }
+    });
   }
 
   // --- Live Combat Stats & Battle History Engine ---
@@ -785,7 +1368,23 @@ document.addEventListener('DOMContentLoaded', () => {
               : (pilot.stats?.battle_history || [])
           };
 
+          if (data.save_data?.rewards) {
+            pilot.rewards = data.save_data.rewards;
+          } else if (!pilot.rewards) {
+            pilot.rewards = {
+              stars: data.record?.stars || 0,
+              streak: 1,
+              badges: ["FIRST_SORTIE"],
+              unlocked_skins: ["CLASSIC_CYAN"],
+              active_skin: "CLASSIC_CYAN",
+              upgrades: { PULSE_CANNON: 1, HYDRA_MISSILES: 1, DEFLECTOR_SHIELD: 1, AFTERBURNER_TURBO: 1 }
+            };
+          } else if (data.record?.stars !== undefined) {
+            pilot.rewards.stars = data.record.stars;
+          }
+
           localStorage.setItem('vanguard_pilot_profile', JSON.stringify(pilot));
+          updateAuthUI();
           renderPilotStats();
           renderDossier();
           if (showFeedback) audio.lock();

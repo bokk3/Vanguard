@@ -1253,6 +1253,23 @@ func complete_mission() -> void:
 	# Play debrief comms
 	_trigger_victory_comms(current_mission_id)
 	
+	# Award Stars currency and evaluate Sortie Badges
+	var rm = get_tree().root.get_node_or_null("RewardManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
+	if rm:
+		var sortie_stars = 100
+		if current_mission_id == "M05": sortie_stars = 250
+		elif current_mission_id in ["M07", "M08"]: sortie_stars = 350
+		rm.add_stars(sortie_stars)
+		rm.unlock_badge("FIRST_SORTIE")
+		if current_mission_id == "M05":
+			rm.unlock_badge("CAMPAIGN_HERO")
+		# Ghost Protocol: Flawless victory with zero hull damage taken
+		var ship = get_tree().root.find_child("Spaceship", true, false) if (is_inside_tree() and get_tree() and get_tree().root) else null
+		if ship and ship.get("telemetry"):
+			var tel = ship.telemetry
+			if tel.current_hull >= tel.max_hull:
+				rm.unlock_badge("GHOST_PROTOCOL")
+	
 	# Auto-save campaign state
 	var sm = get_tree().root.get_node_or_null("SaveManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
 	if sm and sm.has_method("save_game"):

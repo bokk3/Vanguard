@@ -124,6 +124,10 @@ func _ready() -> void:
 		ship.set("custom_hud", self)
 		telemetry = ship.get_node_or_null("CombatTelemetry")
 	
+	var rm = get_node_or_null("/root/RewardManager")
+	if rm and not rm.badge_unlocked.is_connected(_on_reward_badge_unlocked):
+		rm.badge_unlocked.connect(_on_reward_badge_unlocked)
+	
 	# Setup High-G Cockpit Audio
 	high_g_audio_player = AudioStreamPlayer.new()
 	high_g_audio_player.name = "HighGAudioPlayer"
@@ -211,6 +215,10 @@ func notify_combat_event(text: String, col: Color = COLOR_CYAN) -> void:
 	combat_event_color = col
 	combat_event_timer = 2.5
 	queue_redraw()
+
+func _on_reward_badge_unlocked(badge_id: String, badge_info: Dictionary) -> void:
+	var bname = badge_info.get("name", badge_id)
+	notify_combat_event("// 🎖️ BADGE UNLOCKED: " + bname.to_upper() + " //", COLOR_GOLD)
 
 func _unhandled_input(event: InputEvent) -> void:
 	# Toggle circular radar via customizable action

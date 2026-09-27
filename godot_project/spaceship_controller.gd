@@ -151,6 +151,73 @@ func _apply_p2_visuals() -> void:
 	glow_light.position = Vector3(0, 0.2, 0)
 	add_child(glow_light)
 
+func _apply_reward_customizations() -> void:
+	var rm = get_node_or_null("/root/RewardManager")
+	if not rm:
+		return
+	
+	# 1. Apply Pulse Cannon & Afterburner upgrades
+	var c_tier = rm.get_upgrade_tier("PULSE_CANNON")
+	if c_tier == 2:
+		gun_damage = 7.2
+		gun_bullet_speed = 720.0
+	elif c_tier >= 3:
+		gun_damage = 9.0
+		gun_bullet_speed = 800.0
+		
+	var b_tier = rm.get_upgrade_tier("AFTERBURNER_TURBO")
+	if b_tier == 2:
+		boost_speed = 135.0
+	elif b_tier >= 3:
+		boost_speed = 150.0
+
+	# 2. Apply Custom Livery Skin
+	var skin_id = rm.get_active_skin()
+	if skin_id == "CLASSIC_CYAN" or skin_id.is_empty():
+		return
+		
+	var model_node = get_node_or_null("Model")
+	if not model_node:
+		return
+		
+	var custom_mat = StandardMaterial3D.new()
+	match skin_id:
+		"SOLAR_FLARE":
+			custom_mat.albedo_color = Color(1.0, 0.78, 0.05, 1.0)
+			custom_mat.metallic = 0.92
+			custom_mat.roughness = 0.2
+			custom_mat.emission_enabled = true
+			custom_mat.emission = Color(1.0, 0.8, 0.1)
+			custom_mat.emission_energy_multiplier = 1.2
+		"VOID_STEALTH":
+			custom_mat.albedo_color = Color(0.12, 0.12, 0.15, 1.0)
+			custom_mat.metallic = 0.5
+			custom_mat.roughness = 0.6
+			custom_mat.emission_enabled = true
+			custom_mat.emission = Color(0.66, 0.33, 0.97)
+			custom_mat.emission_energy_multiplier = 1.4
+		"CRIMSON_FURY":
+			custom_mat.albedo_color = Color(0.88, 0.15, 0.15, 1.0)
+			custom_mat.metallic = 0.85
+			custom_mat.roughness = 0.25
+			custom_mat.emission_enabled = true
+			custom_mat.emission = Color(1.0, 0.2, 0.1)
+			custom_mat.emission_energy_multiplier = 1.2
+		"CYBER_NEON":
+			custom_mat.albedo_color = Color(0.08, 0.08, 0.14, 1.0)
+			custom_mat.metallic = 0.6
+			custom_mat.roughness = 0.28
+			custom_mat.emission_enabled = true
+			custom_mat.emission = Color(0.92, 0.28, 0.6)
+			custom_mat.emission_energy_multiplier = 2.0
+		_:
+			return
+			
+	for child in model_node.find_children("*", "MeshInstance3D", true, false):
+		var m = child as MeshInstance3D
+		if m and m.mesh:
+			m.material_override = custom_mat
+
 func set_power_divert(mode: String) -> void:
 	var upper_mode = mode.to_upper()
 	if upper_mode not in ["ENGINES", "SHIELDS", "WEAPONS", "BALANCED"]:
@@ -224,6 +291,8 @@ func _ready() -> void:
 	
 	if player_id == 2:
 		_apply_p2_visuals()
+	else:
+		_apply_reward_customizations()
 		
 	current_speed = cruise_speed
 	downward_velocity = 0.0

@@ -51,9 +51,14 @@ func _populate_stats() -> void:
 	var sq = auth_mgr.squadron if auth_mgr else "404th Vanguard Strike Wing"
 	var st = auth_mgr.stats if auth_mgr else {}
 	
-	if callsign_label: callsign_label.text = "CALLSIGN: %s" % cs
-	if rank_label: rank_label.text = "RANK: %s" % rk
-	if squadron_label: squadron_label.text = "SQUADRON: %s" % sq
+	var rm = get_node_or_null("/root/RewardManager")
+	var stars = rm.stars if rm else 0
+	var streak = rm.streak if rm else 1
+	var badges_count = rm.unlocked_badges.size() if rm else 0
+	
+	if callsign_label: callsign_label.text = "CALLSIGN: %s  |  ⭐ %d STARS" % [cs, stars]
+	if rank_label: rank_label.text = "RANK: %s // 🔥 %d-DAY STREAK" % [rk, streak]
+	if squadron_label: squadron_label.text = "SQUADRON: %s  |  🎖️ %d/10 BADGES" % [sq, badges_count]
 	
 	var sorties = int(st.get("total_sorties", 0))
 	var kills = int(st.get("total_kills", 0))
@@ -131,6 +136,29 @@ func _populate_stats() -> void:
 				row.add_child(kills_lbl)
 				
 				battles_container.add_child(row)
+		
+		# Show Unlocked Military Badges Banner
+		var rm_node = get_node_or_null("/root/RewardManager")
+		if rm_node:
+			var sep = HSeparator.new()
+			battles_container.add_child(sep)
+			var badges_hdr = Label.new()
+			badges_hdr.text = "🎖️ MILITARY HONORS & BADGES UNLOCKED:"
+			badges_hdr.add_theme_font_size_override("font_size", 11)
+			badges_hdr.add_theme_color_override("font_color", Color(1.0, 0.84, 0.0))
+			battles_container.add_child(badges_hdr)
+			
+			var badges_flow = HFlowContainer.new()
+			badges_flow.add_theme_constant_override("h_separation", 8)
+			badges_flow.add_theme_constant_override("v_separation", 4)
+			for b_id in rm_node.unlocked_badges:
+				var b_data = rm_node.BADGES_DEF.get(b_id, { "icon": "🎖️", "name": b_id })
+				var pill = Label.new()
+				pill.text = "[ %s %s ]" % [b_data.get("icon", "🎖️"), b_data.get("name", b_id)]
+				pill.add_theme_font_size_override("font_size", 10)
+				pill.add_theme_color_override("font_color", Color(0.2, 0.9, 1.0))
+				badges_flow.add_child(pill)
+			battles_container.add_child(badges_flow)
 
 func _on_sync_pressed() -> void:
 	if status_msg_label:

@@ -29,3 +29,21 @@ export async function ensureVerificationSchema(db) {
         schemaEnsured = true;
     }
 }
+
+let rewardSchemaEnsured = false;
+
+export async function ensureRewardSchema(db) {
+    if (rewardSchemaEnsured || !db) return;
+    try {
+        await db.prepare("SELECT stars FROM pilot_records LIMIT 1").first();
+        rewardSchemaEnsured = true;
+    } catch {
+        try {
+            await db.prepare("ALTER TABLE pilot_records ADD COLUMN stars INTEGER DEFAULT 0").run();
+        } catch {}
+        try {
+            await db.prepare("CREATE INDEX IF NOT EXISTS idx_pilot_records_stars ON pilot_records(stars)").run();
+        } catch {}
+        rewardSchemaEnsured = true;
+    }
+}

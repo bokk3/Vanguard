@@ -94,6 +94,11 @@ func _load_saved_profile() -> void:
 	if data.has("stats") and typeof(data["stats"]) == TYPE_DICTIONARY:
 		stats = data["stats"]
 		
+	if data.has("rewards") and typeof(data["rewards"]) == TYPE_DICTIONARY:
+		var rm = get_node_or_null("/root/RewardManager")
+		if rm and rm.has_method("load_save_data"):
+			rm.load_save_data(data["rewards"])
+		
 	is_authenticated = true
 	print("[AuthManager] Restored remembered pilot profile: %s [%s] (%s)" % [callsign, rank, squadron])
 	_sync_pilot_to_systems()
@@ -212,6 +217,15 @@ func _on_http_request_completed(result: int, response_code: int, headers: Packed
 		token = data.get("token", "")
 		if pilot_data.has("stats") and typeof(pilot_data["stats"]) == TYPE_DICTIONARY:
 			stats = pilot_data["stats"]
+			
+		var rm = get_node_or_null("/root/RewardManager")
+		if rm and rm.has_method("load_save_data"):
+			if data.has("save_data") and typeof(data["save_data"]) == TYPE_DICTIONARY and data["save_data"].has("rewards"):
+				rm.load_save_data(data["save_data"]["rewards"])
+			elif pilot_data.has("rewards"):
+				rm.load_save_data(pilot_data["rewards"])
+			elif data.has("record") and typeof(data["record"]) == TYPE_DICTIONARY and data["record"].has("stars"):
+				rm.stars = int(data["record"]["stars"])
 			
 		is_authenticated = true
 		

@@ -323,11 +323,32 @@ func _on_destroyed() -> void:
 			spawn_parent.add_child(boom)
 			boom.global_position = global_position if is_inside_tree() else position
 	
+	# Reward Stars and Badges to pilot
+	var stars_earned = 15
+	if drone_type == "bomber":
+		stars_earned = 25
+	elif drone_type == "skirmisher":
+		stars_earned = 20
+
+	var rm = get_tree().root.get_node_or_null("RewardManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
+	if rm:
+		rm.add_stars(stars_earned)
+		
+		# Check career kills for Badges
+		var auth = get_tree().root.get_node_or_null("AuthManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
+		var total_kills = 0
+		if auth and "stats" in auth and typeof(auth.stats) == TYPE_DICTIONARY:
+			total_kills = int(auth.stats.get("total_kills", 0))
+		if total_kills >= 25:
+			rm.unlock_badge("ACE_INTERCEPTOR")
+		if total_kills >= 100:
+			rm.unlock_badge("WAR_GOD_OF_SOL")
+
 	# Notify HUD safely
 	if is_inside_tree() and get_tree() and get_tree().root:
 		var hud = get_tree().root.find_child("TacticalOverlay", true, false)
 		if hud and hud.has_method("notify_combat_event"):
-			hud.notify_combat_event("// TARGET DESTROYED // SORTIE OBJECTIVE UPDATED //", Color(1.0, 0.85, 0.0))
+			hud.notify_combat_event("// TARGET DESTROYED // +%d ⭐ STARS //" % stars_earned, Color(1.0, 0.85, 0.0))
 		var net_server = get_tree().root.get_node_or_null("NetworkControllerServer")
 		if net_server and net_server.has_method("notify_combat_event"):
 			net_server.notify_combat_event(1, "KILL_CONFIRMED")

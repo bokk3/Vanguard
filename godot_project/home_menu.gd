@@ -87,7 +87,7 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	
 	# Dynamic version string from project settings
-	var ver = ProjectSettings.get_setting("application/config/version", "0.9.2")
+	var ver = ProjectSettings.get_setting("application/config/version", "0.9.3")
 	if footer_label:
 		footer_label.text = "PROJECT VANGUARD v%s\nSYSTEMS INITIALIZED // READY" % ver
 	
@@ -210,6 +210,12 @@ func _ready() -> void:
 			_show_login_dialog()
 	else:
 		if login_dialog: login_dialog.hide()
+
+	var reward_mgr = _get_autoload_node("RewardManager")
+	if reward_mgr:
+		if not reward_mgr.rewards_updated.is_connected(_update_pilot_dossier_ui):
+			reward_mgr.rewards_updated.connect(_update_pilot_dossier_ui)
+		_apply_hangar_skin()
 
 	_setup_turntable_hardpoints()
 	_check_save_game_state()
@@ -356,14 +362,70 @@ func _on_mobile_pilot_joined(cs: String, pid: int) -> void:
 
 func _update_pilot_dossier_ui() -> void:
 	var auth_mgr = _get_autoload_node("AuthManager")
+	var reward_mgr = _get_autoload_node("RewardManager")
 	if not auth_mgr:
 		return
+	var stars_count = reward_mgr.stars if reward_mgr else 0
+	var badges_count = reward_mgr.unlocked_badges.size() if reward_mgr else 0
 	if pilot_label:
-		pilot_label.text = "PILOT: %s" % (auth_mgr.callsign if (auth_mgr.is_authenticated and not auth_mgr.callsign.is_empty()) else "UNAUTHENTICATED")
+		var pilot_name = auth_mgr.callsign if (auth_mgr.is_authenticated and not auth_mgr.callsign.is_empty()) else "UNAUTHENTICATED"
+		pilot_label.text = "PILOT: %s  |  ⭐ %d" % [pilot_name, stars_count]
 	if pilot_rank_label:
-		pilot_rank_label.text = ("RANK: %s // %s" % [auth_mgr.rank, auth_mgr.squadron]) if auth_mgr.is_authenticated else "CLEARANCE: RECRUIT // NOT LOGGED IN"
+		if auth_mgr.is_authenticated:
+			pilot_rank_label.text = "RANK: %s // %s  |  🎖️ %d/10" % [auth_mgr.rank, auth_mgr.squadron, badges_count]
+		else:
+			pilot_rank_label.text = "CLEARANCE: RECRUIT  |  ⭐ %d STARS" % stars_count
 	if switch_pilot_btn:
 		switch_pilot_btn.text = "🧑‍✈️ [SWITCH PILOT / LOGOUT]" if auth_mgr.is_authenticated else "🧑‍✈️ [LOGIN / REGISTER PILOT]"
+	
+	_apply_hangar_skin()
+
+func _apply_hangar_skin() -> void:
+	var reward_mgr = _get_autoload_node("RewardManager")
+	if not reward_mgr:
+		return
+	var skin_id = reward_mgr.get_active_skin()
+	var turntable_ship = get_node_or_null("HangarScene/ShipTurntable/SpaceshipModel")
+	if not turntable_ship:
+		return
+		
+	var custom_mat = StandardMaterial3D.new()
+	match skin_id:
+		"SOLAR_FLARE":
+			custom_mat.albedo_color = Color(1.0, 0.78, 0.05, 1.0)
+			custom_mat.metallic = 0.92
+			custom_mat.roughness = 0.2
+			custom_mat.emission_enabled = true
+			custom_mat.emission = Color(1.0, 0.8, 0.1)
+			custom_mat.emission_energy_multiplier = 1.2
+		"VOID_STEALTH":
+			custom_mat.albedo_color = Color(0.12, 0.12, 0.15, 1.0)
+			custom_mat.metallic = 0.5
+			custom_mat.roughness = 0.6
+			custom_mat.emission_enabled = true
+			custom_mat.emission = Color(0.66, 0.33, 0.97)
+			custom_mat.emission_energy_multiplier = 1.4
+		"CRIMSON_FURY":
+			custom_mat.albedo_color = Color(0.88, 0.15, 0.15, 1.0)
+			custom_mat.metallic = 0.85
+			custom_mat.roughness = 0.25
+			custom_mat.emission_enabled = true
+			custom_mat.emission = Color(1.0, 0.2, 0.1)
+			custom_mat.emission_energy_multiplier = 1.2
+		"CYBER_NEON":
+			custom_mat.albedo_color = Color(0.08, 0.08, 0.14, 1.0)
+			custom_mat.metallic = 0.6
+			custom_mat.roughness = 0.28
+			custom_mat.emission_enabled = true
+			custom_mat.emission = Color(0.92, 0.28, 0.6)
+			custom_mat.emission_energy_multiplier = 2.0
+		_:
+			custom_mat = null
+			
+	for child in turntable_ship.find_children("*", "MeshInstance3D", true, false):
+		var m = child as MeshInstance3D
+		if m and m.mesh:
+			m.material_override = custom_mat
 
 func _on_login_completed(_profile: Dictionary) -> void:
 	_update_pilot_dossier_ui()

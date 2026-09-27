@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Project Vanguard"
-config/version="0.9.2"
+config/version="0.9.3"
 run/main_scene="res://home_menu.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 boot_splash/bg_color=Color(0.015, 0.025, 0.045, 1)
@@ -25,6 +25,7 @@ busses/default_bus_layout="res://default_bus_layout.tres"
 [autoload]
 
 AuthManager="*res://auth_manager.gd"
+RewardManager="*res://reward_manager.gd"
 Updater="*res://updater.gd"
 ConfigManager="*res://config_manager.gd"
 SaveManager="*res://save_manager.gd"

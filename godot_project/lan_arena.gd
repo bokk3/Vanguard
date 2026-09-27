@@ -187,12 +187,20 @@ func _end_match(winner_id: int) -> void:
 	if victory_detail:
 		victory_detail.text = "FINAL SCORE: PLAYER 1 [ %d ] — PLAYER 2 [ %d ]" % [p1_score, p2_score]
 	
-	# Log PvP result to AuthManager career telemetry
+	# Log PvP result to AuthManager career telemetry and award rewards
 	var auth_mgr = get_node_or_null("/root/AuthManager")
+	var is_win = (winner_id == local_player_id)
 	if auth_mgr and auth_mgr.has_method("record_battle_result"):
-		var is_win = (winner_id == local_player_id)
 		var my_kills = p1_score if local_player_id == 1 else p2_score
 		auth_mgr.record_battle_result("LAN DOGFIGHT ARENA", "VICTORY" if is_win else "DEFEAT", my_kills, 90.0)
+	
+	var rm = get_node_or_null("/root/RewardManager")
+	if rm:
+		if is_win:
+			rm.add_stars(75)
+			rm.unlock_badge("PVP_GLADIATOR")
+		else:
+			rm.add_stars(25)
 	
 	if victory_modal:
 		victory_modal.show()
