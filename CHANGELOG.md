@@ -5,6 +5,29 @@ All notable changes to **Project Vanguard** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-09-27
+
+### Added
+- **Global Internet P2P Lobby Directory & Matchmaking**:
+  - Worldwide multiplayer matchmaking directory allowing authenticated pilots to publish combat lobbies to the global fleet radar.
+  - 100% direct peer-to-peer gameplay: flight physics, transforms, bullets, and missiles travel directly between host and client over UDP/ENet on port 7777 with zero latency inflation and 0 bytes routed through Cloudflare.
+  - Dedicated Cloudflare edge API endpoint `GET /api/network/lobbies` with 4-second caching to serve global lobbies with minimal resource consumption.
+  - Automatic public WAN IP and edge geolocation discovery via `cf-connecting-ip` and `request.cf` headers.
+- **Asynchronous UPnP Router Auto-Port-Mapping**:
+  - Built-in `UPNP` background thread automatically discovers the player's home router gateway and maps UDP ports 7777 (Game) and 7778 (Ping) with zero manual router setup.
+  - Real-time router status badge (`UPNP: ACTIVE (PORT 7777 UDP)`, `NO GATEWAY`, or `PORT MAP REJECTED`) displayed in the UI and waiting modal.
+  - Graceful cleanup on session end or game exit.
+- **Real-Time Return Latency (Ping) Probing**:
+  - Direct 12-byte UDP ping probes (`VANGUARD_PING`) sent from client to host on port 7778.
+  - Host's UDP socket immediately echoes back `VANGUARD_PONG`, allowing the client to measure exact millisecond round-trip time.
+  - Color-coded real-time latency badges in the lobby directory: Emerald Green (< 60 ms), Yellow (60-120 ms), Amber (> 120 ms), or `[ TIMEOUT ]` for strict NAT/CGNAT.
+- **Redesigned Dual-Mode Tactical PvP Portal**:
+  - Mode tab switcher: `[ 📡 LOCAL LAN SUBNET ]` $\longleftrightarrow$ `[ 🌐 GLOBAL FLEET RADAR (P2P) ]`.
+  - Integrated pilot credential verification gate with direct access to cloud authentication and registration dialog.
+  - Robust IP endpoint parsing supporting standard IPv4 (`192.168.1.1:7777`), bare IPs, and bracketed IPv6 addresses (`[2001:db8::1]:7777`).
+
+---
+
 ## [0.8.6] - 2026-09-27
 
 ### Added

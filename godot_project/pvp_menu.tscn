@@ -61,6 +61,22 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_auth_prompt"]
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
+bg_color = Color(0.03, 0.07, 0.12, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.8, 0.1, 0.7)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
 [node name="PvPMenu" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -198,90 +214,255 @@ theme_override_constants/margin_bottom = 20
 
 [node name="VBox" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 12
 
 [node name="CardTitle" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 20
-text = "[ 02 ] LOCAL NETWORK (LAN PEER MATCHING)"
+text = "[ 02 ] NETWORK DOGFIGHT (P2P MULTIPLAYER)"
 
-[node name="HostSection" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox"]
+[node name="NetworkTabHeader" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="HostInputs" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/HostSection"]
+[node name="LanTabBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/NetworkTabHeader"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "[ 📡 LOCAL LAN SUBNET ]"
+
+[node name="GlobalTabBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/NetworkTabHeader"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "[ 🌐 GLOBAL FLEET RADAR (P2P) ]"
+
+[node name="LanSection" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="HostSection" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HostInputs" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/HostSection"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="ServerNameInput" type="LineEdit" parent="MainLayout/Columns/LanCard/Margin/VBox/HostSection/HostInputs"]
+[node name="ServerNameInput" type="LineEdit" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/HostSection/HostInputs"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Server / Lobby Name"
 text = "VANGUARD LOBBY"
 
-[node name="CallsignInput" type="LineEdit" parent="MainLayout/Columns/LanCard/Margin/VBox/HostSection/HostInputs"]
+[node name="CallsignInput" type="LineEdit" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/HostSection/HostInputs"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Host Callsign"
 text = "Vanguard-1"
 
-[node name="HostBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/HostSection/HostInputs"]
+[node name="HostBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/HostSection/HostInputs"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 34)
 layout_mode = 2
 text = "[ HOST LAN SERVER ]"
 
-[node name="HSeparator" type="HSeparator" parent="MainLayout/Columns/LanCard/Margin/VBox"]
+[node name="HSeparator" type="HSeparator" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection"]
 layout_mode = 2
 
-[node name="LobbiesHeader" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox"]
+[node name="LobbiesHeader" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection"]
 layout_mode = 2
 
-[node name="LobbiesTitle" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/LobbiesHeader"]
+[node name="LobbiesTitle" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/LobbiesHeader"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
 theme_override_font_sizes/font_size = 14
 text = "DISCOVERED LAN SERVERS (PORT 7778):"
 
-[node name="RefreshLanBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/LobbiesHeader"]
+[node name="RefreshLanBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/LobbiesHeader"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 26)
 layout_mode = 2
 text = "[ REFRESH ]"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="MainLayout/Columns/LanCard/Margin/VBox"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ServerListContainer" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/ScrollContainer"]
+[node name="ServerListContainer" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/ScrollContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="NoServersLabel" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/ScrollContainer/ServerListContainer"]
+[node name="NoServersLabel" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/ScrollContainer/ServerListContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.65, 0.75, 0.6)
 theme_override_font_sizes/font_size = 12
 text = "No active LAN beacons detected. Ensure host has launched server on local subnet."
 
-[node name="DirectConnectBox" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox"]
+[node name="DirectConnectBox" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="DirectIpInput" type="LineEdit" parent="MainLayout/Columns/LanCard/Margin/VBox/DirectConnectBox"]
+[node name="DirectIpInput" type="LineEdit" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/DirectConnectBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Direct IP Address (e.g. 192.168.1.50 or 127.0.0.1:7777)"
 text = "127.0.0.1"
 
-[node name="DirectConnectBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/DirectConnectBox"]
+[node name="DirectConnectBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/DirectConnectBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 34)
+layout_mode = 2
+text = "[ DIRECT CONNECT ]"
+
+[node name="GlobalSection" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="GlobalAuthPrompt" type="PanelContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_auth_prompt")
+
+[node name="AuthPromptVBox" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalAuthPrompt"]
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="AuthPromptTitle" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalAuthPrompt/AuthPromptVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
+theme_override_font_sizes/font_size = 17
+text = "🎖️ PILOT COMMISSION REQUIRED"
+horizontal_alignment = 1
+
+[node name="AuthPromptDesc" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalAuthPrompt/AuthPromptVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.92, 0.98, 0.85)
+theme_override_font_sizes/font_size = 13
+text = "Global internet P2P matchmaking connects pilots across the globe. Sign in or register your pilot callsign to publish your combat lobby to the global fleet radar or challenge online opponents."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="GlobalLoginBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalAuthPrompt/AuthPromptVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 42)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 15
+text = "[ 🎖️ SIGN IN / COMMISSION CALLSIGN ]"
+
+[node name="GlobalLobbyView" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="PilotBannerBox" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView"]
+layout_mode = 2
+
+[node name="GlobalPilotLabel" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/PilotBannerBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.2, 0.95, 0.5, 1)
+theme_override_font_sizes/font_size = 12
+text = "🎖️ PILOT: TOPGUN [FLIGHT LIEUTENANT] // 404th Vanguard Strike Wing"
+
+[node name="UpnpStatusLabel" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/PilotBannerBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.85, 1, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "UPNP: IDLE"
+
+[node name="GlobalHostInputs" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="GlobalServerNameInput" type="LineEdit" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalHostInputs"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Global Lobby Name"
+text = "VANGUARD COMBAT LOBBY"
+
+[node name="PublishGlobalCheck" type="CheckBox" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalHostInputs"]
+unique_name_in_owner = true
+layout_mode = 2
+button_pressed = true
+text = "PUBLISH TO RADAR"
+
+[node name="GlobalHostBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalHostInputs"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 34)
+layout_mode = 2
+text = "[ HOST GLOBAL P2P ]"
+
+[node name="HSeparator2" type="HSeparator" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView"]
+layout_mode = 2
+
+[node name="GlobalLobbiesHeader" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView"]
+layout_mode = 2
+
+[node name="GlobalLobbiesTitle" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalLobbiesHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
+theme_override_font_sizes/font_size = 14
+text = "ONLINE FLEET RADAR (INTERNET P2P DIRECT):"
+
+[node name="RefreshGlobalBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalLobbiesHeader"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 26)
+layout_mode = 2
+text = "[ REFRESH ]"
+
+[node name="GlobalScrollContainer" type="ScrollContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="GlobalLobbyListContainer" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="NoGlobalLobbiesLabel" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalScrollContainer/GlobalLobbyListContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.65, 0.75, 0.6)
+theme_override_font_sizes/font_size = 12
+text = "No active internet lobbies registered. Host and publish a lobby to initiate a global sortie!"
+
+[node name="GlobalDirectConnectBox" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="GlobalDirectIpInput" type="LineEdit" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalDirectConnectBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Remote Host WAN IP:Port (e.g. 82.165.20.4:7777)"
+text = ""
+
+[node name="GlobalDirectConnectBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalDirectConnectBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 34)
 layout_mode = 2
@@ -332,6 +513,14 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 12
 text = "LISTEN SERVER ACTIVE // WAITING FOR OPPONENTS..."
+horizontal_alignment = 1
+
+[node name="UpnpHostModalLabel" type="Label" parent="HostWaitingModal/Margin/VBox/HeaderBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.95, 0.5, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "ROUTER STATUS: UPNP ACTIVE (PORT 7777 UDP)"
 horizontal_alignment = 1
 
 [node name="PartiesHBox" type="HBoxContainer" parent="HostWaitingModal/Margin/VBox"]

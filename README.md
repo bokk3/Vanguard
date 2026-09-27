@@ -9,10 +9,10 @@
 
 *"Precision in the Void. Firepower in the Envelope."*
 
-[![Release](https://img.shields.io/badge/Release-v0.8.0-00E5FF?style=for-the-badge&logo=github)](https://github.com/bokk3/Vanguard/releases)
+[![Release](https://img.shields.io/badge/Release-v0.9.0-00E5FF?style=for-the-badge&logo=github)](https://github.com/bokk3/Vanguard/releases)
 [![Live Portal](https://img.shields.io/badge/Live_Portal-project--vanguard.pages.dev-00E5FF?style=for-the-badge&logo=cloudflare)](https://project-vanguard.pages.dev)
 [![Scan to Fly](https://img.shields.io/badge/Mobile_HOTAS-Scan--to--Fly_QR-FF007F?style=for-the-badge&logo=pwa)](docs/ZERO_COST_INFRASTRUCTURE_AND_CONTROLLER_SPEC.md)
-[![Multiplayer](https://img.shields.io/badge/Multiplayer-Split--Screen_%7C_LAN_P2P-7C4DFF?style=for-the-badge)](docs/MULTIPLAYER_AND_COOP_SYSTEM.md)
+[![Multiplayer](https://img.shields.io/badge/Multiplayer-Global_P2P_%7C_Split--Screen_%7C_LAN-7C4DFF?style=for-the-badge)](docs/MULTIPLAYER_AND_COOP_SYSTEM.md)
 [![Cloud Persistence](https://img.shields.io/badge/Cloud-D1_Edge_$0_Cost-00C853?style=for-the-badge&logo=sqlite)](docs/SAVE_SYSTEM_AND_PROFILES.md)
 [![Lore Bible](https://img.shields.io/badge/Lore-Ascension_War-FFB300?style=for-the-badge)](docs/lore/README.md)
 
@@ -23,7 +23,7 @@
 ## 🌟 Overview
 **Project Vanguard** is a high-octane 3D combat flight simulator and automated end-to-end game asset pipeline connecting precision hard-surface CAD engineering with real-time game engines. 
 
-Pilots fly in single-player sorties across 8 tactical missions, dynamic drop-in split-screen co-op, local head-to-head 1v1 arenas, or low-latency LAN peer-to-peer dogfights. In addition to physical controllers, players can join as wingmen simply by **scanning an on-screen QR code with any smartphone camera**, transforming mobile browsers into motion-steered, haptic-feedback cockpit flight sticks with zero downloads.
+Pilots fly in single-player sorties across 8 tactical missions, dynamic drop-in split-screen co-op, local head-to-head 1v1 arenas, low-latency LAN dogfights, or **Global Internet P2P Lobbies** with automated router UPnP port mapping and live round-trip latency probing. In addition to physical controllers, players can join as wingmen simply by **scanning an on-screen QR code with any smartphone camera**, transforming mobile browsers into motion-steered, haptic-feedback cockpit flight sticks with zero downloads.
 
 All player profiles, campaign saves, and verified global leaderboards run on a **$0-cost cloud infrastructure** powered by Cloudflare Pages Functions and Cloudflare D1 (serverless SQLite at the edge).
 
@@ -102,7 +102,7 @@ lucid-davinci/ (Project Vanguard)
 │   ├── MULTIPLAYER_AND_COOP_SYSTEM.md # Co-Op, LAN Arena & QR Join
 │   └── CONTROLS_AND_PHYSICS.md   # Flight dynamics & input routing
 ├── godot_project/                # Godot 4.7 Combat Flight Mechanics Testbed
-│   ├── project.godot             # Project configuration (v0.8.0)
+│   ├── project.godot             # Project configuration (v0.9.0)
 │   ├── main.tscn                 # Campaign sortie arena with dynamic co-op join
 │   ├── split_screen_arena.tscn   # Local 1v1 PvP dogfight arena
 │   ├── lan_arena.tscn            # LAN peer-to-peer multiplayer dogfight arena

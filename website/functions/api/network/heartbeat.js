@@ -1,6 +1,6 @@
 /**
  * POST /api/network/heartbeat
- * Heartbeat presence ping for active game clients, mobile HOTAS controllers, and lobbies.
+ * Heartbeat presence ping for active game clients, mobile HOTAS controllers, and global lobbies.
  */
 
 import {
@@ -25,13 +25,44 @@ export async function onRequestPost({ request, env }) {
     const callsign = (payload.callsign || "PILOT").trim().toUpperCase();
     const pilotId = payload.pilot_id || null;
     const sessionType = payload.session_type === "LOBBY" ? "LOBBY" : "PILOT";
-    const metadataStr = typeof payload.metadata === "object" ? JSON.stringify(payload.metadata) : (payload.metadata || "{}");
+
+    // Extract real client public WAN IP and edge geolocation from Cloudflare headers
+    const clientIp = request.headers.get("cf-connecting-ip") || 
+                     request.headers.get("x-real-ip") || 
+                     (request.headers.get("x-forwarded-for") || "").split(",")[0].trim() || 
+                     "127.0.0.1";
+    const country = request.cf?.country || "GLOBAL";
+    const city = request.cf?.city || "";
+    const colo = request.cf?.colo || "";
+
+    // Parse and augment metadata
+    let meta = {};
+    if (typeof payload.metadata === "object" && payload.metadata !== null) {
+        meta = { ...payload.metadata };
+    } else if (typeof payload.metadata === "string") {
+        try { meta = JSON.parse(payload.metadata); } catch { meta = {}; }
+    }
+
+    // Automatically inject verified WAN connection details
+    meta.host_ip = clientIp;
+    meta.country = country;
+    meta.city = city;
+    meta.colo = colo;
+    meta.game_port = Number(payload.port || meta.game_port || meta.port || 7777);
+    meta.ping_port = Number(payload.ping_port || meta.ping_port || 7778);
+    meta.is_public = payload.is_public !== undefined ? Boolean(payload.is_public) : (meta.is_public !== undefined ? Boolean(meta.is_public) : true);
+    meta.upnp_active = Boolean(payload.upnp_active !== undefined ? payload.upnp_active : meta.upnp_active);
+
+    const metadataStr = JSON.stringify(meta);
 
     if (!env.DB) {
         return jsonResponse({
             success: true,
             session_id: sessionId,
             session_type: sessionType,
+            host_ip: clientIp,
+            country: country,
+            colo: colo,
             status: "alive_mock"
         });
     }
@@ -63,6 +94,9 @@ export async function onRequestPost({ request, env }) {
             success: true,
             session_id: sessionId,
             session_type: sessionType,
+            host_ip: clientIp,
+            country: country,
+            colo: colo,
             status: "alive"
         });
     } catch (err) {

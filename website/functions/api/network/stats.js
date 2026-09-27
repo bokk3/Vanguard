@@ -74,9 +74,16 @@ export async function onRequestGet({ env }) {
                 session_id: r.session_id,
                 host_callsign: r.callsign,
                 lobby_name: meta.lobby_name || `${r.callsign}'s LOBBY`,
-                players: meta.players || 1,
-                max_players: meta.max_players || 2,
+                host_ip: meta.host_ip || "",
+                game_port: Number(meta.game_port || meta.port || 7777),
+                ping_port: Number(meta.ping_port || 7778),
+                players: Number(meta.players || 1),
+                max_players: Number(meta.max_players || 2),
                 map: meta.map || "Dusk Canyon",
+                country: meta.country || "GLOBAL",
+                colo: meta.colo || "",
+                upnp_active: Boolean(meta.upnp_active),
+                is_public: meta.is_public !== false,
                 last_seen: r.last_heartbeat
             };
         });
