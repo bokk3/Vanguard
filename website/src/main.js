@@ -1051,11 +1051,287 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // ============================================================================
+  // Global Fleet Leaderboard & Mission Speedrun Engine
+  // ============================================================================
+  let currentLeaderboardCategory = 'global';
+  let leaderboardData = [];
+  let leaderboardSearchFilter = '';
+
+  const lbThead = document.getElementById('leaderboard-thead');
+  const lbTbody = document.getElementById('leaderboard-tbody');
+  const lbSearch = document.getElementById('leaderboard-search');
+  const lbRefreshBtn = document.getElementById('leaderboard-refresh-btn');
+  const lbPersonalBanner = document.getElementById('leaderboard-personal-banner');
+  const lbTabBtns = document.querySelectorAll('.leaderboard-tab-btn');
+
+  function initLeaderboard() {
+    if (!lbTbody) return;
+
+    if (lbTabBtns) {
+      lbTabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const cat = btn.getAttribute('data-cat') || 'global';
+          if (cat === currentLeaderboardCategory) return;
+          currentLeaderboardCategory = cat;
+
+          lbTabBtns.forEach(b => {
+            const isActive = b.getAttribute('data-cat') === currentLeaderboardCategory;
+            b.classList.toggle('active', isActive);
+            b.classList.toggle('border-vanguard-gold', isActive);
+            b.classList.toggle('bg-vanguard-gold/15', isActive);
+            b.classList.toggle('text-vanguard-gold', isActive);
+            b.classList.toggle('border-vanguard-border/60', !isActive);
+            b.classList.toggle('bg-vanguard-panel/60', !isActive);
+            b.classList.toggle('text-slate-400', !isActive);
+          });
+
+          fetchLeaderboard(currentLeaderboardCategory);
+        });
+      });
+    }
+
+    if (lbSearch) {
+      lbSearch.addEventListener('input', (e) => {
+        leaderboardSearchFilter = (e.target.value || '').trim().toLowerCase();
+        renderLeaderboard();
+      });
+    }
+
+    if (lbRefreshBtn) {
+      lbRefreshBtn.addEventListener('click', () => {
+        const icon = document.getElementById('leaderboard-refresh-icon');
+        if (icon) icon.classList.add('animate-spin');
+        fetchLeaderboard(currentLeaderboardCategory).finally(() => {
+          if (icon) setTimeout(() => icon.classList.remove('animate-spin'), 600);
+        });
+      });
+    }
+
+    fetchLeaderboard(currentLeaderboardCategory);
+  }
+
+  async function fetchLeaderboard(category) {
+    if (!lbTbody) return;
+    lbTbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="py-12 text-center text-slate-400 font-mono text-xs animate-pulse">
+          <span class="inline-block mr-2">⚡</span> QUERYING CLOUDFLARE D1 FLEET ARCHIVES [CAT: ${category.toUpperCase()}]...
+        </td>
+      </tr>
+    `;
+
+    const headers = {};
+    const token = localStorage.getItem('vanguard_pilot_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    let url = `/api/leaderboard?type=global&limit=50`;
+    if (category !== 'global') {
+      url = `/api/leaderboard?mission=${encodeURIComponent(category)}&limit=50`;
+    }
+
+    try {
+      const res = await fetch(url, { headers });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Failed to fetch leaderboard');
+
+      leaderboardData = data.leaderboard || data.entries || [];
+      updatePersonalBanner(data.your_rank);
+      renderLeaderboard();
+    } catch {
+      // Fallback offline mock data for local dev or offline demo
+      leaderboardData = getOfflineLeaderboardData(category);
+      updatePersonalBanner(null);
+      renderLeaderboard();
+    }
+  }
+
+  function updatePersonalBanner(yourRankObj) {
+    if (!lbPersonalBanner) return;
+    let pilot = null;
+    try {
+      pilot = JSON.parse(localStorage.getItem('vanguard_pilot_profile') || '{}');
+    } catch {}
+
+    if (!pilot || !pilot.callsign) {
+      lbPersonalBanner.classList.add('hidden');
+      return;
+    }
+
+    lbPersonalBanner.classList.remove('hidden');
+    const callEl = document.getElementById('personal-callsign-display');
+    const badgeEl = document.getElementById('personal-rank-badge');
+    const squadEl = document.getElementById('personal-squadron-display');
+    const scoreEl = document.getElementById('personal-score-display');
+    const killsEl = document.getElementById('personal-kills-display');
+    const sortiesEl = document.getElementById('personal-sorties-display');
+
+    if (callEl) callEl.textContent = `${pilot.rank || 'PILOT'} ${pilot.callsign}`;
+    if (squadEl) squadEl.textContent = pilot.squadron || '404th Vanguard Strike Wing';
+
+    if (yourRankObj && yourRankObj.rank) {
+      if (badgeEl) badgeEl.textContent = `RANK #${yourRankObj.rank}`;
+      if (scoreEl) scoreEl.textContent = (yourRankObj.score || yourRankObj.total_score || 0).toLocaleString();
+      if (killsEl) killsEl.textContent = (yourRankObj.total_kills || yourRankObj.kills || 0).toLocaleString();
+      if (sortiesEl) sortiesEl.textContent = (yourRankObj.total_sorties || yourRankObj.sorties || 0).toLocaleString();
+    } else {
+      // Match from leaderboardData if present
+      const matched = leaderboardData.find(e => e.callsign && e.callsign.toUpperCase() === pilot.callsign.toUpperCase());
+      if (matched) {
+        if (badgeEl) badgeEl.textContent = `RANK #${matched.rank || '1'}`;
+        if (scoreEl) scoreEl.textContent = (matched.score || matched.total_score || 0).toLocaleString();
+        if (killsEl) killsEl.textContent = (matched.total_kills || matched.kills || 0).toLocaleString();
+        if (sortiesEl) sortiesEl.textContent = (matched.total_sorties || matched.sorties || 0).toLocaleString();
+      } else {
+        if (badgeEl) badgeEl.textContent = 'UNRANKED IN THIS CAT';
+        if (scoreEl) scoreEl.textContent = '--';
+        if (killsEl) killsEl.textContent = (pilot.stats?.total_kills || 0).toLocaleString();
+        if (sortiesEl) sortiesEl.textContent = (pilot.stats?.total_sorties || 0).toLocaleString();
+      }
+    }
+  }
+
+  function renderLeaderboard() {
+    if (!lbThead || !lbTbody) return;
+
+    let activePilotCallsign = '';
+    try {
+      const pilot = JSON.parse(localStorage.getItem('vanguard_pilot_profile') || '{}');
+      if (pilot.callsign) activePilotCallsign = pilot.callsign.toUpperCase();
+    } catch {}
+
+    const isGlobal = (currentLeaderboardCategory === 'global');
+
+    // Render Table Header
+    if (isGlobal) {
+      lbThead.innerHTML = `
+        <tr>
+          <th class="py-3 px-4 w-16">RANK</th>
+          <th class="py-3 px-4">PILOT</th>
+          <th class="py-3 px-4">CALLSIGN</th>
+          <th class="py-3 px-4">SQUADRON</th>
+          <th class="py-3 px-4 text-center">SORTIES</th>
+          <th class="py-3 px-4 text-center">KILLS</th>
+          <th class="py-3 px-4 text-right">FLEET SCORE</th>
+        </tr>
+      `;
+    } else {
+      lbThead.innerHTML = `
+        <tr>
+          <th class="py-3 px-4 w-16">RANK</th>
+          <th class="py-3 px-4">PILOT</th>
+          <th class="py-3 px-4">SQUADRON</th>
+          <th class="py-3 px-4 text-right">SCORE</th>
+          <th class="py-3 px-4 text-center">COMPLETION TIME</th>
+          <th class="py-3 px-4 text-center">DIFFICULTY</th>
+          <th class="py-3 px-4 text-right">TIMESTAMP</th>
+        </tr>
+      `;
+    }
+
+    // Filter items
+    let filtered = leaderboardData;
+    if (leaderboardSearchFilter) {
+      filtered = filtered.filter(item => {
+        const callsign = (item.callsign || '').toLowerCase();
+        const pilot = (item.pilot || item.pilot_name || '').toLowerCase();
+        const sq = (item.squadron || '').toLowerCase();
+        return callsign.includes(leaderboardSearchFilter) || pilot.includes(leaderboardSearchFilter) || sq.includes(leaderboardSearchFilter);
+      });
+    }
+
+    if (filtered.length === 0) {
+      lbTbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="py-12 text-center text-slate-500 font-mono text-xs">
+            NO RECORDS FOUND FOR THIS FILTER OR CATEGORY.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    lbTbody.innerHTML = filtered.map((entry, idx) => {
+      const rankNum = entry.rank || (idx + 1);
+      let rankBadge = `#${rankNum}`;
+      if (rankNum === 1) rankBadge = '🥇 #1';
+      else if (rankNum === 2) rankBadge = '🥈 #2';
+      else if (rankNum === 3) rankBadge = '🥉 #3';
+
+      const isCurrentPilot = activePilotCallsign && entry.callsign && (entry.callsign.toUpperCase() === activePilotCallsign);
+      const rowClass = isCurrentPilot ? 'bg-vanguard-gold/10 font-bold border-l-2 border-vanguard-gold' : 'hover:bg-white/[0.02] transition-colors';
+
+      if (isGlobal) {
+        const score = (entry.score || entry.total_score || 0).toLocaleString();
+        const kills = (entry.total_kills || entry.kills || 0).toLocaleString();
+        const sorties = (entry.total_sorties || entry.sorties || 0).toLocaleString();
+        const callsignMarkup = isCurrentPilot ? `${entry.callsign} <span class="text-[10px] text-vanguard-gold font-bold ml-1">(YOU)</span>` : (entry.callsign || 'PILOT');
+
+        return `
+          <tr class="${rowClass}">
+            <td class="py-3 px-4 font-bold ${rankNum <= 3 ? 'text-vanguard-gold' : 'text-slate-400'}">${rankBadge}</td>
+            <td class="py-3 px-4 text-slate-200">${entry.pilot || entry.rank_title || 'LIEUTENANT'}</td>
+            <td class="py-3 px-4 text-vanguard-cyan font-bold">${callsignMarkup}</td>
+            <td class="py-3 px-4 text-slate-400 text-[11px]">${entry.squadron || '404th Vanguard Wing'}</td>
+            <td class="py-3 px-4 text-center text-amber-300">${sorties}</td>
+            <td class="py-3 px-4 text-center text-emerald-300">${kills}</td>
+            <td class="py-3 px-4 text-right text-vanguard-cyan font-bold">${score}</td>
+          </tr>
+        `;
+      } else {
+        const score = (entry.score || entry.mission_score || 0).toLocaleString();
+        const durationSec = entry.time_seconds || entry.duration_seconds || 0;
+        const mins = Math.floor(durationSec / 60);
+        const secs = (durationSec % 60).toFixed(1);
+        const timeFormatted = durationSec > 0 ? `${mins}m ${secs < 10 ? '0' : ''}${secs}s` : '--';
+        const callsignMarkup = isCurrentPilot ? `${entry.callsign} <span class="text-[10px] text-vanguard-gold font-bold ml-1">(YOU)</span>` : (entry.callsign || 'PILOT');
+        const diff = entry.difficulty || 'REGULAR';
+        const dateStr = entry.date ? new Date(entry.date).toLocaleDateString() : 'RECENT';
+
+        return `
+          <tr class="${rowClass}">
+            <td class="py-3 px-4 font-bold ${rankNum <= 3 ? 'text-vanguard-gold' : 'text-slate-400'}">${rankBadge}</td>
+            <td class="py-3 px-4 text-vanguard-cyan font-bold">${callsignMarkup}</td>
+            <td class="py-3 px-4 text-slate-400 text-[11px]">${entry.squadron || '404th Vanguard Wing'}</td>
+            <td class="py-3 px-4 text-right text-vanguard-cyan font-bold">${score}</td>
+            <td class="py-3 px-4 text-center text-amber-300">${timeFormatted}</td>
+            <td class="py-3 px-4 text-center"><span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">${diff}</span></td>
+            <td class="py-3 px-4 text-right text-slate-500 text-[11px]">${dateStr}</td>
+          </tr>
+        `;
+      }
+    }).join('');
+  }
+
+  function getOfflineLeaderboardData(category) {
+    if (category === 'global') {
+      return [
+        { rank: 1, callsign: 'MAVERICK', pilot: 'WING COMMANDER', squadron: '404th Vanguard Strike Wing', total_sorties: 42, total_kills: 128, score: 98450 },
+        { rank: 2, callsign: 'VIPER-01', pilot: 'MAJOR', squadron: '81st Orbital Defense Group', total_sorties: 36, total_kills: 104, score: 81200 },
+        { rank: 3, callsign: 'GHOST_RIDER', pilot: 'CAPTAIN', squadron: 'Solar Recon Detachment', total_sorties: 29, total_kills: 88, score: 69500 },
+        { rank: 4, callsign: 'PHANTOM', pilot: 'CAPTAIN', squadron: '11th Interceptor Wing', total_sorties: 24, total_kills: 71, score: 55400 },
+        { rank: 5, callsign: 'RAZOR', pilot: 'LIEUTENANT', squadron: '404th Vanguard Strike Wing', total_sorties: 18, total_kills: 52, score: 41900 },
+        { rank: 6, callsign: 'ARCHANGEL', pilot: 'LIEUTENANT', squadron: 'Ares Strike Group', total_sorties: 14, total_kills: 39, score: 32600 }
+      ];
+    } else {
+      return [
+        { rank: 1, callsign: 'MAVERICK', squadron: '404th Vanguard Strike Wing', score: 28400, time_seconds: 142.5, difficulty: 'VETERAN', date: '2026-09-25' },
+        { rank: 2, callsign: 'VIPER-01', squadron: '81st Orbital Defense Group', score: 26150, time_seconds: 158.2, difficulty: 'REGULAR', date: '2026-09-24' },
+        { rank: 3, callsign: 'GHOST_RIDER', squadron: 'Solar Recon Detachment', score: 24800, time_seconds: 165.0, difficulty: 'REGULAR', date: '2026-09-26' },
+        { rank: 4, callsign: 'RAZOR', squadron: '404th Vanguard Strike Wing', score: 21900, time_seconds: 184.8, difficulty: 'RECRUIT', date: '2026-09-27' }
+      ];
+    }
+  }
+
   updateAuthUI();
   syncStatsFromCloud(false);
   syncGitHubRelease();
   fetchNetworkStats();
   sendWebHeartbeat();
+  initLeaderboard();
   setInterval(fetchNetworkStats, 20000);
   setInterval(sendWebHeartbeat, 30000);
 });

@@ -97,8 +97,12 @@ func _ready() -> void:
 	if victory_modal:
 		victory_modal.hide()
 	
+	var is_public = nm.is_public_lobby if nm else false
+	if match_status_label:
+		match_status_label.text = ("🌐 PUBLIC INTERNET DOGFIGHT // FIRST TO %d KILLS" if is_public else "📡 LOCAL LAN DOGFIGHT // FIRST TO %d KILLS") % max_kills_to_win
+	
 	_update_score_ui()
-	print(">>> LAN Dogfight Arena Active: Role: %s (Player %d)" % ["HOST" if is_host else "CLIENT", local_player_id])
+	print(">>> %s Dogfight Arena Active: Role: %s (Player %d)" % ["PUBLIC INTERNET" if is_public else "LOCAL LAN", "HOST" if is_host else "CLIENT", local_player_id])
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:

@@ -59,7 +59,7 @@
             [ SFX: TACTICAL ]
           </button>
           <span id="top-version-badge" class="px-2 py-0.5 rounded bg-vanguard-cyan/10 text-vanguard-cyan border border-vanguard-cyan/30 text-[10px] font-bold tracking-widest uppercase">
-            v0.9.0-ALPHA
+            v0.9.1-ALPHA
           </span>
         </div>
       </div>
@@ -98,6 +98,9 @@
           <a href="#stats" class="text-slate-300 hover:text-vanguard-cyan transition-colors flex items-center gap-1">
             <span class="text-vanguard-cyan">06.</span> Combat Stats
           </a>
+          <a href="#leaderboard" class="text-slate-300 hover:text-vanguard-cyan transition-colors flex items-center gap-1">
+            <span class="text-vanguard-amber">07.</span> Leaderboard
+          </a>
           <a href="/controller.html" class="text-vanguard-amber hover:text-white transition-colors flex items-center gap-1 font-bold">
             <span>📱</span> Mobile HOTAS
           </a>
@@ -133,13 +136,14 @@
         <a href="#controls" class="block py-1 text-slate-300 hover:text-vanguard-cyan">04. Flight Controls</a>
         <a href="#pipeline" class="block py-1 text-slate-300 hover:text-vanguard-cyan">05. CAD Pipeline</a>
         <a href="#stats" class="block py-1 text-slate-300 hover:text-vanguard-cyan">06. Combat Stats & Records</a>
+        <a href="#leaderboard" class="block py-1 text-slate-300 hover:text-vanguard-cyan">07. Global Fleet Leaderboard</a>
         <a href="/controller.html" class="block py-1 text-vanguard-amber font-bold flex items-center gap-1.5">
-          <span>📱</span> 07. Mobile HOTAS Controller (PWA)
+          <span>📱</span> 08. Mobile HOTAS Controller (PWA)
         </a>
         <button id="mobile-pilot-portal-btn" class="w-full text-center py-3 px-4 rounded-lg bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/30 border-2 border-vanguard-gold text-vanguard-gold font-display font-black tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,215,0,0.3)]">
           <span class="text-lg">🎖️</span> <span id="mobile-pilot-label">COMMISSION CALLSIGN</span>
         </button>
-        <a href="#downloads" class="block py-2 text-vanguard-cyan font-bold">Deploy Sortie v0.9.0</a>
+        <a href="#downloads" class="block py-2 text-vanguard-cyan font-bold">Deploy Sortie v0.9.1</a>
       </div>
     </div>
   </header>
@@ -164,7 +168,7 @@
           
           <div id="release-announcement" class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full border border-vanguard-cyan/40 bg-vanguard-cyan/10 text-vanguard-cyan text-xs font-mono tracking-wider transition-all">
             <span class="w-2 h-2 rounded-full bg-vanguard-cyan animate-ping"></span>
-            <span id="release-status-text">DISPATCH: <strong id="hero-tag-name">v0.9.0-alpha</strong> // LIVE ON GITHUB</span>
+            <span id="release-status-text">DISPATCH: <strong id="hero-tag-name">v0.9.1-alpha</strong> // LIVE ON GITHUB</span>
             <a id="release-notes-link" href="https://github.com/bokk3/Vanguard/releases" target="_blank" rel="noopener noreferrer" class="hidden sm:inline text-white hover:underline ml-1 font-bold">[NOTES]</a>
           </div>
 
@@ -187,7 +191,7 @@
             </button>
             <a id="hero-download-btn" href="https://github.com/bokk3/Vanguard/releases" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-7 py-3.5 bg-vanguard-cyan text-black font-display font-bold text-base uppercase tracking-wider rounded hover:bg-white hover:shadow-cyan-glow transition-all text-center flex items-center justify-center gap-2">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-              <span id="hero-download-text">Download v0.9.0-Alpha (Win64)</span>
+              <span id="hero-download-text">Download v0.9.1-Alpha (Win64)</span>
             </a>
             <a href="#multiplayer" class="w-full sm:w-auto px-6 py-3.5 border border-vanguard-border bg-vanguard-panel/90 text-slate-200 font-mono text-sm uppercase tracking-wider rounded hover:border-vanguard-cyan hover:text-vanguard-cyan transition-all text-center">
               Multiplayer
@@ -282,7 +286,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-amber">[ TACTICAL COMBAT EXPANSION // v0.9.0 ]</span>
+        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-amber">[ TACTICAL COMBAT EXPANSION // v0.9.1 ]</span>
         <h2 class="text-3xl sm:text-5xl font-bold text-white tracking-wide">
           MULTIPLAYER, DROP-IN CO-OP & LAN ARENA
         </h2>
@@ -932,7 +936,98 @@
     </div>
   </section>
 
-  <!-- Section 6: Downloads & System Specs -->
+  <!-- Section 7: Global Leaderboard & Ace Rankings -->
+  <section id="leaderboard" class="py-24 relative border-b border-vanguard-border/50 bg-vanguard-dark">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Header -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
+        <div>
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-vanguard-gold/30 bg-vanguard-gold/10 text-vanguard-gold text-xs font-mono tracking-wider mb-4">
+            <span class="w-1.5 h-1.5 rounded-full bg-vanguard-gold animate-pulse"></span>
+            <span>VERIFIED FLIGHT TELEMETRY // GLOBAL FLEET STANDINGS</span>
+          </div>
+          <h2 class="text-3xl sm:text-5xl font-bold font-display text-white tracking-wide">
+            GLOBAL LEADERBOARD & ACES
+          </h2>
+          <p class="text-sm sm:text-base text-slate-400 font-light mt-2 max-w-2xl font-mono">
+            Live composite combat scores and mission debrief speedrun records retrieved in real-time from Vanguard's Cloudflare D1 distributed edge network.
+          </p>
+        </div>
+
+        <!-- Controls: Search & Refresh -->
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="relative">
+            <input id="leaderboard-search" type="text" placeholder="FILTER CALLSIGN..." class="px-3.5 py-2 pl-9 bg-black/60 border border-vanguard-border/80 rounded-lg text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-vanguard-cyan w-48 sm:w-60 transition-colors">
+            <span class="absolute left-3 top-2.5 text-xs text-slate-500">🔍</span>
+          </div>
+          <button id="leaderboard-refresh-btn" class="px-3.5 py-2 bg-vanguard-panel border border-vanguard-border/80 hover:border-vanguard-cyan hover:text-vanguard-cyan text-slate-300 text-xs font-mono rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
+            <span id="leaderboard-refresh-icon">🔄</span>
+            <span>REFRESH</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Personal Rank Banner (Dynamic) -->
+      <div id="leaderboard-personal-banner" class="hidden mb-8 p-4 rounded-xl border border-vanguard-gold/60 bg-gradient-to-r from-amber-500/15 via-yellow-400/10 to-transparent flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono text-xs">
+        <div class="flex items-center space-x-3">
+          <span class="text-2xl">🎖️</span>
+          <div>
+            <div class="text-vanguard-gold font-bold uppercase tracking-wider text-sm flex items-center gap-2">
+              <span id="personal-callsign-display">YOUR PILOT DOSSIER</span>
+              <span id="personal-rank-badge" class="px-2 py-0.5 rounded text-[10px] bg-vanguard-gold/20 border border-vanguard-gold/40 text-vanguard-gold">RANK #--</span>
+            </div>
+            <div id="personal-squadron-display" class="text-slate-400 text-[11px] mt-0.5">404th Vanguard Strike Wing</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-6 text-slate-300">
+          <div><span class="text-slate-500 block text-[10px]">TOTAL SCORE</span><span id="personal-score-display" class="text-vanguard-cyan font-bold text-sm">--</span></div>
+          <div><span class="text-slate-500 block text-[10px]">KILLS</span><span id="personal-kills-display" class="text-emerald-400 font-bold text-sm">--</span></div>
+          <div><span class="text-slate-500 block text-[10px]">SORTIES</span><span id="personal-sorties-display" class="text-amber-400 font-bold text-sm">--</span></div>
+        </div>
+      </div>
+
+      <!-- Category Filter Tabs -->
+      <div class="flex items-center space-x-2 overflow-x-auto pb-4 mb-6 border-b border-vanguard-border/60 font-mono text-xs scrollbar-none">
+        <button data-cat="global" class="leaderboard-tab-btn active px-4 py-2 rounded-lg font-bold transition-all border border-vanguard-gold bg-vanguard-gold/15 text-vanguard-gold flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+          <span>🏆</span> TOP FLEET ACES
+        </button>
+        <button data-cat="M01" class="leaderboard-tab-btn px-4 py-2 rounded-lg font-bold transition-all border border-vanguard-border/60 bg-vanguard-panel/60 text-slate-400 hover:text-white hover:border-vanguard-border flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+          <span>🚀</span> M01: CANYON RUN
+        </button>
+        <button data-cat="M02" class="leaderboard-tab-btn px-4 py-2 rounded-lg font-bold transition-all border border-vanguard-border/60 bg-vanguard-panel/60 text-slate-400 hover:text-white hover:border-vanguard-border flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+          <span>🚀</span> M02: SHADOW CITADEL
+        </button>
+        <button data-cat="M03" class="leaderboard-tab-btn px-4 py-2 rounded-lg font-bold transition-all border border-vanguard-border/60 bg-vanguard-panel/60 text-slate-400 hover:text-white hover:border-vanguard-border flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+          <span>🚀</span> M03: ORBITAL DEFENSE
+        </button>
+        <button data-cat="M04" class="leaderboard-tab-btn px-4 py-2 rounded-lg font-bold transition-all border border-vanguard-border/60 bg-vanguard-panel/60 text-slate-400 hover:text-white hover:border-vanguard-border flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+          <span>🚀</span> M04: TITAN'S FALL
+        </button>
+      </div>
+
+      <!-- Leaderboard Tactical Table -->
+      <div class="tactical-box rounded-xl border border-vanguard-border/80 overflow-hidden bg-black/60 shadow-2xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left font-mono text-xs">
+            <thead id="leaderboard-thead" class="bg-vanguard-deep text-slate-400 border-b border-vanguard-border/80 uppercase text-[10px] tracking-wider">
+              <!-- Rendered dynamically depending on global vs mission -->
+            </thead>
+            <tbody id="leaderboard-tbody" class="divide-y divide-vanguard-border/40 text-slate-300">
+              <tr>
+                <td colspan="7" class="py-12 text-center text-slate-400 font-mono text-xs animate-pulse">
+                  <span class="inline-block mr-2">⚡</span> INITIALIZING QUANTUM UPLINK TO FLEET ARCHIVES...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section 8: Downloads & System Specs -->
   <section id="downloads" class="py-24 relative">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
       
@@ -946,13 +1041,13 @@
       </h2>
 
       <p class="text-base sm:text-lg text-slate-300 font-light max-w-2xl mx-auto leading-relaxed">
-        Download the compiled Windows 64-bit binaries for <strong>Project Vanguard v0.9.0-alpha</strong>. Includes all 8 campaign missions, split-screen co-op, and LAN multiplayer.
+        Download the compiled Windows 64-bit binaries for <strong>Project Vanguard v0.9.1-alpha</strong>. Includes all 8 campaign missions, split-screen co-op, and LAN multiplayer.
       </p>
 
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
         <a id="download-section-btn" href="https://github.com/bokk3/Vanguard/releases/latest" target="_blank" rel="noopener noreferrer" class="px-10 py-4 bg-vanguard-cyan text-black font-display font-bold text-xl uppercase tracking-wider rounded hover:bg-white hover:shadow-cyan-glow transition-all flex items-center gap-3">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          <span id="download-section-text">Download v0.9.0-Alpha (Win64)</span>
+          <span id="download-section-text">Download v0.9.1-Alpha (Win64)</span>
         </a>
         <a href="https://github.com/bokk3/Vanguard" target="_blank" rel="noopener noreferrer" class="px-8 py-4 border border-vanguard-border bg-vanguard-panel text-slate-200 font-mono text-sm uppercase tracking-wider rounded hover:border-vanguard-cyan hover:text-vanguard-cyan transition-all">
           Browse Source on GitHub

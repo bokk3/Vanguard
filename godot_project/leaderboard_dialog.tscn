@@ -1,0 +1,242 @@
+[gd_scene load_steps=5 format=3 uid="uid://lbdiag99vanguard"]
+
+[ext_resource type="Script" path="res://leaderboard_dialog.gd" id="1_lbd"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.02, 0.05, 0.09, 0.97)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0.9, 1, 0.8)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0.9, 1, 0.25)
+shadow_size = 25
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_banner"]
+content_margin_left = 14.0
+content_margin_top = 10.0
+content_margin_right = 14.0
+content_margin_bottom = 10.0
+bg_color = Color(0.04, 0.1, 0.16, 0.85)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.84, 0, 0.7)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 14.0
+content_margin_top = 12.0
+content_margin_right = 14.0
+content_margin_bottom = 12.0
+bg_color = Color(0.02, 0.04, 0.08, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.15, 0.3, 0.45, 0.5)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="LeaderboardDialog" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_lbd")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.82)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainPanel" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(880, 600)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="Margin" type="MarginContainer" parent="CenterContainer/MainPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HeaderHBox" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="TitleBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/HeaderHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TitleLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/HeaderHBox/TitleBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
+theme_override_font_sizes/font_size = 20
+text = "◈ VANGUARD FLEET GLOBAL LEADERBOARD // CLOUD D1 RANKINGS ◈"
+
+[node name="Subtitle" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/HeaderHBox/TitleBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 0.75)
+theme_override_font_sizes/font_size = 11
+text = "WORLDWIDE PILOT STANDINGS & SORTIE HIGH SCORES // VERIFIED BY AVIONICS ENGINE"
+
+[node name="CloseBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/HeaderHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 32)
+layout_mode = 2
+text = "[ CLOSE ]"
+
+[node name="PersonalBanner" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_banner")
+
+[node name="HBox" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/PersonalBanner"]
+layout_mode = 2
+
+[node name="PersonalRankLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/PersonalBanner/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.95, 0.6, 1)
+theme_override_font_sizes/font_size = 12
+text = "🎖️ YOUR FLEET STANDING: RANK #-- // PILOT"
+
+[node name="LoginPromptBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/PersonalBanner/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 26)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 11
+text = "🎖️ [ COMMISSION CALLSIGN ]"
+
+[node name="TabsHBox" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TabAcesBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/TabsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "🏆 TOP FLEET ACES"
+
+[node name="TabM01Btn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/TabsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "M01 CANYON"
+
+[node name="TabM02Btn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/TabsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "M02 INTERCEPT"
+
+[node name="TabM03Btn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/TabsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "M03 ASTEROIDS"
+
+[node name="TabM04Btn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/TabsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "M04 CITADEL"
+
+[node name="Spacer" type="Control" parent="CenterContainer/MainPanel/Margin/VBox/TabsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RefreshBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/TabsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "🔄 REFRESH"
+
+[node name="TableHeaderLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.85, 1, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "RANK     CALLSIGN                     RANK & SQUADRON                    KILLS    SORTIES     SCORE"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ContentBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="LoadingLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/ScrollContainer/ContentBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.75, 0.9, 0.7)
+theme_override_font_sizes/font_size = 12
+text = "FETCHING FLEET TELEMETRY FROM CLOUD D1..."
+horizontal_alignment = 1
+
+[node name="EmptyLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/ScrollContainer/ContentBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.75, 0.9, 0.7)
+theme_override_font_sizes/font_size = 12
+text = "No flight records registered for this sortie category yet."
+horizontal_alignment = 1
+
+[node name="LeaderboardList" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/ScrollContainer/ContentBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="FooterBox" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="StatusMsgLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/FooterBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "// READY // REAL-TIME SYNCHRONIZATION ACTIVE //"

@@ -179,6 +179,62 @@ func _process(delta: float) -> bool:
 		else:
 			print("  [SKIP] Port 17778 bound by another process in test environment.")
 		
+		step = 6
+		timer = 0.0
+		return false
+		
+	elif step == 6:
+		print("\n[TEST 6] Verifying 3-Mode Architecture, Seat Mutual Exclusion & Launch Gating...")
+		# 1. Test 3-mode switching
+		pvp_menu._switch_tab("SPLIT")
+		assert(pvp_menu.split_section.visible == true, "Split section must be visible")
+		assert(pvp_menu.lan_section.visible == false, "Lan section must be hidden")
+		assert(pvp_menu.global_section.visible == false, "Global section must be hidden")
+		
+		pvp_menu._switch_tab("LAN")
+		assert(pvp_menu.split_section.visible == false, "Split section must be hidden")
+		assert(pvp_menu.lan_section.visible == true, "Lan section must be visible")
+		assert(pvp_menu.global_section.visible == false, "Global section must be hidden")
+		
+		pvp_menu._switch_tab("GLOBAL")
+		assert(pvp_menu.split_section.visible == false, "Split section must be hidden")
+		assert(pvp_menu.lan_section.visible == false, "Lan section must be hidden")
+		assert(pvp_menu.global_section.visible == true, "Global section must be visible")
+		print("  [PASS] 3-Mode Tab switching (SPLIT, LAN, GLOBAL) verified.")
+		
+		# 2. Test pilot seat mutual exclusion
+		var net_mgr = root.get_node_or_null("NetworkManager")
+		assert(net_mgr != null, "NetworkManager must exist")
+		net_mgr.player_callsign = "ACE_TESTER"
+		net_mgr.set_my_party_role("Alpha", "pilot", "AZERTY")
+		assert(net_mgr.parties["Alpha"]["pilot_callsign"] == "ACE_TESTER", "Alpha pilot should be ACE_TESTER")
+		assert(net_mgr.parties["Bravo"]["pilot_callsign"] == "[OPEN SEAT]", "Bravo pilot should be open")
+		
+		# Switch to Bravo pilot
+		net_mgr.set_my_party_role("Bravo", "pilot", "QWERTY")
+		assert(net_mgr.parties["Bravo"]["pilot_callsign"] == "ACE_TESTER", "Bravo pilot should now be ACE_TESTER")
+		assert(net_mgr.parties["Alpha"]["pilot_callsign"] == "[OPEN SEAT]", "Alpha pilot must be vacated due to mutual exclusion!")
+		print("  [PASS] Pilot seat mutual exclusion verified (claiming Bravo vacates Alpha).")
+		
+		# 3. Test launch button gating (disabled until peer connects)
+		pvp_menu._on_host_pressed()
+		assert(pvp_menu.host_waiting_modal.visible == true, "Host modal must be visible")
+		assert(pvp_menu.launch_arena_btn.disabled == true, "Launch button must be disabled with 0 peers")
+		assert("AWAITING CHALLENGER" in pvp_menu.launch_arena_btn.text, "Launch button must display waiting text")
+		
+		# Simulate opponent join
+		pvp_menu._on_peer_connected(2)
+		assert(pvp_menu.launch_arena_btn.disabled == false, "Launch button must be enabled once challenger connects")
+		assert(pvp_menu.bravo_pilot_label.text.contains("BANDIT-2"), "Bravo pilot must be assigned to bandit")
+		
+		# Simulate opponent disconnect
+		pvp_menu._on_peer_disconnected(2)
+		assert(pvp_menu.launch_arena_btn.disabled == true, "Launch button must be re-disabled if peer disconnects")
+		print("  [PASS] Launch Sortie button gating verified (disabled with 0 peers, enabled with challenger).")
+		
+		pvp_menu._on_cancel_host_pressed()
+		assert(pvp_menu.host_waiting_modal.visible == false, "Host modal must hide on cancel")
+		
 		pvp_menu.queue_free()
 		
 		print("\n==================================================================")

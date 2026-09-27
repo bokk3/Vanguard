@@ -18,6 +18,25 @@ extends Node3D
 @onready var specs_btn: Button = %SpecsBtn
 @onready var quit_btn: Button = %QuitBtn
 
+@onready var root_menu: VBoxContainer = %RootMenu
+@onready var submenu_campaign: VBoxContainer = %SubmenuCampaign
+@onready var submenu_multiplayer: VBoxContainer = %SubmenuMultiplayer
+@onready var submenu_intel: VBoxContainer = %SubmenuIntel
+@onready var submenu_settings: VBoxContainer = %SubmenuSettings
+
+@onready var category_campaign_btn: Button = %CategoryCampaignBtn
+@onready var category_multiplayer_btn: Button = %CategoryMultiplayerBtn
+@onready var category_intel_btn: Button = %CategoryIntelBtn
+@onready var category_settings_btn: Button = %CategorySettingsBtn
+
+@onready var sub_campaign_back_btn: Button = %SubCampaignBackBtn
+@onready var sub_multiplayer_back_btn: Button = %SubMultiplayerBackBtn
+@onready var sub_intel_back_btn: Button = %SubIntelBackBtn
+@onready var sub_settings_back_btn: Button = %SubSettingsBackBtn
+
+@onready var leaderboard_btn: Button = %LeaderboardBtn
+@onready var leaderboard_dialog: Control = %LeaderboardDialog
+
 @onready var specs_panel: PanelContainer = %SpecsPanel
 @onready var close_specs_btn: Button = %CloseSpecsBtn
 @onready var settings_modal: Control = %SettingsMenu
@@ -55,6 +74,7 @@ var is_launching: bool = false
 var qr_dialog: Control = null
 var current_theater: String = "SOLO"
 var has_chosen_theater: bool = false
+var current_active_submenu: Control = null
 
 func _get_autoload_node(node_name: String) -> Node:
 	if is_inside_tree():
@@ -67,11 +87,31 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	
 	# Dynamic version string from project settings
-	var ver = ProjectSettings.get_setting("application/config/version", "0.8.0")
+	var ver = ProjectSettings.get_setting("application/config/version", "0.9.1")
 	if footer_label:
 		footer_label.text = "PROJECT VANGUARD v%s\nSYSTEMS INITIALIZED // READY" % ver
 	
-	# Connect buttons
+	# Connect category navigation buttons
+	if category_campaign_btn and not category_campaign_btn.pressed.is_connected(func(): _open_submenu("campaign")):
+		category_campaign_btn.pressed.connect(func(): _open_submenu("campaign"))
+	if category_multiplayer_btn and not category_multiplayer_btn.pressed.is_connected(func(): _open_submenu("multiplayer")):
+		category_multiplayer_btn.pressed.connect(func(): _open_submenu("multiplayer"))
+	if category_intel_btn and not category_intel_btn.pressed.is_connected(func(): _open_submenu("intel")):
+		category_intel_btn.pressed.connect(func(): _open_submenu("intel"))
+	if category_settings_btn and not category_settings_btn.pressed.is_connected(func(): _open_submenu("settings")):
+		category_settings_btn.pressed.connect(func(): _open_submenu("settings"))
+
+	# Connect submenu return buttons
+	if sub_campaign_back_btn and not sub_campaign_back_btn.pressed.is_connected(_close_submenu):
+		sub_campaign_back_btn.pressed.connect(_close_submenu)
+	if sub_multiplayer_back_btn and not sub_multiplayer_back_btn.pressed.is_connected(_close_submenu):
+		sub_multiplayer_back_btn.pressed.connect(_close_submenu)
+	if sub_intel_back_btn and not sub_intel_back_btn.pressed.is_connected(_close_submenu):
+		sub_intel_back_btn.pressed.connect(_close_submenu)
+	if sub_settings_back_btn and not sub_settings_back_btn.pressed.is_connected(_close_submenu):
+		sub_settings_back_btn.pressed.connect(_close_submenu)
+
+	# Connect action buttons
 	if not continue_btn.pressed.is_connected(_on_continue_pressed):
 		continue_btn.pressed.connect(_on_continue_pressed)
 	if not deploy_btn.pressed.is_connected(_on_deploy_pressed):
@@ -82,6 +122,8 @@ func _ready() -> void:
 		pvp_btn.pressed.connect(_on_pvp_pressed)
 	if mobile_hotas_btn and not mobile_hotas_btn.pressed.is_connected(_toggle_qr_dialog):
 		mobile_hotas_btn.pressed.connect(func(): _toggle_qr_dialog(1))
+	if leaderboard_btn and not leaderboard_btn.pressed.is_connected(_show_leaderboard_dialog):
+		leaderboard_btn.pressed.connect(_show_leaderboard_dialog)
 	if not config_btn.pressed.is_connected(_on_config_pressed):
 		config_btn.pressed.connect(_on_config_pressed)
 	if not specs_btn.pressed.is_connected(_on_specs_pressed):
@@ -181,6 +223,8 @@ func _show_login_dialog() -> void:
 		if mission_selector: mission_selector.hide()
 		if mode_selector: mode_selector.hide_selector()
 		if combat_stats: combat_stats.hide_stats()
+		if leaderboard_dialog and leaderboard_dialog.has_method("close_leaderboard"):
+			leaderboard_dialog.close_leaderboard()
 
 func _show_mode_selector() -> void:
 	if mode_selector:
@@ -189,6 +233,8 @@ func _show_mode_selector() -> void:
 		if specs_panel: specs_panel.hide()
 		if mission_selector: mission_selector.hide()
 		if combat_stats: combat_stats.hide_stats()
+		if leaderboard_dialog and leaderboard_dialog.has_method("close_leaderboard"):
+			leaderboard_dialog.close_leaderboard()
 
 func _show_stats_dialog() -> void:
 	if combat_stats:
@@ -197,6 +243,73 @@ func _show_stats_dialog() -> void:
 		if specs_panel: specs_panel.hide()
 		if mission_selector: mission_selector.hide()
 		if mode_selector: mode_selector.hide_selector()
+		if leaderboard_dialog and leaderboard_dialog.has_method("close_leaderboard"):
+			leaderboard_dialog.close_leaderboard()
+
+func _show_leaderboard_dialog() -> void:
+	if leaderboard_dialog and leaderboard_dialog.has_method("show_leaderboard"):
+		if settings_modal: settings_modal.hide()
+		if specs_panel: specs_panel.hide()
+		if mission_selector: mission_selector.hide()
+		if mode_selector: mode_selector.hide_selector()
+		if combat_stats: combat_stats.hide_stats()
+		leaderboard_dialog.show_leaderboard("global")
+
+func _open_submenu(submenu_name: String) -> void:
+	if root_menu:
+		root_menu.hide()
+	if submenu_campaign:
+		submenu_campaign.hide()
+	if submenu_multiplayer:
+		submenu_multiplayer.hide()
+	if submenu_intel:
+		submenu_intel.hide()
+	if submenu_settings:
+		submenu_settings.hide()
+	
+	match submenu_name:
+		"campaign":
+			if submenu_campaign:
+				submenu_campaign.show()
+				current_active_submenu = submenu_campaign
+				if continue_btn and continue_btn.visible:
+					continue_btn.grab_focus()
+				elif deploy_btn:
+					deploy_btn.grab_focus()
+		"multiplayer":
+			if submenu_multiplayer:
+				submenu_multiplayer.show()
+				current_active_submenu = submenu_multiplayer
+				if pvp_btn:
+					pvp_btn.grab_focus()
+		"intel":
+			if submenu_intel:
+				submenu_intel.show()
+				current_active_submenu = submenu_intel
+				if leaderboard_btn:
+					leaderboard_btn.grab_focus()
+		"settings":
+			if submenu_settings:
+				submenu_settings.show()
+				current_active_submenu = submenu_settings
+				if config_btn:
+					config_btn.grab_focus()
+
+func _close_submenu() -> void:
+	if submenu_campaign:
+		submenu_campaign.hide()
+	if submenu_multiplayer:
+		submenu_multiplayer.hide()
+	if submenu_intel:
+		submenu_intel.hide()
+	if submenu_settings:
+		submenu_settings.hide()
+	
+	current_active_submenu = null
+	if root_menu:
+		root_menu.show()
+		if category_campaign_btn:
+			category_campaign_btn.grab_focus()
 
 func _on_theater_selected(mode: String) -> void:
 	has_chosen_theater = true
@@ -356,9 +469,6 @@ func _check_save_game_state() -> void:
 		deploy_btn.text = "  [ 02 ]  MISSION SELECTOR"
 		if prologue_btn:
 			prologue_btn.text = "  [ 03 ]  WATCH PROLOGUE"
-		config_btn.text = "  [ 04 ]  AVIONICS CONFIG"
-		specs_btn.text = "  [ 05 ]  FIGHTER SPECS"
-		quit_btn.text = "  [ 06 ]  ABORT / QUIT"
 		
 		if telemetry_summary:
 			telemetry_summary.text = "ACTIVE SORTIE: %s\nHULL INTEGRITY: %d%%\nMISSILES ARMED: %d/4" % [date_str, int(hull_val), int(missiles_val)]
@@ -367,9 +477,6 @@ func _check_save_game_state() -> void:
 		deploy_btn.text = "  [ 01 ]  MISSION SELECTOR"
 		if prologue_btn:
 			prologue_btn.text = "  [ 02 ]  WATCH PROLOGUE"
-		config_btn.text = "  [ 03 ]  AVIONICS CONFIG"
-		specs_btn.text = "  [ 04 ]  FIGHTER SPECS"
-		quit_btn.text = "  [ 05 ]  ABORT / QUIT"
 
 func _process(delta: float) -> void:
 	anim_time += delta
@@ -440,6 +547,15 @@ func _launch_game_animation(mission_id: String, is_resume: bool) -> void:
 	is_launching = true
 	
 	# Disable UI buttons to prevent double activation
+	if category_campaign_btn: category_campaign_btn.disabled = true
+	if category_multiplayer_btn: category_multiplayer_btn.disabled = true
+	if category_intel_btn: category_intel_btn.disabled = true
+	if category_settings_btn: category_settings_btn.disabled = true
+	if sub_campaign_back_btn: sub_campaign_back_btn.disabled = true
+	if sub_multiplayer_back_btn: sub_multiplayer_back_btn.disabled = true
+	if sub_intel_back_btn: sub_intel_back_btn.disabled = true
+	if sub_settings_back_btn: sub_settings_back_btn.disabled = true
+	if leaderboard_btn: leaderboard_btn.disabled = true
 	continue_btn.disabled = true
 	deploy_btn.disabled = true
 	if prologue_btn:
@@ -457,6 +573,8 @@ func _launch_game_animation(mission_id: String, is_resume: bool) -> void:
 		mission_selector.hide()
 	if specs_panel:
 		specs_panel.hide()
+	if leaderboard_dialog and leaderboard_dialog.has_method("close_leaderboard"):
+		leaderboard_dialog.close_leaderboard()
 	
 	# Play launch whoosh/warp audio
 	if warp_audio and warp_audio.is_inside_tree():
@@ -564,10 +682,24 @@ func _on_qr_dialog_closed() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.keycode == KEY_F3:
-		_toggle_qr_dialog(1)
-		get_viewport().set_input_as_handled()
-	elif event is InputEventKey and event.pressed and event.keycode == KEY_F1:
-		_toggle_keyboard_layout()
-		get_viewport().set_input_as_handled()
+	if event is InputEventKey and event.pressed:
+		if event.keycode == KEY_ESCAPE:
+			if leaderboard_dialog and leaderboard_dialog.visible:
+				leaderboard_dialog.close_leaderboard()
+				get_viewport().set_input_as_handled()
+				return
+			if specs_panel and specs_panel.visible:
+				specs_panel.hide()
+				get_viewport().set_input_as_handled()
+				return
+			if current_active_submenu != null:
+				_close_submenu()
+				get_viewport().set_input_as_handled()
+				return
+		elif event.keycode == KEY_F3:
+			_toggle_qr_dialog(1)
+			get_viewport().set_input_as_handled()
+		elif event.keycode == KEY_F1:
+			_toggle_keyboard_layout()
+			get_viewport().set_input_as_handled()
 

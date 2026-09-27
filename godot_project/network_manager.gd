@@ -70,14 +70,15 @@ const HEARTBEAT_INTERVAL: float = 25.0
 const STATS_POLL_INTERVAL: float = 20.0
 
 var parties: Dictionary = {
-	"Alpha": { "name": "Squadron Alpha", "pilot_callsign": "LEAD", "pilot_input": "AZERTY", "crew": [] },
-	"Bravo": { "name": "Squadron Bravo", "pilot_callsign": "EMPTY", "pilot_input": "AZERTY", "crew": [] }
+	"Alpha": { "name": "Squadron Alpha", "pilot_callsign": "LEAD", "pilot_input": "AZERTY", "crew": [], "pilot_peer": 1 },
+	"Bravo": { "name": "Squadron Bravo", "pilot_callsign": "[OPEN SEAT]", "pilot_input": "AZERTY", "crew": [], "pilot_peer": 0 }
 }
 var my_party: String = "Alpha"
 var my_role: String = "pilot"
 var my_input: String = "AZERTY"
 
 var discovered_servers: Dictionary = {} # IP -> { "name": ..., "port": ..., "last_seen": ..., ... }
+var connected_peers: Array[int] = []
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -530,6 +531,7 @@ func stop_network() -> void:
 	multiplayer.multiplayer_peer = null
 	is_host = false
 	is_public_lobby = false
+	connected_peers.clear()
 	if session_type == "LOBBY":
 		session_type = "PILOT"
 		send_heartbeat()
@@ -540,10 +542,19 @@ func stop_network() -> void:
 # -----------------------------------------------------------------------------
 func _on_peer_connected(id: int) -> void:
 	print("[NetworkManager] Peer connected: ID ", id)
+	if not connected_peers.has(id):
+		connected_peers.append(id)
 	peer_connected.emit(id)
 
 func _on_peer_disconnected(id: int) -> void:
 	print("[NetworkManager] Peer disconnected: ID ", id)
+	connected_peers.erase(id)
+	# Clean up any party slot held by this peer
+	for p_name in parties:
+		if parties[p_name].get("pilot_peer", 0) == id:
+			parties[p_name]["pilot_callsign"] = "[OPEN SEAT]"
+			parties[p_name]["pilot_peer"] = 0
+	party_updated.emit(parties)
 	peer_disconnected.emit(id)
 
 func _on_connected_to_server() -> void:
@@ -576,15 +587,47 @@ func set_my_party_role(party_name: String, role: String, input_mode: String = ""
 func _local_update_party(peer_id: int, p_name: String, role: String, cs: String, input_mode: String) -> void:
 	if not parties.has(p_name):
 		return
+	
+	var other_party = "Bravo" if p_name == "Alpha" else "Alpha"
+	
 	if role == "pilot":
+		# Claim pilot seat on target party
 		parties[p_name]["pilot_callsign"] = cs
 		parties[p_name]["pilot_input"] = input_mode
 		parties[p_name]["pilot_peer"] = peer_id
+		# If user was in target party's crew, remove them
+		var cur_crew: Array = parties[p_name].get("crew", [])
+		cur_crew.erase(cs)
+		parties[p_name]["crew"] = cur_crew
+		
+		# Vacate opposing party if held by this peer or callsign
+		if parties.has(other_party):
+			if parties[other_party].get("pilot_peer", 0) == peer_id or parties[other_party].get("pilot_callsign", "") == cs:
+				parties[other_party]["pilot_callsign"] = "[OPEN SEAT]"
+				parties[other_party]["pilot_peer"] = 0
+			var other_crew: Array = parties[other_party].get("crew", [])
+			other_crew.erase(cs)
+			parties[other_party]["crew"] = other_crew
 	else:
+		# Joining crew
+		# If user was pilot of this party, vacate pilot seat
+		if parties[p_name].get("pilot_peer", 0) == peer_id or parties[p_name].get("pilot_callsign", "") == cs:
+			parties[p_name]["pilot_callsign"] = "[OPEN SEAT]"
+			parties[p_name]["pilot_peer"] = 0
 		var crew: Array = parties[p_name].get("crew", [])
 		if not crew.has(cs):
 			crew.append(cs)
 		parties[p_name]["crew"] = crew
+		
+		# Vacate opposing party
+		if parties.has(other_party):
+			if parties[other_party].get("pilot_peer", 0) == peer_id or parties[other_party].get("pilot_callsign", "") == cs:
+				parties[other_party]["pilot_callsign"] = "[OPEN SEAT]"
+				parties[other_party]["pilot_peer"] = 0
+			var other_crew: Array = parties[other_party].get("crew", [])
+			other_crew.erase(cs)
+			parties[other_party]["crew"] = other_crew
+			
 	party_updated.emit(parties)
 
 @rpc("any_peer", "call_local", "reliable")

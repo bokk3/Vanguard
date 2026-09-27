@@ -45,5 +45,12 @@ func _init() -> void:
 	print("[PASS] PvPMenu instantiated successfully.")
 	pvp_instance.free()
 
+	var lb_dialog_scene = load("res://leaderboard_dialog.tscn")
+	assert(lb_dialog_scene != null, "leaderboard_dialog.tscn must load")
+	var lb_instance = lb_dialog_scene.instantiate()
+	root.add_child(lb_instance)
+	print("[PASS] LeaderboardDialog instantiated successfully.")
+	lb_instance.free()
+
 	print(">>> ALL SCENES VERIFIED 100% OK! <<<")
 	quit(0)

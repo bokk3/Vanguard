@@ -5,6 +5,31 @@ All notable changes to **Project Vanguard** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.1] - 2026-09-27
+
+### Added
+- **Global Fleet Leaderboard System (Web & In-Game Client)**:
+  - Full-stack Cloudflare D1 serverless edge integration (`/api/leaderboard`) aggregating pilot flight records and sortie debriefs into ranked leaderboards.
+  - **Composite Fleet Combat Score**: Ranks pilots using verified telemetry: $\text{Total Score} = \sum \text{Mission Scores} + (\text{Total Kills} \times 500) + (\text{Sorties Completed} \times 100)$, allowing both campaign aces and PvP dogfighters to climb the ranks.
+  - **Sortie High Scores & Speedruns**: Individual leaderboards for missions (`M01` through `M08`) tracking completion times down to milliseconds, precision scores, and tactical difficulty (`RECRUIT`, `REGULAR`, `VETERAN`, `ACE`).
+  - **In-Game Leaderboard Modal (`leaderboard_dialog.tscn`)**: Direct in-game access via the Intel submenu with live category switching, podium medals (🥇, 🥈, 🥉), authenticated pilot highlight with `(YOU)`, and offline fallback caching.
+  - **Web Portal Leaderboard Section (`#leaderboard`)**: Interactive responsive table with live callsign search, category tabs, and personal standing banner linked to the commissioned pilot dossier.
+- **Categorized Client Submenu Navigation Architecture**:
+  - Completely redesigned `home_menu.tscn` to eliminate vertical button clutter, grouping actions into clean operational submenus:
+    - `[ 🚀 01 ] SORTIE OPERATIONS`: Resume Sortie, Mission Selector, Prologue Cutscene.
+    - `[ ⚔️ 02 ] MULTIPLAYER ARENA`: Dogfight Arena (Split-Screen / LAN / Global P2P), Mobile HOTAS pairing.
+    - `[ 🏆 03 ] FLEET INTEL & RECORDS`: Global Fleet Leaderboard, Combat Stats, Fighter Specs blueprint.
+    - `[ ⚙️ 04 ] AVIONICS & CONFIG`: Avionics Configuration (Audio, Video, Controls), Keyboard Layout toggle (AZERTY / QWERTY).
+    - `[ 🚪 05 ] ABORT / QUIT`: Clean shutdown.
+  - Added dedicated `[ ◀ RETURN TO MAIN OPS ]` navigation buttons in each submenu.
+  - Full `ESC` key and gamepad back button hierarchy: collapses open modals and submenus before quitting.
+- **Multiplayer Mode Disambiguation & Seat Selection**:
+  - Redesigned `pvp_menu.tscn` to cleanly partition multiplayer modes into 3 clear operational theaters: Local Split-Screen (single device), Local LAN Subnet (multiple devices on subnet), and Public Internet P2P Lobbies.
+  - Enforced mutual exclusion on pilot seat assignments (claiming Pilot Bravo automatically vacates Pilot Alpha).
+  - Gated match launch on peer presence, preventing accidental solo launches in multiplayer sessions.
+
+---
+
 ## [0.9.0] - 2026-09-27
 
 ### Added

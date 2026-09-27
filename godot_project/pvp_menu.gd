@@ -13,8 +13,10 @@ const LoginDialogScene = preload("res://login_dialog.tscn")
 @onready var fleet_telemetry_label: Label = %FleetTelemetryLabel
 
 # Tab Buttons
+@onready var split_tab_btn: Button = %SplitTabBtn
 @onready var lan_tab_btn: Button = %LanTabBtn
 @onready var global_tab_btn: Button = %GlobalTabBtn
+@onready var split_section: Control = %SplitSection
 @onready var lan_section: Control = %LanSection
 @onready var global_section: Control = %GlobalSection
 
@@ -103,6 +105,8 @@ func _ready() -> void:
 		pair_phone_lobby_btn.pressed.connect(_on_pair_phone_lobby_pressed)
 		
 	# Connect Mode Tabs
+	if split_tab_btn:
+		split_tab_btn.pressed.connect(func(): _switch_tab("SPLIT"))
 	if lan_tab_btn:
 		lan_tab_btn.pressed.connect(func(): _switch_tab("LAN"))
 	if global_tab_btn:
@@ -161,6 +165,7 @@ func _ready() -> void:
 		network_manager.lan_server_found.connect(_on_lan_server_found)
 		network_manager.lan_server_lost.connect(_on_lan_server_lost)
 		network_manager.peer_connected.connect(_on_peer_connected)
+		network_manager.peer_disconnected.connect(_on_peer_disconnected)
 		network_manager.connected_to_server.connect(_on_connected_to_server)
 		network_manager.connection_failed.connect(_on_connection_failed)
 		if not network_manager.party_updated.is_connected(_on_party_updated):
@@ -177,22 +182,25 @@ func _exit_tree() -> void:
 		network_manager.stop_lan_discovery()
 
 # -----------------------------------------------------------------------------
-# Mode Tabs (LAN vs Global Internet P2P)
+# Mode Tabs (Split-Screen vs LAN vs Global Internet P2P)
 # -----------------------------------------------------------------------------
 func _switch_tab(tab_name: String) -> void:
 	current_tab = tab_name
-	if tab_name == "LAN":
-		if lan_section: lan_section.show()
-		if global_section: global_section.hide()
-		_style_tab_btn(lan_tab_btn, true)
-		_style_tab_btn(global_tab_btn, false)
-		_set_status("LOCAL LAN MODE // DISCOVERING SUBNET BEACONS ON PORT 7778")
-	else:
-		if lan_section: lan_section.hide()
-		if global_section: global_section.show()
-		_style_tab_btn(lan_tab_btn, false)
-		_style_tab_btn(global_tab_btn, true)
-		_update_global_tab_view()
+	if split_section: split_section.visible = (tab_name == "SPLIT")
+	if lan_section: lan_section.visible = (tab_name == "LAN")
+	if global_section: global_section.visible = (tab_name == "GLOBAL")
+	
+	_style_tab_btn(split_tab_btn, tab_name == "SPLIT")
+	_style_tab_btn(lan_tab_btn, tab_name == "LAN")
+	_style_tab_btn(global_tab_btn, tab_name == "GLOBAL")
+	
+	match tab_name:
+		"SPLIT":
+			_set_status("LOCAL SPLIT-SCREEN MODE // SAME DEVICE • 2 PLAYERS • NO NETWORK REQUIRED")
+		"LAN":
+			_set_status("LOCAL LAN MODE // DISCOVERING SUBNET BEACONS ON PORT 7778 (NO INTERNET NEEDED)")
+		"GLOBAL":
+			_update_global_tab_view()
 
 func _style_tab_btn(btn: Button, active: bool) -> void:
 	if not btn:
@@ -280,11 +288,13 @@ func _on_host_pressed() -> void:
 	if err == OK:
 		_set_status("LISTEN SERVER ACTIVE // BROADCASTING ON SUBNET", Color(0.1, 0.95, 0.4))
 		if lobby_title:
-			lobby_title.text = "LOBBY: '%s' [LOCAL LAN]" % s_name
+			lobby_title.text = "📡 LOCAL LAN LOBBY: '%s'" % s_name
 		if waiting_label:
 			waiting_label.text = "LISTEN SERVER ACTIVE // SUBNET BROADCAST ACTIVE // WAITING FOR SQUADRON..."
 		if upnp_host_modal_label:
-			upnp_host_modal_label.text = "MODE: LOCAL SUBNET BROADCAST (PORT 7777 UDP)"
+			upnp_host_modal_label.text = "MODE: LOCAL SUBNET BROADCAST (PORT 7777 UDP) // NO UPNP NEEDED"
+			upnp_host_modal_label.modulate = Color(0.2, 0.95, 0.5)
+		_update_launch_button_state()
 		if host_waiting_modal:
 			host_waiting_modal.show()
 			
@@ -330,11 +340,13 @@ func _on_global_host_pressed() -> void:
 	if err == OK:
 		_set_status("GLOBAL P2P LISTEN SERVER ACTIVE // BROADCASTING ON FLEET RADAR", Color(0.1, 0.95, 0.4))
 		if lobby_title:
-			lobby_title.text = "LOBBY: '%s' [GLOBAL FLEET RADAR]" % s_name
+			lobby_title.text = "🌐 PUBLIC INTERNET LOBBY: '%s'" % s_name
 		if waiting_label:
 			waiting_label.text = "WAITING FOR CHALLENGERS ACROSS THE GLOBE TO INITIATE P2P CONNECTION..."
 		if upnp_host_modal_label:
 			upnp_host_modal_label.text = "ROUTER STATUS: %s" % network_manager.upnp_status
+			upnp_host_modal_label.modulate = Color(0.2, 0.95, 0.5) if (network_manager and "ACTIVE" in network_manager.upnp_status) else Color(0.85, 0.8, 0.2)
+		_update_launch_button_state()
 		if host_waiting_modal:
 			host_waiting_modal.show()
 			
@@ -572,22 +584,60 @@ func _update_server_list() -> void:
 # -----------------------------------------------------------------------------
 # Multiplayer Callbacks & Party Deck
 # -----------------------------------------------------------------------------
+func _update_launch_button_state() -> void:
+	if not launch_arena_btn:
+		return
+	if not network_manager or not network_manager.is_host:
+		launch_arena_btn.disabled = true
+		launch_arena_btn.text = "🔒 [ AWAITING HOST LAUNCH COMMAND ]"
+		launch_arena_btn.modulate = Color(0.7, 0.7, 0.7, 0.6)
+		return
+		
+	var peer_count = 0
+	if network_manager and not network_manager.connected_peers.is_empty():
+		peer_count = network_manager.connected_peers.size()
+	elif multiplayer and multiplayer.has_multiplayer_peer():
+		peer_count = multiplayer.get_peers().size()
+		
+	if peer_count > 0:
+		launch_arena_btn.disabled = false
+		launch_arena_btn.text = "🚀 [ENTER] LAUNCH SORTIE (%d CHALLENGER LINKED)" % peer_count
+		launch_arena_btn.modulate = Color(0.1, 0.95, 0.4, 1.0)
+	else:
+		launch_arena_btn.disabled = true
+		launch_arena_btn.text = "⏳ [ AWAITING CHALLENGER TO CONNECT... ]"
+		launch_arena_btn.modulate = Color(0.7, 0.7, 0.7, 0.6)
+
 func _on_peer_connected(id: int) -> void:
 	if network_manager and network_manager.is_host:
-		_set_status("OPPONENT JOINED (PEER ID %d)!" % id, Color(0.1, 0.95, 0.4))
+		if not network_manager.connected_peers.has(id):
+			network_manager.connected_peers.append(id)
+		_set_status("OPPONENT JOINED (PEER ID %d)! READY TO LAUNCH" % id, Color(0.1, 0.95, 0.4))
 		if waiting_label:
 			waiting_label.text = "SQUADRONS LINKED // READY TO LAUNCH ENGAGEMENT"
 		# Auto-assign opponent to Squadron Bravo Pilot if empty
 		if network_manager.parties["Bravo"]["pilot_callsign"] in ["EMPTY", "[OPEN SEAT]"]:
 			network_manager.parties["Bravo"]["pilot_callsign"] = "BANDIT-" + str(id)
+			network_manager.parties["Bravo"]["pilot_peer"] = id
 			network_manager.party_updated.emit(network_manager.parties)
 		_update_party_deck()
+		_update_launch_button_state()
+
+func _on_peer_disconnected(id: int) -> void:
+	if network_manager and network_manager.is_host:
+		network_manager.connected_peers.erase(id)
+		_set_status("CHALLENGER DISCONNECTED (PEER ID %d) // AWAITING OPPONENT" % id, Color(1.0, 0.5, 0.2))
+		if waiting_label:
+			waiting_label.text = "CHALLENGER DISCONNECTED // AWAITING NEW OPPONENT..."
+		_update_party_deck()
+		_update_launch_button_state()
 
 func _on_connected_to_server() -> void:
 	_set_status("CONNECTED TO HOST SQUADRON! WAITING FOR LAUNCH...", Color(0.1, 0.95, 0.4))
 	if host_waiting_modal:
+		var is_pub = network_manager.is_public_lobby if network_manager else false
 		if lobby_title:
-			lobby_title.text = "SQUADRON COMBAT LOBBY // LINKED TO HOST"
+			lobby_title.text = "%s COMBAT LOBBY // LINKED TO HOST" % ["🌐 PUBLIC" if is_pub else "📡 LAN"]
 		if waiting_label:
 			waiting_label.text = "CONNECTED // AWAITING MISSION HOST COMMAND..."
 		host_waiting_modal.show()
@@ -596,6 +646,7 @@ func _on_connected_to_server() -> void:
 	var is_az = cfg.is_azerty if cfg else false
 	network_manager.set_my_party_role("Bravo", "pilot", "AZERTY" if is_az else "QWERTY")
 	_update_party_deck()
+	_update_launch_button_state()
 
 func _on_connection_failed() -> void:
 	_set_status("FAILED TO CONNECT TO SERVER // TIMEOUT OR WRONG IP", Color(1.0, 0.25, 0.2))
@@ -686,6 +737,9 @@ func _on_qr_dialog_closed() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func _on_launch_arena_pressed() -> void:
+	if launch_arena_btn and launch_arena_btn.disabled:
+		_set_status("AWAITING CHALLENGER BEFORE LAUNCHING SORTIE", Color(1.0, 0.8, 0.2))
+		return
 	if network_manager and network_manager.is_host:
 		_set_status("COMMAND SQUADRON DEPLOYING TO ARENA...", Color(0.1, 0.95, 0.4))
 		if multiplayer and multiplayer.has_multiplayer_peer():
@@ -721,5 +775,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			_on_pair_phone_lobby_pressed()
 			get_viewport().set_input_as_handled()
 		elif event.keycode == KEY_ENTER and host_waiting_modal and host_waiting_modal.visible:
-			_on_launch_arena_pressed()
+			if launch_arena_btn and not launch_arena_btn.disabled:
+				_on_launch_arena_pressed()
 			get_viewport().set_input_as_handled()

@@ -9,7 +9,7 @@
 
 *"Precision in the Void. Firepower in the Envelope."*
 
-[![Release](https://img.shields.io/badge/Release-v0.9.0-00E5FF?style=for-the-badge&logo=github)](https://github.com/bokk3/Vanguard/releases)
+[![Release](https://img.shields.io/badge/Release-v0.9.1-00E5FF?style=for-the-badge&logo=github)](https://github.com/bokk3/Vanguard/releases)
 [![Live Portal](https://img.shields.io/badge/Live_Portal-project--vanguard.pages.dev-00E5FF?style=for-the-badge&logo=cloudflare)](https://project-vanguard.pages.dev)
 [![Scan to Fly](https://img.shields.io/badge/Mobile_HOTAS-Scan--to--Fly_QR-FF007F?style=for-the-badge&logo=pwa)](docs/ZERO_COST_INFRASTRUCTURE_AND_CONTROLLER_SPEC.md)
 [![Multiplayer](https://img.shields.io/badge/Multiplayer-Global_P2P_%7C_Split--Screen_%7C_LAN-7C4DFF?style=for-the-badge)](docs/MULTIPLAYER_AND_COOP_SYSTEM.md)
@@ -102,7 +102,7 @@ lucid-davinci/ (Project Vanguard)
 │   ├── MULTIPLAYER_AND_COOP_SYSTEM.md # Co-Op, LAN Arena & QR Join
 │   └── CONTROLS_AND_PHYSICS.md   # Flight dynamics & input routing
 ├── godot_project/                # Godot 4.7 Combat Flight Mechanics Testbed
-│   ├── project.godot             # Project configuration (v0.9.0)
+│   ├── project.godot             # Project configuration (v0.9.1)
 │   ├── main.tscn                 # Campaign sortie arena with dynamic co-op join
 │   ├── split_screen_arena.tscn   # Local 1v1 PvP dogfight arena
 │   ├── lan_arena.tscn            # LAN peer-to-peer multiplayer dogfight arena

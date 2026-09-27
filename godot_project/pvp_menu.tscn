@@ -125,7 +125,7 @@ text = "PROJECT VANGUARD // DOGFIGHT ARENA (PVP)"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.88, 0.95, 0.75)
 theme_override_font_sizes/font_size = 13
-text = "TACTICAL 1v1 AIR COMBAT // LOCAL SPLIT-SCREEN & LAN AUTO-DISCOVERY"
+text = "TACTICAL 1v1 AIR COMBAT // SPLIT-SCREEN • LOCAL LAN • PUBLIC P2P FLEET"
 
 [node name="FleetTelemetryLabel" type="Label" parent="MainLayout/HeaderBox/TitleBox"]
 unique_name_in_owner = true
@@ -147,212 +147,303 @@ theme_override_colors/font_color = Color(0, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 13
 text = "// READY // SELECT COMBAT SORTIE MODE //"
 
-[node name="Columns" type="HBoxContainer" parent="MainLayout"]
+[node name="ModeTabHeader" type="HBoxContainer" parent="MainLayout"]
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 28
+theme_override_constants/separation = 12
 
-[node name="SplitScreenCard" type="PanelContainer" parent="MainLayout/Columns"]
+[node name="SplitTabBtn" type="Button" parent="MainLayout/ModeTabHeader"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "🖥️ 1. LOCAL SPLIT-SCREEN
+(1 Machine • Dual Cockpit)"
+
+[node name="LanTabBtn" type="Button" parent="MainLayout/ModeTabHeader"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "📡 2. LOCAL LAN PARTY
+(Multiple PCs • Same Wi-Fi)"
+
+[node name="GlobalTabBtn" type="Button" parent="MainLayout/ModeTabHeader"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "🌐 3. PUBLIC ONLINE FLEET
+(Worldwide • Internet P2P)"
+
+[node name="ContentCard" type="PanelContainer" parent="MainLayout"]
+layout_mode = 2
+size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="Margin" type="MarginContainer" parent="MainLayout/Columns/SplitScreenCard"]
+[node name="Margin" type="MarginContainer" parent="MainLayout/ContentCard"]
 layout_mode = 2
-theme_override_constants/margin_left = 24
+theme_override_constants/margin_left = 28
 theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 24
+theme_override_constants/margin_right = 28
 theme_override_constants/margin_bottom = 20
 
-[node name="VBox" type="VBoxContainer" parent="MainLayout/Columns/SplitScreenCard/Margin"]
+[node name="SplitSection" type="VBoxContainer" parent="MainLayout/ContentCard/Margin"]
+unique_name_in_owner = true
+visible = false
 layout_mode = 2
+size_flags_vertical = 3
 theme_override_constants/separation = 16
 
-[node name="CardTitle" type="Label" parent="MainLayout/Columns/SplitScreenCard/Margin/VBox"]
+[node name="SplitHeader" type="VBoxContainer" parent="MainLayout/ContentCard/Margin/SplitSection"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SplitTitle" type="Label" parent="MainLayout/ContentCard/Margin/SplitSection/SplitHeader"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
-theme_override_font_sizes/font_size = 20
-text = "[ 01 ] LOCAL SPLIT-SCREEN"
+theme_override_font_sizes/font_size = 18
+text = "🖥️ MODE 01: LOCAL SPLIT-SCREEN DOGFIGHT // SINGLE MACHINE"
 
-[node name="DescLabel" type="Label" parent="MainLayout/Columns/SplitScreenCard/Margin/VBox"]
+[node name="SplitSubtitle" type="Label" parent="MainLayout/ContentCard/Margin/SplitSection/SplitHeader"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.88, 0.95, 0.85)
 theme_override_font_sizes/font_size = 13
-text = "Engage in dual-cockpit dogfight on a single screen with shared physics and independent avionics HUDs. First to 5 kills wins."
-autowrap_mode = 2
+text = "Engage in head-to-head 1v1 air combat on this single computer or console. Zero network, router, or internet connection required."
 
-[node name="ControlsInfo" type="Label" parent="MainLayout/Columns/SplitScreenCard/Margin/VBox"]
+[node name="SplitCardsHBox" type="HBoxContainer" parent="MainLayout/ContentCard/Margin/SplitSection"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_colors/font_color = Color(0.65, 0.78, 0.88, 0.75)
+theme_override_constants/separation = 16
+
+[node name="P1Card" type="PanelContainer" parent="MainLayout/ContentCard/Margin/SplitSection/SplitCardsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_alpha_card")
+
+[node name="VBox" type="VBoxContainer" parent="MainLayout/ContentCard/Margin/SplitSection/SplitCardsHBox/P1Card"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="MainLayout/ContentCard/Margin/SplitSection/SplitCardsHBox/P1Card/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "◈ PILOT 1: COBALT SQUADRON"
+
+[node name="Desc" type="Label" parent="MainLayout/ContentCard/Margin/SplitSection/SplitCardsHBox/P1Card/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.92, 0.98, 0.85)
 theme_override_font_sizes/font_size = 12
-text = "PILOT CONTROLS & AVIONICS:
-• Player 1 (Cobalt): WASD / Arrows / Mouse or Gamepad 1
-• Player 2 (Aggressor): IJKL / NumPad or Gamepad 2
-• Layout Toggle: Press [F2] in-game to switch Horizontal (Top/Bottom) vs Vertical (Left/Right) split on the fly
-• Combat: Mutual radar acquisition, machine gun bursts, and guided missile lock-ons"
+text = "• Primary Keyboard: WASD / Mouse Pitch & Yaw
+• Gamepad: Controller 1 (Dual Analog / Triggers)
+• Weapons: Left Click / Trigger (Rotary MG) & Right Click (Missiles)
+• Viewport: Left / Upper Cockpit HUD"
 autowrap_mode = 2
 
-[node name="SplitScreenBtn" type="Button" parent="MainLayout/Columns/SplitScreenCard/Margin/VBox"]
+[node name="P2Card" type="PanelContainer" parent="MainLayout/ContentCard/Margin/SplitSection/SplitCardsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_bravo_card")
+
+[node name="VBox" type="VBoxContainer" parent="MainLayout/ContentCard/Margin/SplitSection/SplitCardsHBox/P2Card"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="MainLayout/ContentCard/Margin/SplitSection/SplitCardsHBox/P2Card/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.35, 0.25, 1)
+theme_override_font_sizes/font_size = 15
+text = "◈ PILOT 2: CRIMSON SQUADRON"
+
+[node name="Desc" type="Label" parent="MainLayout/ContentCard/Margin/SplitSection/SplitCardsHBox/P2Card/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.85, 0.85, 0.85)
+theme_override_font_sizes/font_size = 12
+text = "• Secondary Keyboard: IJKL / NumPad
+• Gamepad: Controller 2 (Plug & Play USB/Bluetooth)
+• Weapons: Return / Right Ctrl / Gamepad Triggers
+• Viewport: Right / Lower Cockpit HUD"
+autowrap_mode = 2
+
+[node name="RulesCard" type="PanelContainer" parent="MainLayout/ContentCard/Margin/SplitSection/SplitCardsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_auth_prompt")
+
+[node name="VBox" type="VBoxContainer" parent="MainLayout/ContentCard/Margin/SplitSection/SplitCardsHBox/RulesCard"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="MainLayout/ContentCard/Margin/SplitSection/SplitCardsHBox/RulesCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
+theme_override_font_sizes/font_size = 15
+text = "◈ RULES & AVIONICS"
+
+[node name="Desc" type="Label" parent="MainLayout/ContentCard/Margin/SplitSection/SplitCardsHBox/RulesCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.92, 0.98, 0.85)
+theme_override_font_sizes/font_size = 12
+text = "• Split Toggle: Press [F2] in-game to switch Horizontal (Top/Bottom) vs Vertical (Left/Right) split dynamically
+• Victory: First pilot to score 5 air-to-air kills wins
+• Zero Latency: Instant local simulation"
+autowrap_mode = 2
+
+[node name="SplitScreenBtn" type="Button" parent="MainLayout/ContentCard/Margin/SplitSection"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "[ LAUNCH LOCAL SPLIT-SCREEN ARENA ]"
+text = "[ 🚀 LAUNCH LOCAL SPLIT-SCREEN ARENA ]"
 
-[node name="LanCard" type="PanelContainer" parent="MainLayout/Columns"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_styles/panel = SubResource("StyleBoxFlat_card")
-
-[node name="Margin" type="MarginContainer" parent="MainLayout/Columns/LanCard"]
-layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 20
-
-[node name="VBox" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="CardTitle" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0, 0.85, 1, 1)
-theme_override_font_sizes/font_size = 20
-text = "[ 02 ] NETWORK DOGFIGHT (P2P MULTIPLAYER)"
-
-[node name="NetworkTabHeader" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="LanTabBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/NetworkTabHeader"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 32)
-layout_mode = 2
-size_flags_horizontal = 3
-text = "[ 📡 LOCAL LAN SUBNET ]"
-
-[node name="GlobalTabBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/NetworkTabHeader"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 32)
-layout_mode = 2
-size_flags_horizontal = 3
-text = "[ 🌐 GLOBAL FLEET RADAR (P2P) ]"
-
-[node name="LanSection" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox"]
+[node name="LanSection" type="VBoxContainer" parent="MainLayout/ContentCard/Margin"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 
-[node name="HostSection" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection"]
+[node name="LanHeader" type="VBoxContainer" parent="MainLayout/ContentCard/Margin/LanSection"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="LanTitle" type="Label" parent="MainLayout/ContentCard/Margin/LanSection/LanHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "📡 MODE 02: LOCAL AREA NETWORK (LAN) // MULTIPLE DEVICES ON SAME WI-FI / SUBNET"
+
+[node name="LanSubtitle" type="Label" parent="MainLayout/ContentCard/Margin/LanSection/LanHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.88, 0.95, 0.8)
+theme_override_font_sizes/font_size = 12
+text = "Zero internet connection or UPnP router ports needed. Auto-discovers games on your local Wi-Fi or Ethernet on port 7778."
+
+[node name="HostSection" type="VBoxContainer" parent="MainLayout/ContentCard/Margin/LanSection"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="HostInputs" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/HostSection"]
+[node name="HostInputs" type="HBoxContainer" parent="MainLayout/ContentCard/Margin/LanSection/HostSection"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="ServerNameInput" type="LineEdit" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/HostSection/HostInputs"]
+[node name="ServerNameInput" type="LineEdit" parent="MainLayout/ContentCard/Margin/LanSection/HostSection/HostInputs"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Server / Lobby Name"
-text = "VANGUARD LOBBY"
+text = "VANGUARD LAN LOBBY"
 
-[node name="CallsignInput" type="LineEdit" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/HostSection/HostInputs"]
+[node name="CallsignInput" type="LineEdit" parent="MainLayout/ContentCard/Margin/LanSection/HostSection/HostInputs"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Host Callsign"
 text = "Vanguard-1"
 
-[node name="HostBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/HostSection/HostInputs"]
+[node name="HostBtn" type="Button" parent="MainLayout/ContentCard/Margin/LanSection/HostSection/HostInputs"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 34)
+custom_minimum_size = Vector2(170, 34)
 layout_mode = 2
-text = "[ HOST LAN SERVER ]"
+text = "[ 📡 HOST LAN SERVER ]"
 
-[node name="HSeparator" type="HSeparator" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection"]
-layout_mode = 2
-
-[node name="LobbiesHeader" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection"]
+[node name="HSeparator" type="HSeparator" parent="MainLayout/ContentCard/Margin/LanSection"]
 layout_mode = 2
 
-[node name="LobbiesTitle" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/LobbiesHeader"]
+[node name="LobbiesHeader" type="HBoxContainer" parent="MainLayout/ContentCard/Margin/LanSection"]
+layout_mode = 2
+
+[node name="LobbiesTitle" type="Label" parent="MainLayout/ContentCard/Margin/LanSection/LobbiesHeader"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
 theme_override_font_sizes/font_size = 14
-text = "DISCOVERED LAN SERVERS (PORT 7778):"
+text = "DISCOVERED LAN SERVERS (PORT 7778 SUBNET):"
 
-[node name="RefreshLanBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/LobbiesHeader"]
+[node name="RefreshLanBtn" type="Button" parent="MainLayout/ContentCard/Margin/LanSection/LobbiesHeader"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 26)
 layout_mode = 2
 text = "[ REFRESH ]"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MainLayout/ContentCard/Margin/LanSection"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="ServerListContainer" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/ScrollContainer"]
+[node name="ServerListContainer" type="VBoxContainer" parent="MainLayout/ContentCard/Margin/LanSection/ScrollContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="NoServersLabel" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/ScrollContainer/ServerListContainer"]
+[node name="NoServersLabel" type="Label" parent="MainLayout/ContentCard/Margin/LanSection/ScrollContainer/ServerListContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.65, 0.75, 0.6)
 theme_override_font_sizes/font_size = 12
 text = "No active LAN beacons detected. Ensure host has launched server on local subnet."
 
-[node name="DirectConnectBox" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection"]
+[node name="DirectConnectBox" type="HBoxContainer" parent="MainLayout/ContentCard/Margin/LanSection"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="DirectIpInput" type="LineEdit" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/DirectConnectBox"]
+[node name="DirectIpInput" type="LineEdit" parent="MainLayout/ContentCard/Margin/LanSection/DirectConnectBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-placeholder_text = "Direct IP Address (e.g. 192.168.1.50 or 127.0.0.1:7777)"
+placeholder_text = "Direct LAN IP Address (e.g. 192.168.1.50:7777 or 127.0.0.1)"
 text = "127.0.0.1"
 
-[node name="DirectConnectBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/LanSection/DirectConnectBox"]
+[node name="DirectConnectBtn" type="Button" parent="MainLayout/ContentCard/Margin/LanSection/DirectConnectBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 34)
 layout_mode = 2
 text = "[ DIRECT CONNECT ]"
 
-[node name="GlobalSection" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox"]
+[node name="GlobalSection" type="VBoxContainer" parent="MainLayout/ContentCard/Margin"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 
-[node name="GlobalAuthPrompt" type="PanelContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection"]
+[node name="GlobalHeader" type="VBoxContainer" parent="MainLayout/ContentCard/Margin/GlobalSection"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="GlobalTitle" type="Label" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "🌐 MODE 03: PUBLIC ONLINE FLEET // WORLDWIDE INTERNET P2P MATCHMAKING"
+
+[node name="GlobalSubtitle" type="Label" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.88, 0.95, 0.8)
+theme_override_font_sizes/font_size = 12
+text = "Publish and join combat sorties across the globe via Cloudflare edge directory and UPnP router mapping."
+
+[node name="GlobalAuthPrompt" type="PanelContainer" parent="MainLayout/ContentCard/Margin/GlobalSection"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_auth_prompt")
 
-[node name="AuthPromptVBox" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalAuthPrompt"]
+[node name="AuthPromptVBox" type="VBoxContainer" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalAuthPrompt"]
 layout_mode = 2
 theme_override_constants/separation = 14
 alignment = 1
 
-[node name="AuthPromptTitle" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalAuthPrompt/AuthPromptVBox"]
+[node name="AuthPromptTitle" type="Label" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalAuthPrompt/AuthPromptVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
 theme_override_font_sizes/font_size = 17
 text = "🎖️ PILOT COMMISSION REQUIRED"
 horizontal_alignment = 1
 
-[node name="AuthPromptDesc" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalAuthPrompt/AuthPromptVBox"]
+[node name="AuthPromptDesc" type="Label" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalAuthPrompt/AuthPromptVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.92, 0.98, 0.85)
 theme_override_font_sizes/font_size = 13
@@ -360,7 +451,7 @@ text = "Global internet P2P matchmaking connects pilots across the globe. Sign i
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="GlobalLoginBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalAuthPrompt/AuthPromptVBox"]
+[node name="GlobalLoginBtn" type="Button" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalAuthPrompt/AuthPromptVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 42)
 layout_mode = 2
@@ -368,16 +459,16 @@ size_flags_horizontal = 4
 theme_override_font_sizes/font_size = 15
 text = "[ 🎖️ SIGN IN / COMMISSION CALLSIGN ]"
 
-[node name="GlobalLobbyView" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection"]
+[node name="GlobalLobbyView" type="VBoxContainer" parent="MainLayout/ContentCard/Margin/GlobalSection"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 
-[node name="PilotBannerBox" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView"]
+[node name="PilotBannerBox" type="HBoxContainer" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView"]
 layout_mode = 2
 
-[node name="GlobalPilotLabel" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/PilotBannerBox"]
+[node name="GlobalPilotLabel" type="Label" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView/PilotBannerBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -385,84 +476,84 @@ theme_override_colors/font_color = Color(0.2, 0.95, 0.5, 1)
 theme_override_font_sizes/font_size = 12
 text = "🎖️ PILOT: TOPGUN [FLIGHT LIEUTENANT] // 404th Vanguard Strike Wing"
 
-[node name="UpnpStatusLabel" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/PilotBannerBox"]
+[node name="UpnpStatusLabel" type="Label" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView/PilotBannerBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0.85, 1, 0.9)
 theme_override_font_sizes/font_size = 11
 text = "UPNP: IDLE"
 
-[node name="GlobalHostInputs" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView"]
+[node name="GlobalHostInputs" type="HBoxContainer" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="GlobalServerNameInput" type="LineEdit" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalHostInputs"]
+[node name="GlobalServerNameInput" type="LineEdit" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView/GlobalHostInputs"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Global Lobby Name"
 text = "VANGUARD COMBAT LOBBY"
 
-[node name="PublishGlobalCheck" type="CheckBox" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalHostInputs"]
+[node name="PublishGlobalCheck" type="CheckBox" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView/GlobalHostInputs"]
 unique_name_in_owner = true
 layout_mode = 2
 button_pressed = true
 text = "PUBLISH TO RADAR"
 
-[node name="GlobalHostBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalHostInputs"]
+[node name="GlobalHostBtn" type="Button" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView/GlobalHostInputs"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(170, 34)
 layout_mode = 2
-text = "[ HOST GLOBAL P2P ]"
+text = "[ 🌐 HOST GLOBAL P2P ]"
 
-[node name="HSeparator2" type="HSeparator" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView"]
+[node name="HSeparator2" type="HSeparator" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView"]
 layout_mode = 2
 
-[node name="GlobalLobbiesHeader" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView"]
+[node name="GlobalLobbiesHeader" type="HBoxContainer" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView"]
 layout_mode = 2
 
-[node name="GlobalLobbiesTitle" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalLobbiesHeader"]
+[node name="GlobalLobbiesTitle" type="Label" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView/GlobalLobbiesHeader"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
 theme_override_font_sizes/font_size = 14
 text = "ONLINE FLEET RADAR (INTERNET P2P DIRECT):"
 
-[node name="RefreshGlobalBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalLobbiesHeader"]
+[node name="RefreshGlobalBtn" type="Button" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView/GlobalLobbiesHeader"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 26)
 layout_mode = 2
 text = "[ REFRESH ]"
 
-[node name="GlobalScrollContainer" type="ScrollContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView"]
+[node name="GlobalScrollContainer" type="ScrollContainer" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="GlobalLobbyListContainer" type="VBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalScrollContainer"]
+[node name="GlobalLobbyListContainer" type="VBoxContainer" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView/GlobalScrollContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="NoGlobalLobbiesLabel" type="Label" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalScrollContainer/GlobalLobbyListContainer"]
+[node name="NoGlobalLobbiesLabel" type="Label" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView/GlobalScrollContainer/GlobalLobbyListContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.65, 0.75, 0.6)
 theme_override_font_sizes/font_size = 12
 text = "No active internet lobbies registered. Host and publish a lobby to initiate a global sortie!"
 
-[node name="GlobalDirectConnectBox" type="HBoxContainer" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView"]
+[node name="GlobalDirectConnectBox" type="HBoxContainer" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="GlobalDirectIpInput" type="LineEdit" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalDirectConnectBox"]
+[node name="GlobalDirectIpInput" type="LineEdit" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView/GlobalDirectConnectBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Remote Host WAN IP:Port (e.g. 82.165.20.4:7777)"
 text = ""
 
-[node name="GlobalDirectConnectBtn" type="Button" parent="MainLayout/Columns/LanCard/Margin/VBox/GlobalSection/GlobalLobbyView/GlobalDirectConnectBox"]
+[node name="GlobalDirectConnectBtn" type="Button" parent="MainLayout/ContentCard/Margin/GlobalSection/GlobalLobbyView/GlobalDirectConnectBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 34)
 layout_mode = 2
