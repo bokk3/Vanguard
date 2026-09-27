@@ -76,9 +76,24 @@ var _config: ConfigFile = ConfigFile.new()
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	load_settings()
+	_setup_app_icon()
 	_setup_custom_cursors()
 	if is_inside_tree() and get_tree():
 		get_tree().node_added.connect(_on_scene_node_added)
+
+func _setup_app_icon() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	var icon_path = "res://icon.png"
+	var img: Image = null
+	if FileAccess.file_exists(icon_path):
+		img = Image.load_from_file(icon_path)
+	if not img and ResourceLoader.exists(icon_path):
+		var res = load(icon_path)
+		if res is Texture2D:
+			img = res.get_image()
+	if img and not img.is_empty():
+		DisplayServer.set_icon(img)
 
 func _setup_custom_cursors() -> void:
 	var arrow_tex: Texture2D = null
