@@ -188,6 +188,21 @@ func unregister_ship(player_id: int) -> void:
 			ship.set("mobile_control_active", false)
 		target_ships.erase(player_id)
 
+func _get_active_ship(pid: int) -> Node:
+	if target_ships.has(pid):
+		var ship = target_ships[pid]
+		if is_instance_valid(ship):
+			return ship
+	# Fallback: if target ship is not found or invalid, route to any active ship (e.g. Player 1 in solo sortie)
+	if target_ships.has(1):
+		var s1 = target_ships[1]
+		if is_instance_valid(s1):
+			return s1
+	for s in target_ships.values():
+		if is_instance_valid(s):
+			return s
+	return null
+
 func _process(delta: float) -> void:
 	if not is_active:
 		return
@@ -319,10 +334,9 @@ func _handle_packet(client: Dictionary, raw_json: String) -> void:
 	control_frame_received.emit(pid, data)
 
 	# Forward to registered spaceship
-	if target_ships.has(pid):
-		var ship = target_ships[pid]
-		if is_instance_valid(ship) and ship.has_method("apply_mobile_inputs"):
-			ship.apply_mobile_inputs(data)
+	var ship = _get_active_ship(pid)
+	if is_instance_valid(ship) and ship.has_method("apply_mobile_inputs"):
+		ship.apply_mobile_inputs(data)
 
 func _handle_binary_packet(client: Dictionary, bytes: PackedByteArray) -> void:
 	if bytes.size() != 16:
@@ -369,10 +383,9 @@ func _handle_binary_packet(client: Dictionary, bytes: PackedByteArray) -> void:
 	control_frame_received.emit(pid, data)
 
 	# Forward to registered spaceship
-	if target_ships.has(pid):
-		var ship = target_ships[pid]
-		if is_instance_valid(ship) and ship.has_method("apply_mobile_inputs"):
-			ship.apply_mobile_inputs(data)
+	var ship_target = _get_active_ship(pid)
+	if is_instance_valid(ship_target) and ship_target.has_method("apply_mobile_inputs"):
+		ship_target.apply_mobile_inputs(data)
 
 func _broadcast_telemetry_to_phones() -> void:
 	if connected_clients.is_empty():
@@ -383,8 +396,8 @@ func _broadcast_telemetry_to_phones() -> void:
 		if not peer or peer.get_ready_state() != WebSocketPeer.STATE_OPEN:
 			continue
 
-		var pid = client.get("player_id", 2)
-		var ship = target_ships.get(pid)
+		var pid = client.get("player_id", default_player_id)
+		var ship = _get_active_ship(pid)
 
 		var telem_payload = {
 			"shield": 100.0,

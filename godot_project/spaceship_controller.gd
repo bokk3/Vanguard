@@ -92,6 +92,9 @@ const LAUNCH_SEQUENCE: Array[int] = [0, 3, 1, 2] # Left Outer, Right Outer, Left
 @export var gun_damage: float = 6.0         ## Damage per kinetic round
 @export var gun_bullet_speed: float = 650.0 ## Muzzle projectile velocity
 @export var gun_spread: float = 0.007       ## Muzzle dispersion angle
+@export var gun_aim_assist_enabled: bool = true ## Smart magnetic lead-convergence autocannon assist
+@export var gun_aim_assist_cone_deg: float = 16.0 ## Magnetism lock-cone half-angle in degrees
+@export var gun_aim_assist_max_dist: float = 900.0 ## Max engagement distance for aim assist
 var gun_timer: float = 0.0
 var gun_barrel_index: int = 0
 var is_firing_gun: bool = false
@@ -255,6 +258,16 @@ func _ready() -> void:
 	if sm and sm.should_load_on_start:
 		sm.call_deferred("apply_save_to_current_scene")
 		sm.should_load_on_start = false
+
+	# Auto-register with NetworkControllerServer for mobile HOTAS persistence
+	var net_ctrl = get_node_or_null("/root/NetworkControllerServer")
+	if net_ctrl:
+		net_ctrl.register_ship(player_id, self)
+
+func _exit_tree() -> void:
+	var net_ctrl = get_node_or_null("/root/NetworkControllerServer")
+	if net_ctrl:
+		net_ctrl.unregister_ship(player_id)
 
 var mission_manager_override: Node = null
 var config_manager_override: Node = null
@@ -830,6 +843,73 @@ func _process_machine_gun(delta: float) -> void:
 			if gun_winddown_player:
 				gun_winddown_player.play()
 
+func _calculate_aim_assist_dir(muzzle_pos: Vector3, base_dir: Vector3) -> Vector3:
+	if not gun_aim_assist_enabled or not is_inside_tree() or not get_tree():
+		return base_dir
+
+	var best_candidate: Node3D = null
+	var best_desired_dir: Vector3 = base_dir
+	var min_angular_error: float = deg_to_rad(gun_aim_assist_cone_deg)
+	var max_range_sq: float = gun_aim_assist_max_dist * gun_aim_assist_max_dist
+
+	# 1. First priority: telemetry current_target if valid and roughly in front
+	if telemetry and is_instance_valid(telemetry.current_target):
+		var t = telemetry.current_target
+		if t != self and not (t.get("is_alive") == false) and not (t.get("is_airframe_destroyed") == true):
+			var d_sq = muzzle_pos.distance_squared_to(t.global_position)
+			if d_sq <= max_range_sq:
+				var t_vel = Vector3.ZERO
+				if "velocity" in t:
+					t_vel = t.velocity
+				elif "linear_velocity" in t:
+					t_vel = t.linear_velocity
+				var dist = sqrt(d_sq)
+				var lead_time = dist / (gun_bullet_speed + max(current_speed, 0.0))
+				var lead_pos = t.global_position + (t_vel * lead_time)
+				var desired = (lead_pos - muzzle_pos).normalized()
+				var angle = base_dir.angle_to(desired)
+				if angle <= deg_to_rad(gun_aim_assist_cone_deg * 1.5): # Generous 24-degree cone for locked target
+					best_candidate = t
+					best_desired_dir = desired
+					min_angular_error = angle
+
+	# 2. Second priority: scan all enemies / radar_targets if locked target wasn't found
+	if not best_candidate:
+		var targets = get_tree().get_nodes_in_group("enemies")
+		if targets.is_empty():
+			targets = get_tree().get_nodes_in_group("radar_targets")
+		
+		for t in targets:
+			if not is_instance_valid(t) or t == self:
+				continue
+			if t.get("is_alive") == false or t.get("is_airframe_destroyed") == true:
+				continue
+			var d_sq = muzzle_pos.distance_squared_to(t.global_position)
+			if d_sq > max_range_sq:
+				continue
+			var t_vel = Vector3.ZERO
+			if "velocity" in t:
+				t_vel = t.velocity
+			elif "linear_velocity" in t:
+				t_vel = t.linear_velocity
+			var dist = sqrt(d_sq)
+			var lead_time = dist / (gun_bullet_speed + max(current_speed, 0.0))
+			var lead_pos = t.global_position + (t_vel * lead_time)
+			var desired = (lead_pos - muzzle_pos).normalized()
+			var angle = base_dir.angle_to(desired)
+			if angle < min_angular_error:
+				min_angular_error = angle
+				best_candidate = t
+				best_desired_dir = desired
+
+	if best_candidate:
+		# Magnetism blend factor: 85% snap towards lead intercept when aligned, tapering to 40% near cone edge
+		var max_cone_rad = deg_to_rad(gun_aim_assist_cone_deg)
+		var factor = clamp(1.0 - (min_angular_error / max(max_cone_rad, 0.001)), 0.40, 0.85)
+		return base_dir.slerp(best_desired_dir, factor).normalized()
+
+	return base_dir
+
 func _fire_machine_gun_round() -> void:
 	gun_barrel_index = (gun_barrel_index + 1) % 2
 	var muzzle_offset = GUN_MUZZLE_OFFSETS[gun_barrel_index]
@@ -844,6 +924,10 @@ func _fire_machine_gun_round() -> void:
 	var spread_x = randf_range(-gun_spread, gun_spread)
 	var spread_y = randf_range(-gun_spread, gun_spread)
 	var bullet_dir = (fwd + right * spread_x + up * spread_y).normalized()
+
+	# Smart Auto Aim Assist: Magnetize towards enemy lead intercept point
+	if gun_aim_assist_enabled and not is_network_remote:
+		bullet_dir = _calculate_aim_assist_dir(spawn_pos, bullet_dir)
 
 	var bullet_scene = load("res://bullet.tscn")
 	if bullet_scene:

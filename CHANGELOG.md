@@ -5,6 +5,26 @@ All notable changes to **Project Vanguard** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.6] - 2026-09-27
+
+### Added
+- **Machine Gun Lead Aim Assist & Proximity Fuse**:
+  - Dynamic trajectory magnetization (`gun_aim_assist_cone_deg: 16.0°`, `gun_aim_assist_max_dist: 900.0m`) with target lead intercept calculation taking into account target velocity and bullet velocity (650 m/s).
+  - Kinetic proxy fuse proximity sweep (`radius = 0.85m`) in `bullet.gd`, eliminating high-speed tunneling through thin 3D meshes.
+- **Dynamic Combat Drone AI & Lead Gunfire**:
+  - `target_drone.gd` and `boss_combine_ghost.gd` now dynamically calculate first-order lead targeting against moving player ships instead of firing at stale positions.
+  - Tightened drone dispersion cone and introduced rapid double-tap burst salvos for authentic aerial threat.
+
+### Fixed
+- **Mobile HOTAS Gyroscope Pitch Inversion & Tare**:
+  - Fixed 2D screen gravity matrix in `website/src/controller.js` (`sx = gx*cos + gy*sin`, `sy = -gx*sin + gy*cos`), resolving pitch polarity inversion in landscape orientation where pulling back pitched downward.
+  - Added instantaneous mid-flight zero calibration (`performTareZero`) that zeroes active hold angles in 0ms without waiting for async sensor events.
+- **Mobile HOTAS Sortie-to-Sortie Scene Persistence**:
+  - Automatic `Spaceship` registration on `_ready()` and clean unregistration on `_exit_tree()` with `NetworkControllerServer`.
+  - Added fallback routing to active player flight elements in single-player sorties, preventing controller disconnections across mission transitions.
+
+---
+
 ## [0.8.5] - 2026-09-27
 
 ### Added

@@ -230,18 +230,28 @@ func _fire_cannon_burst() -> void:
 		return
 	
 	var forward = -global_transform.basis.z.normalized()
-	var spread = 0.04
+	var spread = 0.03
 	var cfg = get_node_or_null("/root/ConfigManager")
 	if cfg:
-		spread = cfg.get_difficulty_drone_spread() * 0.4
+		spread = cfg.get_difficulty_drone_spread() * 0.35
+	
+	var p_vel = Vector3.ZERO
+	if is_instance_valid(target_player):
+		if "velocity" in target_player:
+			p_vel = target_player.velocity
+		elif "linear_velocity" in target_player:
+			p_vel = target_player.linear_velocity
 	
 	for muzzle in [muzzle_left, muzzle_right]:
 		if muzzle:
 			var bullet = bullet_scene.instantiate()
 			parent_scene.add_child(bullet)
 			bullet.global_position = muzzle.global_position
-			var aim_dir = (forward + Vector3(randf_range(-spread, spread), randf_range(-spread, spread), randf_range(-spread, spread))).normalized()
-			bullet.setup(self, aim_dir, current_speed)
+			var dist = muzzle.global_position.distance_to(target_player.global_position) if is_instance_valid(target_player) else 100.0
+			var lead_pos = target_player.global_position + (p_vel * (dist / 650.0) * 0.85) if is_instance_valid(target_player) else (muzzle.global_position + forward * 100.0)
+			var base_aim = (lead_pos - muzzle.global_position).normalized()
+			var aim_dir = (base_aim + Vector3(randf_range(-spread, spread), randf_range(-spread, spread), randf_range(-spread, spread))).normalized()
+			bullet.setup(self, aim_dir, current_speed, true)
 
 func take_damage(amount: float) -> void:
 	if not is_alive:

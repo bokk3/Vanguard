@@ -658,21 +658,24 @@ function computeScreenGravity(betaDeg, gammaDeg) {
   const angle = getScreenOrientationAngle();
   const aRad = angle * rad;
 
-  // 2D rotation projecting physical device gravity onto the active display screen:
-  // screenX: positive when tilted right relative to screen
-  // screenY: positive when tilted forward/down relative to screen
-  const screenX = gx * Math.cos(aRad) - gy * Math.sin(aRad);
-  const screenY = -(gx * Math.sin(aRad) + gy * Math.cos(aRad));
+  // 2D display screen rotation projection:
+  // Rotates device gravity vector consistently across Portrait, Landscape-90, and Landscape-270
+  const sx = gx * Math.cos(aRad) + gy * Math.sin(aRad);
+  const sy = -gx * Math.sin(aRad) + gy * Math.cos(aRad);
 
-  return { screenX, screenY };
+  return { screenX: sx, screenY: sy };
 }
+
+let lastRawOrientation = { beta: 50, gamma: 0 };
 
 function setupGyroscope() {
   function handleOrientation(e) {
     if (state.steerMode !== 'gyro') return;
 
-    const beta = e.beta || 0;
-    const gamma = e.gamma || 0;
+    const beta = typeof e.beta === 'number' ? e.beta : 0;
+    const gamma = typeof e.gamma === 'number' ? e.gamma : 0;
+    lastRawOrientation.beta = beta;
+    lastRawOrientation.gamma = gamma;
 
     const { screenX, screenY } = computeScreenGravity(beta, gamma);
 
@@ -713,13 +716,19 @@ function setupGyroscope() {
   window.addEventListener('deviceorientation', handleOrientation);
 
   // Auto re-zero when screen rotates between horizontal and vertical
-  window.addEventListener('orientationchange', () => {
+  function rezeroOnOrientationChange() {
     state.gyroNeutral.calibrated = false;
-  });
+    setTimeout(() => {
+      const { screenX, screenY } = computeScreenGravity(lastRawOrientation.beta, lastRawOrientation.gamma);
+      state.gyroNeutral.screenX = screenX;
+      state.gyroNeutral.screenY = screenY;
+      state.gyroNeutral.calibrated = true;
+    }, 120);
+  }
+
+  window.addEventListener('orientationchange', rezeroOnOrientationChange);
   if (window.screen && window.screen.orientation) {
-    window.screen.orientation.addEventListener('change', () => {
-      state.gyroNeutral.calibrated = false;
-    });
+    window.screen.orientation.addEventListener('change', rezeroOnOrientationChange);
   }
 
   // 1-Tap [ 🎯 TARE / ZERO HORIZON ] Calibration (CEObot Mandate)
@@ -729,19 +738,13 @@ function setupGyroscope() {
     playSynthTone(880, 0.1, 'sine');
     state.tare_pulse = true;
 
-    // Zero device orientation if sensor available
-    if (window.DeviceOrientationEvent) {
-      const onTare = function(e) {
-        const beta = e.beta || 0;
-        const gamma = e.gamma || 0;
-        const { screenX, screenY } = computeScreenGravity(beta, gamma);
-        state.gyroNeutral.screenX = screenX;
-        state.gyroNeutral.screenY = screenY;
-        state.gyroNeutral.calibrated = true;
-        window.removeEventListener('deviceorientation', onTare);
-      };
-      window.addEventListener('deviceorientation', onTare, { once: true });
-    }
+    // Instant zero calibration to currently held hand angle
+    const { screenX, screenY } = computeScreenGravity(lastRawOrientation.beta, lastRawOrientation.gamma);
+    state.gyroNeutral.screenX = screenX;
+    state.gyroNeutral.screenY = screenY;
+    state.gyroNeutral.calibrated = true;
+    state.pitch = 0.0;
+    state.roll = 0.0;
 
     triggerScreenFlash('ring-vanguard-amber', 250);
     if (els.threatBanner) {

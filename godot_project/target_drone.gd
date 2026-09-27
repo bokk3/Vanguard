@@ -204,19 +204,33 @@ func _evaluate_weapons_fire() -> void:
 	# Mission-specific scaling
 	var mm = get_tree().root.get_node_or_null("MissionManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
 	var cur_mission_id = mm.current_mission_id if (mm and "current_mission_id" in mm) else "M01"
+	
+	# Tactical AI Lead Calculation: predict player position based on flight velocity
+	var p_vel = Vector3.ZERO
+	if "velocity" in target_player:
+		p_vel = target_player.velocity
+	elif "linear_velocity" in target_player:
+		p_vel = target_player.linear_velocity
+	
+	var bullet_travel_time = dist / 650.0
+	# 85% accurate lead prediction for high-speed intercept
+	var predicted_player_pos = target_player.global_position + (p_vel * bullet_travel_time * 0.85)
+	var lead_dir = (predicted_player_pos - cur_pos).normalized()
+	
+	# Tight tactical dispersion: tight enough to score combat hits while allowing dodging
+	var aim_spread = 0.032
 	if cur_mission_id == "M01":
-		spread += 0.05
-	elif cur_mission_id == "M02":
-		spread += 0.03
+		aim_spread = 0.040
+	elif cur_mission_id in ["M06", "M07", "M08"]:
+		aim_spread = 0.020
+		
+	# Active combat cadence: ~2.0s to 3.2s between bursts
+	gun_cooldown = max(1.8, base_cooldown * 0.55 + randf_range(-0.4, 0.5))
 	
-	# Sporadic fire cadence: way lower than player machine gun
-	gun_cooldown = base_cooldown + randf_range(-0.8, 1.2)
-	
-	# Aim with deliberate inaccuracy (less accurate than player tracking)
-	var aim_dir = (to_player.normalized() + Vector3(
-		randf_range(-spread, spread),
-		randf_range(-spread, spread),
-		randf_range(-spread, spread)
+	var aim_dir = (lead_dir + Vector3(
+		randf_range(-aim_spread, aim_spread),
+		randf_range(-aim_spread, aim_spread),
+		randf_range(-aim_spread, aim_spread)
 	)).normalized()
 	
 	var parent_scene = get_tree().current_scene if (is_inside_tree() and get_tree() and get_tree().current_scene) else get_parent()
@@ -226,6 +240,21 @@ func _evaluate_weapons_fire() -> void:
 		bullet.global_position = cur_pos + forward * 3.5
 		bullet.damage = _get_mission_base_damage(cur_mission_id) * diff_mult
 		bullet.setup(self, aim_dir, 30.0, true)
+		
+		# Quick double-tap 2nd round if still alive
+		get_tree().create_timer(0.09).timeout.connect(func():
+			if is_alive and is_inside_tree() and is_instance_valid(target_player) and parent_scene:
+				var b2 = bullet_scene.instantiate()
+				parent_scene.add_child(b2)
+				b2.global_position = global_position + forward * 3.5
+				b2.damage = _get_mission_base_damage(cur_mission_id) * diff_mult
+				var aim_dir2 = (lead_dir + Vector3(
+					randf_range(-aim_spread, aim_spread),
+					randf_range(-aim_spread, aim_spread),
+					randf_range(-aim_spread, aim_spread)
+				)).normalized()
+				b2.setup(self, aim_dir2, 30.0, true)
+		)
 		
 		# Spatialized 3D cannon report
 		var shot_player = get_node_or_null("ShotAudio3D") as AudioStreamPlayer3D
