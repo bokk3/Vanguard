@@ -36,6 +36,9 @@ extends Node3D
 
 @onready var leaderboard_btn: Button = %LeaderboardBtn
 @onready var leaderboard_dialog: Control = %LeaderboardDialog
+@onready var rewards_btn: Button = %RewardsBtn
+@onready var sub_intel_rewards_btn: Button = %SubIntelRewardsBtn
+@onready var rewards_dialog: Control = %RewardsDialog
 
 @onready var specs_panel: PanelContainer = %SpecsPanel
 @onready var close_specs_btn: Button = %CloseSpecsBtn
@@ -124,6 +127,10 @@ func _ready() -> void:
 		mobile_hotas_btn.pressed.connect(func(): _toggle_qr_dialog(1))
 	if leaderboard_btn and not leaderboard_btn.pressed.is_connected(_show_leaderboard_dialog):
 		leaderboard_btn.pressed.connect(_show_leaderboard_dialog)
+	if rewards_btn and not rewards_btn.pressed.is_connected(func(): _show_rewards_dialog("wheel")):
+		rewards_btn.pressed.connect(func(): _show_rewards_dialog("wheel"))
+	if sub_intel_rewards_btn and not sub_intel_rewards_btn.pressed.is_connected(func(): _show_rewards_dialog("skins")):
+		sub_intel_rewards_btn.pressed.connect(func(): _show_rewards_dialog("skins"))
 	if not config_btn.pressed.is_connected(_on_config_pressed):
 		config_btn.pressed.connect(_on_config_pressed)
 	if not specs_btn.pressed.is_connected(_on_specs_pressed):
@@ -149,6 +156,9 @@ func _ready() -> void:
 			mode_selector.layout_toggled.connect(_on_layout_toggled)
 		if not mode_selector.switch_pilot_requested.is_connected(_on_switch_pilot_pressed):
 			mode_selector.switch_pilot_requested.connect(_on_switch_pilot_pressed)
+
+	if combat_stats and not combat_stats.open_rewards_requested.is_connected(func(): _show_rewards_dialog("wheel")):
+		combat_stats.open_rewards_requested.connect(func(): _show_rewards_dialog("wheel"))
 
 	var net_ctrl = _get_autoload_node("NetworkControllerServer")
 	if net_ctrl:
@@ -259,7 +269,18 @@ func _show_leaderboard_dialog() -> void:
 		if mission_selector: mission_selector.hide()
 		if mode_selector: mode_selector.hide_selector()
 		if combat_stats: combat_stats.hide_stats()
+		if rewards_dialog: rewards_dialog.hide_dialog()
 		leaderboard_dialog.show_leaderboard("global")
+
+func _show_rewards_dialog(default_tab: String = "wheel") -> void:
+	if rewards_dialog and rewards_dialog.has_method("show_dialog"):
+		if settings_modal: settings_modal.hide()
+		if specs_panel: specs_panel.hide()
+		if mission_selector: mission_selector.hide()
+		if mode_selector: mode_selector.hide_selector()
+		if combat_stats: combat_stats.hide_stats()
+		if leaderboard_dialog: leaderboard_dialog.hide()
+		rewards_dialog.show_dialog(default_tab)
 
 func _open_submenu(submenu_name: String) -> void:
 	if root_menu:

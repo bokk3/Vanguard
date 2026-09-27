@@ -5,6 +5,7 @@ extends Control
 ## Tracks career sorties, dogfight victories, air-to-air kills, accuracy, and recent engagements.
 
 signal closed()
+signal open_rewards_requested()
 
 @onready var callsign_label: Label = %CallsignLabel
 @onready var rank_label: Label = %RankLabel
@@ -19,6 +20,7 @@ signal closed()
 @onready var battles_container: VBoxContainer = %BattlesContainer
 @onready var no_battles_label: Label = %NoBattlesLabel
 @onready var close_btn: Button = %CloseBtn
+@onready var open_rewards_btn: Button = %OpenRewardsBtn
 @onready var sync_btn: Button = %SyncBtn
 @onready var status_msg_label: Label = %StatusMsgLabel
 
@@ -30,6 +32,11 @@ func _ready() -> void:
 		close_btn.pressed.connect(hide_stats)
 	if sync_btn:
 		sync_btn.pressed.connect(_on_sync_pressed)
+	if open_rewards_btn:
+		open_rewards_btn.pressed.connect(func():
+			hide_stats()
+			open_rewards_requested.emit()
+		)
 
 func show_stats() -> void:
 	_populate_stats()

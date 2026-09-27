@@ -52,5 +52,12 @@ func _init() -> void:
 	print("[PASS] LeaderboardDialog instantiated successfully.")
 	lb_instance.free()
 
+	var rw_dialog_scene = load("res://rewards_dialog.tscn")
+	assert(rw_dialog_scene != null, "rewards_dialog.tscn must load")
+	var rw_instance = rw_dialog_scene.instantiate()
+	root.add_child(rw_instance)
+	print("[PASS] RewardsDialog instantiated successfully.")
+	rw_instance.free()
+
 	print(">>> ALL SCENES VERIFIED 100% OK! <<<")
 	quit(0)

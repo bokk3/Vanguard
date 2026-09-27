@@ -80,5 +80,35 @@ func _run_rewards_tests() -> void:
 	rm.load_save_data(data)
 	print("[PASS] RewardManager serialization & restoration verified.")
 	
+	# 7. Test RewardsDialog UI Lifecycle & Subtabs
+	var rw_scene = load("res://rewards_dialog.tscn")
+	assert(rw_scene != null, "rewards_dialog.tscn must load")
+	var rw_dialog = rw_scene.instantiate()
+	root.add_child(rw_dialog)
+	rw_dialog.show_dialog("wheel")
+	assert(rw_dialog.visible == true, "RewardsDialog should be visible")
+	assert(rw_dialog.current_tab == "wheel", "Default tab should be wheel")
+	
+	rw_dialog._switch_tab("streak")
+	assert(rw_dialog.current_tab == "streak", "Tab should switch to streak")
+	assert(rw_dialog.view_streak.visible == true, "Streak view should be visible")
+	
+	rw_dialog._switch_tab("skins")
+	assert(rw_dialog.current_tab == "skins", "Tab should switch to skins")
+	assert(rw_dialog.skins_grid.get_child_count() == 5, "Should have 5 skin cards rendered")
+	
+	rw_dialog._switch_tab("upgrades")
+	assert(rw_dialog.current_tab == "upgrades", "Tab should switch to upgrades")
+	assert(rw_dialog.upgrades_grid.get_child_count() == 4, "Should have 4 upgrade cards rendered")
+	
+	rw_dialog._switch_tab("badges")
+	assert(rw_dialog.current_tab == "badges", "Tab should switch to badges")
+	assert(rw_dialog.badges_grid.get_child_count() == 10, "Should have 10 badge cards rendered")
+	
+	rw_dialog.hide_dialog()
+	assert(rw_dialog.visible == false, "RewardsDialog should be hidden")
+	rw_dialog.free()
+	print("[PASS] RewardsDialog UI tabs, rendering, and lifecycle verified.")
+	
 	print("\n>>> ALL REWARDS & ECONOMY TESTS PASSED (100% OK)! <<<\n")
 	quit(0)

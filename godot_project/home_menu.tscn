@@ -16,6 +16,7 @@
 [ext_resource type="PackedScene" path="res://mode_selector_dialog.tscn" id="14_mode_sel"]
 [ext_resource type="PackedScene" path="res://combat_stats_dialog.tscn" id="15_stats"]
 [ext_resource type="PackedScene" path="res://leaderboard_dialog.tscn" id="16_lb"]
+[ext_resource type="PackedScene" path="res://rewards_dialog.tscn" id="17_rewards"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_eerie"]
 sky_top_color = Color(0.95, 0.96, 0.98, 1)
@@ -380,6 +381,16 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_badge")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 text = "🧑‍✈️ [LOGIN / REGISTER / SWITCH]"
 
+[node name="RewardsBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_badge")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "🎁 [DAILY SPIN, STREAK & ARMORY]"
+
 [node name="FleetRadarBox" type="PanelContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -645,6 +656,17 @@ icon = ExtResource("7_icon_specs")
 alignment = 0
 expand_icon = true
 
+[node name="SubIntelRewardsBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/SubmenuIntel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "  [ 🎁 ]  ARMORY & DAILY REWARDS"
+alignment = 0
+
 [node name="SubmenuSettings" type="VBoxContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
 unique_name_in_owner = true
 visible = false
@@ -826,6 +848,10 @@ unique_name_in_owner = true
 visible = false
 
 [node name="LeaderboardDialog" parent="UI" instance=ExtResource("16_lb")]
+unique_name_in_owner = true
+visible = false
+
+[node name="RewardsDialog" parent="UI" instance=ExtResource("17_rewards")]
 unique_name_in_owner = true
 visible = false
 
