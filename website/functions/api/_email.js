@@ -7,8 +7,8 @@
  */
 
 const BREVO_API_ENDPOINT = "https://api.brevo.com/v3/smtp/email";
-const DEFAULT_SENDER_NAME = "Project Vanguard Fleet Command";
-const DEFAULT_SENDER_EMAIL = "command@project-vanguard.pages.dev";
+const DEFAULT_SENDER_NAME = "Vanguard HQ";
+const DEFAULT_SENDER_EMAIL = "vanguard@truyens.pro";
 
 /**
  * Generates a random 6-digit alphanumeric clearance code (e.g. "749281")
