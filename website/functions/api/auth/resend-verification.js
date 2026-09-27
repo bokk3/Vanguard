@@ -103,13 +103,28 @@ export async function onRequestPost({ request, env }) {
             verifyUrl,
         });
 
+        if (!emailResult.success && !emailResult.simulated) {
+            return jsonResponse({
+                success: false,
+                error: `Brevo dispatch failed: ${emailResult.error || 'Check sender verification in Brevo.'}`,
+                verification: {
+                    email_sent: false,
+                    simulated: false,
+                    brevo_error: emailResult.error,
+                },
+            }, 502);
+        }
+
         return jsonResponse({
             success: true,
-            message: `Verification code dispatched to ${pilot.email}.`,
+            message: emailResult.simulated 
+                ? `[SIMULATED] Brevo key not active in environment. Clearance code: ${newCode}`
+                : `Verification code dispatched to ${pilot.email}.`,
             verification: {
                 email_sent: emailResult.success,
                 simulated: Boolean(emailResult.simulated),
                 dev_code: emailResult.simulated ? newCode : undefined,
+                messageId: emailResult.messageId || undefined,
             },
         });
     } catch (err) {

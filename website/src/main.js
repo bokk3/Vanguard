@@ -1062,7 +1062,7 @@ document.addEventListener('DOMContentLoaded', () => {
           audio.ping();
           if (dossierVerifyFeedback) {
             dossierVerifyFeedback.className = 'text-[10px] font-bold text-amber-300 block pt-1';
-            dossierVerifyFeedback.textContent = '// CLEARANCE CODE DISPATCHED // Check inbox.';
+            dossierVerifyFeedback.textContent = `// ${data.message || 'CLEARANCE CODE DISPATCHED // Check inbox.'}`;
           }
           let secondsLeft = 60;
           const timer = setInterval(() => {

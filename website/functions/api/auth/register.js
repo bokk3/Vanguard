@@ -138,7 +138,8 @@ export async function onRequestPost({ request, env }) {
                 verification: {
                     email_sent: emailResult.success,
                     simulated: Boolean(emailResult.simulated),
-                    // For local development when BREVO_API_KEY is not set yet:
+                    messageId: emailResult.messageId || undefined,
+                    error: emailResult.error || undefined,
                     dev_code: emailResult.simulated ? verificationCode : undefined,
                 },
             },
