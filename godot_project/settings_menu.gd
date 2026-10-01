@@ -1,6 +1,6 @@
 extends Control
 
-## SettingsMenu: Reusable tactical configuration modal for Project Vanguard.
+## SettingsMenu: Tactical avionics configuration modal for Project Vanguard.
 ## Provides full key remapping, presets, flight sensitivity, audio, and display settings.
 
 signal closed
@@ -48,8 +48,15 @@ signal closed
 var rebind_target_action: String = ""
 var key_buttons_map: Dictionary = {}
 
+# Tactile Keycap Theme Styles
+var _keycap_normal: StyleBoxFlat
+var _keycap_hover: StyleBoxFlat
+var _keycap_pressed: StyleBoxFlat
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	_init_keycap_styles()
 	
 	# Listen for controller connect / disconnect events
 	if not Input.joy_connection_changed.is_connected(_on_joy_connection_changed):
@@ -100,6 +107,32 @@ func _ready() -> void:
 	_build_gamepad_ui()
 	refresh_from_config()
 
+func _init_keycap_styles() -> void:
+	_keycap_normal = StyleBoxFlat.new()
+	_keycap_normal.bg_color = Color(0.12, 0.14, 0.19, 0.9)
+	_keycap_normal.border_width_left = 1
+	_keycap_normal.border_width_top = 1
+	_keycap_normal.border_width_right = 1
+	_keycap_normal.border_width_bottom = 2
+	_keycap_normal.border_color = Color(0.24, 0.28, 0.36, 0.7)
+	_keycap_normal.corner_radius_top_left = 4
+	_keycap_normal.corner_radius_top_right = 4
+	_keycap_normal.corner_radius_bottom_right = 4
+	_keycap_normal.corner_radius_bottom_left = 4
+	_keycap_normal.content_margin_left = 12.0
+	_keycap_normal.content_margin_right = 12.0
+	_keycap_normal.content_margin_top = 4.0
+	_keycap_normal.content_margin_bottom = 4.0
+
+	_keycap_hover = _keycap_normal.duplicate()
+	_keycap_hover.bg_color = Color(0.18, 0.22, 0.29, 0.95)
+	_keycap_hover.border_color = Color(0.96, 0.62, 0.04, 1.0)
+	_keycap_hover.border_width_left = 2
+
+	_keycap_pressed = _keycap_normal.duplicate()
+	_keycap_pressed.bg_color = Color(0.25, 0.18, 0.05, 0.95)
+	_keycap_pressed.border_color = Color(1.0, 0.75, 0.15, 1.0)
+
 func _on_joy_connection_changed(_device: int, _connected: bool) -> void:
 	var cfg = _get_config_manager()
 	if pad_status_label and cfg and cfg.has_method("get_connected_controller_name"):
@@ -132,16 +165,22 @@ func _build_keybindings_ui() -> void:
 		row.custom_minimum_size = Vector2(0, 32)
 		
 		var label = Label.new()
-		label.text = cfg.ACTION_LABELS.get(action, action)
+		label.text = cfg.ACTION_LABELS.get(action, action).to_upper()
 		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		label.set("theme_override_colors/font_color", Color(0.85, 0.95, 1.0, 0.95))
+		label.set("theme_override_colors/font_color", Color(0.88, 0.90, 0.94, 0.95))
 		label.set("theme_override_font_sizes/font_size", 12)
 		row.add_child(label)
 		
 		var btn = Button.new()
 		btn.custom_minimum_size = Vector2(130, 28)
-		btn.text = "[ %s ]" % cfg.get_key_string_for_action(action)
+		btn.text = cfg.get_key_string_for_action(action).to_upper()
 		btn.set("theme_override_font_sizes/font_size", 11)
+		btn.add_theme_stylebox_override("normal", _keycap_normal)
+		btn.add_theme_stylebox_override("hover", _keycap_hover)
+		btn.add_theme_stylebox_override("pressed", _keycap_pressed)
+		btn.add_theme_color_override("font_color", Color(0.96, 0.97, 0.99, 1.0))
+		btn.add_theme_color_override("font_hover_color", Color(0.96, 0.62, 0.04, 1.0))
+		btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		
 		var captured_action = action
 		btn.pressed.connect(func(): _start_rebind(captured_action))
@@ -186,7 +225,7 @@ func refresh_from_config() -> void:
 	for action in key_buttons_map.keys():
 		var btn = key_buttons_map[action]
 		if is_instance_valid(btn):
-			btn.text = "[ %s ]" % cfg.get_key_string_for_action(action)
+			btn.text = cfg.get_key_string_for_action(action).to_upper()
 
 func open_menu() -> void:
 	refresh_from_config()
@@ -202,7 +241,7 @@ func _start_rebind(action: String) -> void:
 	rebind_target_action = action
 	var action_label = cfg.ACTION_LABELS.get(action, action)
 	if rebind_prompt:
-		rebind_prompt.text = "REBINDING: %s\n\nPRESS ANY KEY ON YOUR KEYBOARD...\n(PRESS ESCAPE TO CANCEL)" % action_label.to_upper()
+		rebind_prompt.text = "REBINDING AVIONICS CONTROL\n\nACTION:  %s\n\nPRESS ANY KEYBOARD KEY TO MAP...\n(PRESS ESCAPE TO CANCEL)" % action_label.to_upper()
 	if rebind_overlay:
 		rebind_overlay.show()
 
@@ -227,7 +266,7 @@ func _input(event: InputEvent) -> void:
 		if key_buttons_map.has(rebind_target_action):
 			var btn = key_buttons_map[rebind_target_action]
 			if is_instance_valid(btn) and cfg:
-				btn.text = "[ %s ]" % cfg.get_key_string_for_action(rebind_target_action)
+				btn.text = cfg.get_key_string_for_action(rebind_target_action).to_upper()
 		
 		_finish_rebind()
 
@@ -326,24 +365,26 @@ func _build_gamepad_ui() -> void:
 	
 	# Header row
 	var header = HBoxContainer.new()
+	header.custom_minimum_size = Vector2(0, 24)
+	
 	var h_act = Label.new()
 	h_act.text = "FLIGHT ACTION"
 	h_act.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	h_act.set("theme_override_colors/font_color", Color(0, 0.92, 1, 1))
+	h_act.set("theme_override_colors/font_color", Color(0.96, 0.62, 0.04, 1.0))
 	h_act.set("theme_override_font_sizes/font_size", 11)
 	header.add_child(h_act)
 	
 	var h_xb = Label.new()
 	h_xb.custom_minimum_size = Vector2(170, 0)
 	h_xb.text = "XBOX / PC LAYOUT"
-	h_xb.set("theme_override_colors/font_color", Color(0.2, 1.0, 0.4, 1))
+	h_xb.set("theme_override_colors/font_color", Color(0.85, 0.88, 0.92, 1.0))
 	h_xb.set("theme_override_font_sizes/font_size", 11)
 	header.add_child(h_xb)
 	
 	var h_ps = Label.new()
 	h_ps.custom_minimum_size = Vector2(170, 0)
 	h_ps.text = "PS5 / DUALSENSE"
-	h_ps.set("theme_override_colors/font_color", Color(0.3, 0.7, 1.0, 1))
+	h_ps.set("theme_override_colors/font_color", Color(0.85, 0.88, 0.92, 1.0))
 	h_ps.set("theme_override_font_sizes/font_size", 11)
 	header.add_child(h_ps)
 	pad_layout_list.add_child(header)
@@ -357,24 +398,24 @@ func _build_gamepad_ui() -> void:
 			row.custom_minimum_size = Vector2(0, 24)
 			
 			var l_act = Label.new()
-			l_act.text = item["action"]
+			l_act.text = item["action"].to_upper()
 			l_act.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			l_act.set("theme_override_font_sizes/font_size", 11)
-			l_act.set("theme_override_colors/font_color", Color(0.9, 0.95, 1.0, 0.95))
+			l_act.set("theme_override_colors/font_color", Color(0.88, 0.90, 0.94, 0.95))
 			row.add_child(l_act)
 			
 			var l_xb = Label.new()
 			l_xb.custom_minimum_size = Vector2(170, 0)
 			l_xb.text = item["xbox"]
 			l_xb.set("theme_override_font_sizes/font_size", 11)
-			l_xb.set("theme_override_colors/font_color", Color(0.8, 1.0, 0.85, 0.9))
+			l_xb.set("theme_override_colors/font_color", Color(0.72, 0.78, 0.86, 0.9))
 			row.add_child(l_xb)
 			
 			var l_ps = Label.new()
 			l_ps.custom_minimum_size = Vector2(170, 0)
 			l_ps.text = item["ps"]
 			l_ps.set("theme_override_font_sizes/font_size", 11)
-			l_ps.set("theme_override_colors/font_color", Color(0.8, 0.9, 1.0, 0.9))
+			l_ps.set("theme_override_colors/font_color", Color(0.72, 0.78, 0.86, 0.9))
 			row.add_child(l_ps)
 			
 			pad_layout_list.add_child(row)

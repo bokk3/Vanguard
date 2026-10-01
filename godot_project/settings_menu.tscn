@@ -1,32 +1,32 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://settings_menu.gd" id="1_script"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-bg_color = Color(0.02, 0.06, 0.11, 0.96)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0, 0.9, 1, 0.85)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-shadow_color = Color(0, 0.85, 1, 0.15)
-shadow_size = 14
+bg_color = Color(0.07, 0.08, 0.11, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.96, 0.62, 0.04, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 24
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn"]
 content_margin_left = 16.0
 content_margin_top = 8.0
 content_margin_right = 16.0
 content_margin_bottom = 8.0
-bg_color = Color(0.04, 0.11, 0.18, 0.85)
+bg_color = Color(0.11, 0.13, 0.17, 0.85)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0, 0.85, 1, 0.5)
+border_color = Color(0.22, 0.26, 0.32, 0.6)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
@@ -37,12 +37,12 @@ content_margin_left = 16.0
 content_margin_top = 8.0
 content_margin_right = 16.0
 content_margin_bottom = 8.0
-bg_color = Color(0.08, 0.22, 0.35, 0.95)
+bg_color = Color(0.16, 0.19, 0.26, 0.95)
 border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.84, 0, 0.95)
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.96, 0.62, 0.04, 1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
@@ -53,12 +53,12 @@ content_margin_left = 18.0
 content_margin_top = 8.0
 content_margin_right = 18.0
 content_margin_bottom = 8.0
-bg_color = Color(0, 0.35, 0.45, 0.9)
+bg_color = Color(0.85, 0.52, 0.02, 0.95)
 border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0, 1, 0.85, 1)
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.78, 0.15, 1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
@@ -69,12 +69,12 @@ content_margin_left = 16.0
 content_margin_top = 8.0
 content_margin_right = 16.0
 content_margin_bottom = 8.0
-bg_color = Color(0.32, 0.05, 0.08, 0.85)
+bg_color = Color(0.22, 0.06, 0.08, 0.85)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(1, 0.25, 0.25, 0.8)
+border_color = Color(0.9, 0.25, 0.25, 0.6)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
@@ -85,11 +85,11 @@ content_margin_left = 16.0
 content_margin_top = 8.0
 content_margin_right = 16.0
 content_margin_bottom = 8.0
-bg_color = Color(0.55, 0.08, 0.12, 0.95)
+bg_color = Color(0.38, 0.08, 0.12, 0.95)
 border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
 border_color = Color(1, 0.45, 0.45, 1)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
@@ -101,18 +101,74 @@ content_margin_left = 24.0
 content_margin_top = 20.0
 content_margin_right = 24.0
 content_margin_bottom = 20.0
-bg_color = Color(0.03, 0.08, 0.15, 0.98)
+bg_color = Color(0.06, 0.07, 0.1, 0.98)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(1, 0.84, 0, 0.95)
+border_color = Color(0.96, 0.62, 0.04, 0.95)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
-shadow_color = Color(1, 0.84, 0, 0.2)
+shadow_color = Color(0, 0, 0, 0.7)
 shadow_size = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_selected"]
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+bg_color = Color(0.11, 0.13, 0.17, 0.98)
+border_width_left = 1
+border_width_top = 2
+border_width_right = 1
+border_width_bottom = 0
+border_color = Color(0.96, 0.62, 0.04, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_unselected"]
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+bg_color = Color(0.06, 0.07, 0.09, 0.75)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.18, 0.22, 0.28, 0.5)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_hovered"]
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+bg_color = Color(0.15, 0.18, 0.24, 0.95)
+border_width_left = 1
+border_width_top = 2
+border_width_right = 1
+border_width_bottom = 0
+border_color = Color(0.96, 0.62, 0.04, 0.6)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_panel"]
+content_margin_left = 18.0
+content_margin_top = 16.0
+content_margin_right = 18.0
+content_margin_bottom = 16.0
+bg_color = Color(0.06, 0.07, 0.1, 0.65)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.18, 0.22, 0.28, 0.6)
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [node name="SettingsMenu" type="Control"]
 process_mode = 3
@@ -131,7 +187,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.01, 0.03, 0.06, 0.8)
+color = Color(0.01, 0.02, 0.04, 0.85)
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -142,7 +198,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(660, 560)
+custom_minimum_size = Vector2(740, 580)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
@@ -155,28 +211,36 @@ theme_override_constants/margin_bottom = 20
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
 [node name="HeaderBox" type="VBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 2
+theme_override_constants/separation = 3
 
 [node name="TitleLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HeaderBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0.92, 1, 1)
+theme_override_colors/font_color = Color(0.96, 0.97, 0.99, 1)
 theme_override_font_sizes/font_size = 20
-text = "AVIONICS CONFIGURATION & CALIBRATION"
+text = "SYSTEM CONFIGURATION & AVIONICS"
 
 [node name="SubLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/HeaderBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.84, 0, 0.85)
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 0.9)
 theme_override_font_sizes/font_size = 11
-text = "CUSTOM FLIGHT CONTROLS // SYSTEM PREFERENCES"
+text = "TACTICAL FLIGHT STICK • AVIONICS HUD • AUDIO BUS • TELEMETRY"
 
 [node name="TabContainer" type="TabContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_colors/font_selected_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hovered_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_colors/font_unselected_color = Color(0.55, 0.62, 0.7, 1)
+theme_override_font_sizes/font_size = 12
+theme_override_styles/panel = SubResource("StyleBoxFlat_tab_panel")
+theme_override_styles/tab_selected = SubResource("StyleBoxFlat_tab_selected")
+theme_override_styles/tab_hovered = SubResource("StyleBoxFlat_tab_hovered")
+theme_override_styles/tab_unselected = SubResource("StyleBoxFlat_tab_unselected")
 current_tab = 0
 
 [node name="Controls & Keybindings" type="MarginContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer"]
@@ -197,7 +261,7 @@ layout_mode = 2
 [node name="Label" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Controls & Keybindings/VBox/SensRow"]
 custom_minimum_size = Vector2(210, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_colors/font_color = Color(0.88, 0.9, 0.94, 1)
 theme_override_font_sizes/font_size = 12
 text = "Flight Stick Sensitivity"
 
@@ -215,6 +279,8 @@ value = 1.0
 unique_name_in_owner = true
 custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 12
 text = "1.0x"
 horizontal_alignment = 2
 
@@ -225,12 +291,14 @@ theme_override_constants/separation = 16
 [node name="InvertCheck" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Controls & Keybindings/VBox/TogglesRow"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.9, 0.94, 1)
 theme_override_font_sizes/font_size = 12
 text = " Invert Pitch (Flight Stick Style)"
 
 [node name="GravityCheck" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Controls & Keybindings/VBox/TogglesRow"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.9, 0.94, 1)
 theme_override_font_sizes/font_size = 12
 text = " Atmospheric Gravity & Stall Compensation"
 
@@ -241,6 +309,7 @@ theme_override_constants/separation = 16
 [node name="DiffLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Controls & Keybindings/VBox/DifficultyRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.88, 0.9, 0.94, 1)
 theme_override_font_sizes/font_size = 12
 text = "Combat Difficulty"
 
@@ -259,25 +328,25 @@ layout_mode = 2
 [node name="Title" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Controls & Keybindings/VBox/KeybindsHeader"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.2, 0.85, 1, 1)
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
 theme_override_font_sizes/font_size = 12
-text = "// CUSTOM KEY MAPPINGS (CLICK BUTTON TO REBIND)"
+text = "// KEYBOARD MAPPINGS (CLICK KEYCAP TO REBIND)"
 
 [node name="PresetAzertyBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Controls & Keybindings/VBox/KeybindsHeader"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 11
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "[ PRESET: AZERTY ]"
+text = "AZERTY"
 
 [node name="PresetQwertyBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Controls & Keybindings/VBox/KeybindsHeader"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 11
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "[ PRESET: QWERTY ]"
+text = "QWERTY"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Controls & Keybindings/VBox"]
 custom_minimum_size = Vector2(0, 200)
@@ -305,13 +374,14 @@ theme_override_constants/separation = 12
 
 [node name="DisplayHeader" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Display & Audio/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.8, 1, 0.95)
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 0.95)
 theme_override_font_sizes/font_size = 13
 text = "// TACTICAL DISPLAY & HUD"
 
 [node name="RadarCheck" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Display & Audio/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.9, 0.94, 1)
 theme_override_font_sizes/font_size = 12
 text = " Show Circular Radar Disc by Default"
 
@@ -321,7 +391,7 @@ layout_mode = 2
 [node name="Label" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Display & Audio/VBox/WindowRow"]
 custom_minimum_size = Vector2(210, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_colors/font_color = Color(0.88, 0.9, 0.94, 1)
 theme_override_font_sizes/font_size = 12
 text = "Display Window Mode"
 
@@ -329,15 +399,16 @@ text = "Display Window Mode"
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
 
 [node name="HSeparator" type="HSeparator" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Display & Audio/VBox"]
 layout_mode = 2
 
 [node name="AudioHeader" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Display & Audio/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.8, 1, 0.95)
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 0.95)
 theme_override_font_sizes/font_size = 13
-text = "// AUDIO SYSTEMS"
+text = "// AUDIO BUS CALIBRATION"
 
 [node name="MasterRow" type="HBoxContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Display & Audio/VBox"]
 layout_mode = 2
@@ -345,7 +416,7 @@ layout_mode = 2
 [node name="Label" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Display & Audio/VBox/MasterRow"]
 custom_minimum_size = Vector2(210, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_colors/font_color = Color(0.88, 0.9, 0.94, 1)
 theme_override_font_sizes/font_size = 12
 text = "Master Avionics Volume"
 
@@ -362,6 +433,8 @@ value = 1.0
 unique_name_in_owner = true
 custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 12
 text = "100%"
 horizontal_alignment = 2
 
@@ -371,7 +444,7 @@ layout_mode = 2
 [node name="Label" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Display & Audio/VBox/SfxRow"]
 custom_minimum_size = Vector2(210, 0)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_colors/font_color = Color(0.88, 0.9, 0.94, 1)
 theme_override_font_sizes/font_size = 12
 text = "Thrusters & Weapons SFX"
 
@@ -388,6 +461,8 @@ value = 0.85
 unique_name_in_owner = true
 custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 12
 text = "85%"
 horizontal_alignment = 2
 
@@ -409,21 +484,22 @@ layout_mode = 2
 
 [node name="PadTitle" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Gamepad & Controller/VBox/StatusBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0.92, 1, 1)
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
 theme_override_font_sizes/font_size = 12
-text = "HARDWARE:"
+text = "HARDWARE STATUS:"
 
 [node name="PadStatusLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Gamepad & Controller/VBox/StatusBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_color = Color(0.88, 0.9, 0.94, 1)
 theme_override_font_sizes/font_size = 12
 text = "Checking Connected Controllers..."
 
 [node name="RumbleCheck" type="CheckBox" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Gamepad & Controller/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.9, 0.94, 1)
 theme_override_font_sizes/font_size = 12
 button_pressed = true
 text = " Enable Controller Haptic Vibration (DualSense / Xbox Rumble)"
@@ -433,9 +509,9 @@ layout_mode = 2
 
 [node name="LayoutTitle" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Gamepad & Controller/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 0.95)
 theme_override_font_sizes/font_size = 12
-text = "CROSS-PLATFORM GAMEPAD MAPPING (NATIVE SDL DB):"
+text = "// CROSS-PLATFORM GAMEPAD MAPPING (SDL2 DB)"
 
 [node name="PadScroll" type="ScrollContainer" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Gamepad & Controller/VBox"]
 custom_minimum_size = Vector2(0, 190)
@@ -463,13 +539,13 @@ theme_override_constants/separation = 14
 
 [node name="ConfigHeader" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Data & Storage/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.8, 1, 0.95)
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 0.95)
 theme_override_font_sizes/font_size = 13
 text = "// AVIONICS CONFIGURATION DATA"
 
 [node name="ConfigDesc" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Data & Storage/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.75, 0.85, 0.95, 0.8)
+theme_override_colors/font_color = Color(0.68, 0.72, 0.8, 0.85)
 theme_override_font_sizes/font_size = 11
 text = "Reset all flight stick sensitivity, custom keybindings, sound levels, and display parameters back to default factory settings."
 autowrap_mode = 2
@@ -484,13 +560,13 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 11
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "[ RESET CONFIG TO DEFAULTS ]"
+text = "RESET TO DEFAULTS"
 
 [node name="ConfigStatusLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Data & Storage/VBox/ResetConfigBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0, 0.95, 0.65, 1)
+theme_override_colors/font_color = Color(0.2, 0.85, 0.55, 1)
 theme_override_font_sizes/font_size = 11
 vertical_alignment = 1
 
@@ -499,13 +575,13 @@ layout_mode = 2
 
 [node name="SaveHeader" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Data & Storage/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.35, 0.35, 0.95)
+theme_override_colors/font_color = Color(0.95, 0.35, 0.35, 0.95)
 theme_override_font_sizes/font_size = 13
 text = "// CAMPAIGN PROGRESS & SORTIE SAVES"
 
 [node name="SaveDesc" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Data & Storage/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.75, 0.85, 0.95, 0.8)
+theme_override_colors/font_color = Color(0.68, 0.72, 0.8, 0.85)
 theme_override_font_sizes/font_size = 11
 text = "Permanently purge all saved sortie records (user://saves/) and reset unlocked campaign missions back to Sortie 1 (Operation Cloudburst)."
 autowrap_mode = 2
@@ -521,7 +597,7 @@ theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
 theme_override_font_sizes/font_size = 11
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_danger_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_danger")
-text = "[ PURGE SAVES & RESET PROGRESS ]"
+text = "PURGE SAVES & RESET PROGRESS"
 
 [node name="SaveStatusLabel" type="Label" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/TabContainer/Data & Storage/VBox/ClearSavesBox"]
 unique_name_in_owner = true
@@ -541,7 +617,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "[ CANCEL ]"
+text = "CANCEL"
 
 [node name="ApplyBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBoxContainer/ButtonRow"]
 unique_name_in_owner = true
@@ -549,7 +625,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_apply")
-text = "[ APPLY & SAVE ]"
+text = "APPLY & SAVE"
 
 [node name="RebindOverlay" type="ColorRect" parent="."]
 unique_name_in_owner = true
@@ -571,14 +647,14 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="PanelContainer" type="PanelContainer" parent="RebindOverlay/CenterContainer"]
-custom_minimum_size = Vector2(420, 160)
+custom_minimum_size = Vector2(460, 180)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_rebind_box")
 
 [node name="RebindPrompt" type="Label" parent="RebindOverlay/CenterContainer/PanelContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
 theme_override_font_sizes/font_size = 14
 text = "REBINDING ACTION...
 
