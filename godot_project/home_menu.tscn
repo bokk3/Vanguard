@@ -19,10 +19,10 @@
 [ext_resource type="PackedScene" path="res://rewards_dialog.tscn" id="17_rewards"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_eerie"]
-sky_top_color = Color(0.95, 0.96, 0.98, 1)
-sky_horizon_color = Color(0.9, 0.92, 0.95, 1)
-ground_bottom_color = Color(0.85, 0.88, 0.92, 1)
-ground_horizon_color = Color(0.9, 0.92, 0.95, 1)
+sky_top_color = Color(0.04, 0.05, 0.07, 1)
+sky_horizon_color = Color(0.08, 0.09, 0.12, 1)
+ground_bottom_color = Color(0.02, 0.03, 0.04, 1)
+ground_horizon_color = Color(0.08, 0.09, 0.12, 1)
 
 [sub_resource type="Sky" id="Sky_eerie"]
 sky_material = SubResource("ProceduralSkyMaterial_eerie")
@@ -31,20 +31,20 @@ sky_material = SubResource("ProceduralSkyMaterial_eerie")
 background_mode = 2
 sky = SubResource("Sky_eerie")
 ambient_light_source = 2
-ambient_light_color = Color(0.9, 0.93, 0.97, 1)
-ambient_light_energy = 1.0
-tonemap_mode = 2
+ambient_light_color = Color(0.08, 0.1, 0.14, 1)
+ambient_light_energy = 0.45
+tonemap_mode = 3
 glow_enabled = true
-glow_intensity = 0.8
-glow_bloom = 0.12
+glow_intensity = 0.6
+glow_bloom = 0.08
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_floor"]
 size = Vector2(80, 80)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
-albedo_color = Color(0.92, 0.94, 0.96, 1)
-metallic = 0.08
-roughness = 0.18
+albedo_color = Color(0.06, 0.07, 0.09, 1)
+metallic = 0.65
+roughness = 0.32
 
 [sub_resource type="CylinderMesh" id="CylinderMesh_dock"]
 top_radius = 6.5
@@ -53,9 +53,9 @@ height = 0.15
 radial_segments = 48
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dock"]
-albedo_color = Color(0.15, 0.18, 0.22, 1)
-metallic = 0.4
-roughness = 0.3
+albedo_color = Color(0.1, 0.12, 0.15, 1)
+metallic = 0.8
+roughness = 0.28
 
 [sub_resource type="TorusMesh" id="TorusMesh_ring"]
 inner_radius = 5.5
@@ -76,11 +76,11 @@ emission = Color(1, 0.75, 0.1, 1)
 emission_energy_multiplier = 3.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sidebar"]
-bg_color = Color(0.07, 0.08, 0.1, 0.94)
+bg_color = Color(0.05, 0.06, 0.08, 0.88)
 border_width_right = 1
-border_color = Color(0.2, 0.23, 0.28, 0.6)
-shadow_color = Color(0, 0, 0, 0.4)
-shadow_size = 12
+border_color = Color(0.18, 0.22, 0.28, 0.4)
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 16
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status"]
 content_margin_left = 12.0
@@ -171,14 +171,14 @@ environment = SubResource("Environment_eerie")
 
 [node name="KeyLight" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.819152, -0.422618, 0.388229, 0, 0.676876, 0.736097, -0.573576, -0.602976, 0.554464, 0, 15, 0)
-light_color = Color(0.98, 0.98, 1, 1)
-light_energy = 1.4
+light_color = Color(0.98, 0.95, 0.9, 1)
+light_energy = 1.25
 shadow_enabled = true
 
 [node name="FillLight" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.707107, 0.353553, -0.612372, 0, 0.866025, 0.5, 0.707107, 0.353553, -0.612372, 0, 10, 0)
-light_color = Color(0.85, 0.9, 0.96, 1)
-light_energy = 0.6
+light_color = Color(0.35, 0.42, 0.55, 1)
+light_energy = 0.45
 
 [node name="HangarScene" type="Node3D" parent="."]
 
@@ -204,8 +204,8 @@ mesh = SubResource("TorusMesh_ring")
 surface_material_override/0 = SubResource("StandardMaterial3D_scan")
 
 [node name="ScanLight" type="OmniLight3D" parent="HangarScene/ShipTurntable/ScanRing"]
-light_color = Color(0, 0.9, 1, 1)
-light_energy = 2.0
+light_color = Color(0.96, 0.62, 0.04, 1)
+light_energy = 2.4
 omni_range = 8.0
 
 [node name="RepairSparks" type="CPUParticles3D" parent="HangarScene/ShipTurntable"]
@@ -219,12 +219,12 @@ emission_sphere_radius = 3.5
 gravity = Vector3(0, -6, 0)
 initial_velocity_min = 2.0
 initial_velocity_max = 6.0
-color = Color(0, 0.9, 1, 0.8)
+color = Color(1, 0.75, 0.15, 0.9)
 
 [node name="SpotLight3D" type="SpotLight3D" parent="HangarScene"]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 2.4, 9, 0)
-light_color = Color(0.9, 0.95, 1, 1)
-light_energy = 3.5
+light_color = Color(0.98, 0.75, 0.25, 1)
+light_energy = 3.0
 spot_range = 14.0
 spot_angle = 45.0
 
@@ -293,6 +293,7 @@ text = "AVIONICS DOCK // HANGAR 07"
 layout_mode = 2
 
 [node name="StatusBox" type="PanelContainer" parent="UI/Sidebar/Margin/VBox"]
+visible = false
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_status")
 
@@ -330,6 +331,7 @@ HULL: COMPOSITE NANITE SEAL
 ORDNANCE: 4x AGM-90 ARMED"
 
 [node name="Sep2" type="HSeparator" parent="UI/Sidebar/Margin/VBox"]
+visible = false
 layout_mode = 2
 
 
@@ -373,28 +375,35 @@ theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 0.9)
 theme_override_font_sizes/font_size = 10
 text = "RANK: LIEUTENANT // 404th Vanguard Strike Wing"
 
-[node name="SwitchPilotBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 28)
+[node name="BtnRow" type="HBoxContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
-theme_override_font_sizes/font_size = 11
-theme_override_styles/normal = SubResource("StyleBoxFlat_badge")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "COMMISSION / SWITCH PILOT"
+theme_override_constants/separation = 6
 
-[node name="RewardsBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox"]
+[node name="SwitchPilotBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox/BtnRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 30)
+custom_minimum_size = Vector2(0, 26)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
-theme_override_font_sizes/font_size = 11
+theme_override_font_sizes/font_size = 10
 theme_override_styles/normal = SubResource("StyleBoxFlat_badge")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "DAILY REWARDS & ARMORY"
+text = "COMMISSION / LOGIN"
+
+[node name="RewardsBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox/BtnRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 10
+theme_override_styles/normal = SubResource("StyleBoxFlat_badge")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "DAILY REWARDS"
 
 [node name="FleetRadarBox" type="PanelContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
 unique_name_in_owner = true
+visible = false
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_status")
 
