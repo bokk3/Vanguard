@@ -285,14 +285,14 @@ document.addEventListener('DOMContentLoaded', () => {
       isHorizontalSplit = !isHorizontalSplit;
       audio.lock();
       if (isHorizontalSplit) {
-        splitSimContainer.className = 'grid grid-rows-2 h-72 border border-vanguard-border rounded-lg overflow-hidden bg-black/80';
-        splitP1.className = 'relative border-b border-vanguard-border/80 flex items-center justify-center p-4 bg-gradient-to-b from-vanguard-cyan/10 to-transparent';
-        splitP2.className = 'relative flex items-center justify-center p-4 bg-gradient-to-t from-vanguard-amber/10 to-transparent';
+        splitSimContainer.className = 'grid grid-rows-2 h-72 border border-white/10 rounded-lg overflow-hidden bg-black/90';
+        splitP1.className = 'relative border-b border-white/10 flex items-center justify-center p-4 bg-gradient-to-b from-amber-500/10 to-transparent';
+        splitP2.className = 'relative flex items-center justify-center p-4 bg-gradient-to-t from-amber-400/10 to-transparent';
         if (splitLabel) splitLabel.textContent = 'LAYOUT: HORIZONTAL (TOP / BOTTOM)';
       } else {
-        splitSimContainer.className = 'grid grid-cols-2 h-72 border border-vanguard-border rounded-lg overflow-hidden bg-black/80';
-        splitP1.className = 'relative border-r border-vanguard-border/80 flex items-center justify-center p-4 bg-gradient-to-r from-vanguard-cyan/10 to-transparent';
-        splitP2.className = 'relative flex items-center justify-center p-4 bg-gradient-to-l from-vanguard-amber/10 to-transparent';
+        splitSimContainer.className = 'grid grid-cols-2 h-72 border border-white/10 rounded-lg overflow-hidden bg-black/90';
+        splitP1.className = 'relative border-r border-white/10 flex items-center justify-center p-4 bg-gradient-to-r from-amber-500/10 to-transparent';
+        splitP2.className = 'relative flex items-center justify-center p-4 bg-gradient-to-l from-amber-400/10 to-transparent';
         if (splitLabel) splitLabel.textContent = 'LAYOUT: VERTICAL (LEFT / RIGHT)';
       }
     });
@@ -559,7 +559,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   const SKINS_CATALOG = {
-    "CLASSIC_CYAN": { id: "CLASSIC_CYAN", name: "Interceptor Classic", cost: 0, color: "#00e5ff", desc: "Standard Vanguard titanium-composite hull with cyan avionics." },
+    "CLASSIC_CYAN": { id: "CLASSIC_CYAN", name: "Tactical Amber", cost: 0, color: "#f59e0b", desc: "Standard Vanguard titanium-composite hull with tactical amber avionics." },
     "SOLAR_FLARE": { id: "SOLAR_FLARE", name: "Solar Flare", cost: 250, color: "#ffd700", desc: "Radiant high-albedo gold plating reflecting intense coronal bursts." },
     "VOID_STEALTH": { id: "VOID_STEALTH", name: "Void Stealth", cost: 500, color: "#a855f7", desc: "Radar-absorbent matte carbon black finish with violet impulse glow." },
     "CRIMSON_FURY": { id: "CRIMSON_FURY", name: "Crimson Fury", cost: 750, color: "#ef4444", desc: "Aggressive blood-red aerofoil livery with scorched titanium trim." },
@@ -799,7 +799,7 @@ document.addEventListener('DOMContentLoaded', () => {
     container.innerHTML = BADGES_CATALOG.map(b => {
       const isUnlocked = unlockedSet.has(b.id);
       return `
-        <div class="p-3 rounded-xl border ${isUnlocked ? 'border-vanguard-cyan/60 bg-gradient-to-r from-vanguard-deep to-black/80 shadow-[0_0_15px_rgba(0,229,255,0.15)]' : 'border-vanguard-border/40 bg-black/40 opacity-60'} flex items-start gap-3 transition-all hover:scale-[1.01]">
+        <div class="p-3 rounded-xl border ${isUnlocked ? 'border-amber-500/40 bg-gradient-to-r from-vanguard-deep to-black/80 shadow-sm' : 'border-white/5 bg-black/40 opacity-60'} flex items-start gap-3 transition-all hover:scale-[1.01]">
           <div class="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0 ${isUnlocked ? 'bg-vanguard-cyan/20 border border-vanguard-cyan/50 shadow-cyan-glow' : 'bg-slate-800/50 border border-slate-700/50 grayscale'}">
             ${b.icon}
           </div>

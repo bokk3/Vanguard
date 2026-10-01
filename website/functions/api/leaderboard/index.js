@@ -98,6 +98,8 @@ export async function onRequestGet({ request, env }) {
                 total_entries: leaderboard.length,
                 leaderboard,
                 your_rank: yourRank,
+            }, 200, {
+                "Cache-Control": "public, max-age=15, s-maxage=15, stale-while-revalidate=30"
             });
         } catch (err) {
             return errorResponse("Failed to query global fleet leaderboard.", 500, err.message);
@@ -136,6 +138,8 @@ export async function onRequestGet({ request, env }) {
                 total_entries: leaderboard.length,
                 leaderboard,
                 your_rank: yourRank,
+            }, 200, {
+                "Cache-Control": "public, max-age=15, s-maxage=15, stale-while-revalidate=30"
             });
         } catch (err) {
             return errorResponse("Failed to query mission leaderboard.", 500, err.message);

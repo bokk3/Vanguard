@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Project Vanguard | Combat Flight Simulator & Aerospace CAD Pipeline</title>
+  <title>Project Vanguard | Stealth Aerospace Combat Flight Simulator</title>
   <meta name="description" content="Autonomous Sci-Fi 3D Asset Pipeline & Combat Flight Simulator. Featuring drop-in split-screen co-op, LAN dogfighting, 8 campaign sorties, and precision hard-surface CAD engineering.">
   <link rel="canonical" href="https://project-vanguard.pages.dev">
-  <link rel="icon" type="image/png" href="/images/vanguard_squadron_patch_cropped.png">
-  <link rel="apple-touch-icon" href="/images/vanguard_squadron_patch_cropped.png">
+  <link rel="icon" type="image/webp" href="/images/vanguard_squadron_patch_128.webp">
+  <link rel="apple-touch-icon" href="/images/vanguard_squadron_patch_128.webp">
   <meta property="og:title" content="Project Vanguard | Combat Flight Simulator">
   <meta property="og:description" content="Precision in the Void. Firepower in the Envelope. Fully automated $0-cost CAD to Godot 4 & UE5 pipeline.">
   <meta property="og:image" content="https://project-vanguard.pages.dev/images/vanguard_hero_fighter.jpg">
@@ -19,233 +19,246 @@
   <meta name="twitter:image" content="https://project-vanguard.pages.dev/images/vanguard_hero_fighter.jpg">
   <link rel="stylesheet" href="/src/style.css">
 </head>
-<body class="bg-vanguard-dark text-slate-100">
+<body class="bg-vanguard-dark text-slate-100 font-sans antialiased selection:bg-amber-500/30 selection:text-amber-300">
 
-  <!-- Top Tactical Telemetry Ticker -->
-  <header class="bg-vanguard-deep/90 border-b border-vanguard-border/80 backdrop-blur-md sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-9 text-xs font-mono border-b border-vanguard-border/40 text-vanguard-textMuted">
-        <div class="flex items-center space-x-3 sm:space-x-4 overflow-hidden text-[11px] sm:text-xs">
-          <span class="flex items-center space-x-1.5 text-vanguard-emerald">
-            <span class="inline-block w-2 h-2 rounded-full bg-vanguard-emerald animate-pulse"></span>
-            <span class="font-bold hidden xs:inline">ONLINE:</span>
-            <span id="ticker-online-pilots" class="font-bold text-white bg-emerald-500/20 px-1.5 py-0.5 rounded border border-emerald-500/40">--</span>
+  <!-- ===================================================================== -->
+  <!-- UNIFIED SLEEK NAVIGATION & TELEMETRY HEADER                           -->
+  <!-- ===================================================================== -->
+  <header class="bg-vanguard-dark/95 border-b border-white/10 backdrop-blur-md sticky top-0 z-50 transition-all">
+    <!-- Top Micro Telemetry Strip -->
+    <div class="border-b border-white/5 bg-black/40 text-[11px] font-mono text-slate-400">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-8">
+        <!-- Live Fleet Telemetry -->
+        <div class="flex items-center space-x-3 sm:space-x-4 overflow-hidden">
+          <span class="flex items-center space-x-1.5 text-emerald-400">
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="font-bold text-[10px] hidden xs:inline tracking-wider">ONLINE:</span>
+            <span id="ticker-online-pilots" class="font-bold text-white bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-500/30">--</span>
           </span>
-          <span class="text-slate-600">|</span>
-          <span class="flex items-center space-x-1 text-vanguard-amber">
-            <span class="font-bold hidden sm:inline">LOBBIES:</span>
-            <span id="ticker-active-lobbies" class="font-bold text-white bg-amber-500/20 px-1.5 py-0.5 rounded border border-amber-500/40">--</span>
+          <span class="text-white/10">|</span>
+          <span class="flex items-center space-x-1.5 text-amber-400">
+            <span class="font-bold text-[10px] hidden sm:inline tracking-wider">LOBBIES:</span>
+            <span id="ticker-active-lobbies" class="font-bold text-white bg-amber-500/15 px-1.5 py-0.5 rounded border border-amber-500/30">--</span>
           </span>
-          <span class="text-slate-600">|</span>
-          <span class="flex items-center space-x-1 text-vanguard-cyan">
-            <span class="font-bold hidden md:inline">ROSTER:</span>
-            <span id="ticker-registered-pilots" class="font-bold text-vanguard-cyan">--</span>
+          <span class="text-white/10">|</span>
+          <span class="flex items-center space-x-1.5 text-amber-300">
+            <span class="font-bold text-[10px] hidden md:inline tracking-wider">ROSTER:</span>
+            <span id="ticker-registered-pilots" class="font-bold text-amber-400">--</span>
           </span>
+          <!-- Dynamic Flight Sim Telemetry -->
+          <div class="hidden xl:flex items-center space-x-3 pl-3 border-l border-white/10 text-[10px] text-slate-500">
+            <span>SPD: <strong id="ticker-speed" class="text-slate-300">0.0</strong> m/s</span>
+            <span>ALT: <strong id="ticker-alt" class="text-slate-300">0</strong> m</span>
+            <span>LIFT: <strong id="ticker-lift" class="text-amber-400">100%</strong></span>
+          </div>
         </div>
-        <div class="flex items-center space-x-4">
-          <button id="bgm-toggle" class="hover:text-vanguard-cyan transition-colors text-vanguard-cyan flex items-center gap-1.5 cursor-pointer text-xs font-mono" title="Menu Soundtrack">
+
+        <!-- Audio & Version Controls -->
+        <div class="flex items-center space-x-3 sm:space-x-4">
+          <button id="bgm-toggle" class="hover:text-amber-400 transition-colors text-slate-300 flex items-center gap-1.5 cursor-pointer text-[11px] font-mono" title="Menu Soundtrack">
             <span id="bgm-icon">🎵</span>
-            <span id="bgm-label">[ BGM: PLAYING ]</span>
-            <span id="bgm-bars" class="inline-flex items-end gap-0.5 h-3">
-              <span class="w-0.5 h-2 bg-vanguard-cyan animate-pulse"></span>
-              <span class="w-0.5 h-3 bg-vanguard-cyan animate-pulse" style="animation-delay: 150ms"></span>
-              <span class="w-0.5 h-1.5 bg-vanguard-cyan animate-pulse" style="animation-delay: 300ms"></span>
+            <span id="bgm-label" class="hidden sm:inline">[ BGM: PLAYING ]</span>
+            <span id="bgm-bars" class="inline-flex items-end gap-0.5 h-2.5">
+              <span class="w-0.5 h-1.5 bg-amber-400 animate-pulse"></span>
+              <span class="w-0.5 h-2.5 bg-amber-400 animate-pulse" style="animation-delay: 150ms"></span>
+              <span class="w-0.5 h-2 bg-amber-400 animate-pulse" style="animation-delay: 300ms"></span>
             </span>
           </button>
-          <button id="sound-toggle" class="hover:text-vanguard-cyan transition-colors text-vanguard-cyan" title="Toggle SFX">[ SFX ]</button>
-          <span id="top-version-badge" class="px-2 py-0.5 rounded bg-vanguard-cyan/10 text-vanguard-cyan border border-vanguard-cyan/30 text-[10px] font-bold tracking-widest uppercase">
+          <span class="text-white/10">|</span>
+          <button id="sound-toggle" class="hover:text-amber-400 transition-colors text-slate-300 cursor-pointer" title="Toggle SFX">[ SFX ]</button>
+          <span class="text-white/10">|</span>
+          <span id="top-version-badge" class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-bold tracking-widest uppercase">
             v0.9.4-ALPHA
           </span>
         </div>
       </div>
+    </div>
 
-      <!-- Main Navigation -->
+    <!-- Main Navigation Bar -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
+        <!-- Logo & Squadron Callsign -->
         <a href="#" class="flex items-center space-x-3 group">
-          <img src="/images/vanguard_squadron_patch_cropped.png" alt="404th Vanguard Strike Wing" class="w-10 h-10 object-contain drop-shadow-[0_0_8px_rgba(0,229,255,0.4)] group-hover:scale-105 transition-transform">
+          <img src="/images/vanguard_squadron_patch_128.webp" alt="404th Vanguard Strike Wing" width="38" height="38" class="w-9 h-9 sm:w-10 sm:h-10 object-contain group-hover:scale-105 transition-transform" decoding="async">
           <div>
-            <span class="font-display font-bold text-xl tracking-wider text-slate-100 group-hover:text-vanguard-cyan transition-colors flex items-center gap-1.5">
+            <span class="font-display font-bold text-lg sm:text-xl tracking-wider text-white group-hover:text-amber-400 transition-colors flex items-center gap-1.5">
               PROJECT VANGUARD
             </span>
-            <span class="block text-[10px] font-mono text-vanguard-textMuted tracking-widest uppercase -mt-1">
+            <span class="block text-[10px] font-mono text-slate-400 tracking-widest uppercase -mt-0.5">
               404th Strike Wing // Godot 4.7
             </span>
           </div>
         </a>
 
-        <!-- Desktop Menu Links -->
-        <nav class="hidden lg:flex items-center space-x-6 text-xs font-mono uppercase tracking-wider">
-          <a href="#multiplayer" class="text-slate-300 hover:text-vanguard-cyan transition-colors">Multiplayer</a>
-          <a href="#campaign" class="text-slate-300 hover:text-vanguard-cyan transition-colors">Campaign</a>
-          <a href="#fighter" class="text-slate-300 hover:text-vanguard-cyan transition-colors">Fighter</a>
-          <a href="#stats" class="text-slate-300 hover:text-vanguard-cyan transition-colors">Stats</a>
-          <a href="#leaderboard" class="text-slate-300 hover:text-vanguard-amber transition-colors">Leaderboard</a>
-          <a href="#downloads" class="text-vanguard-cyan hover:text-white transition-colors font-bold">Download</a>
+        <!-- Desktop Navigation Links -->
+        <nav class="hidden lg:flex items-center space-x-7 text-xs font-mono uppercase tracking-wider">
+          <a href="#multiplayer" class="text-slate-300 hover:text-amber-400 transition-colors">Multiplayer</a>
+          <a href="#campaign" class="text-slate-300 hover:text-amber-400 transition-colors">Campaign</a>
+          <a href="#fighter" class="text-slate-300 hover:text-amber-400 transition-colors">Fighter</a>
+          <a href="#controls" class="text-slate-300 hover:text-amber-400 transition-colors">Controls</a>
+          <a href="#stats" class="text-slate-300 hover:text-amber-400 transition-colors">Stats</a>
+          <a href="#leaderboard" class="text-slate-300 hover:text-amber-400 transition-colors">Leaderboard</a>
+          <a href="#downloads" class="text-amber-400 hover:text-white transition-colors font-bold">Download</a>
         </nav>
 
-        <!-- CTA GitHub & Pilot Portal Button -->
+        <!-- Tactical Portal CTA Buttons -->
         <div class="hidden sm:flex items-center space-x-3">
-          <div id="header-stars-pill" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-lg border border-vanguard-gold/60 bg-vanguard-gold/10 text-vanguard-gold text-xs font-mono font-bold shadow-[0_0_12px_rgba(255,215,0,0.2)] cursor-pointer hover:bg-vanguard-gold/20 transition-all" title="Stars In-Game Currency">
+          <div id="header-stars-pill" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 text-amber-300 text-xs font-mono font-bold cursor-pointer hover:bg-amber-500/20 transition-all" title="Stars In-Game Currency">
             <span class="text-sm">⭐</span>
             <span id="header-stars-val">0</span>
-            <span class="text-[10px] text-amber-300/80 uppercase hidden md:inline">STARS</span>
+            <span class="text-[10px] text-amber-400/80 uppercase hidden md:inline">STARS</span>
           </div>
-          <button id="pilot-portal-btn" class="px-5 py-2.5 text-xs sm:text-sm font-display font-black uppercase tracking-wider border-2 border-vanguard-gold bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/30 text-vanguard-gold hover:from-vanguard-gold hover:to-amber-400 hover:text-black hover:shadow-[0_0_25px_rgba(255,215,0,0.6)] transition-all rounded-lg shadow-[0_0_15px_rgba(255,215,0,0.35)] active:scale-95 flex items-center gap-2 cursor-pointer">
-            <span id="pilot-portal-icon" class="text-base">🎖️</span>
+          <button id="pilot-portal-btn" class="px-4 py-2 text-xs font-display font-bold uppercase tracking-wider rounded-md border border-amber-500/50 bg-amber-500/15 text-amber-300 hover:bg-amber-500 hover:text-slate-950 transition-all flex items-center gap-2 cursor-pointer shadow-sm active:scale-95">
+            <span id="pilot-portal-icon" class="text-sm">🎖️</span>
             <span id="pilot-portal-label">COMMISSION CALLSIGN</span>
           </button>
-          <a href="https://github.com/bokk3/Vanguard" target="_blank" rel="noopener noreferrer" class="px-4 py-2 text-xs font-mono uppercase tracking-wider border border-vanguard-border bg-vanguard-panel hover:border-vanguard-cyan hover:text-vanguard-cyan hover:shadow-cyan-glow transition-all rounded">
-            GitHub Repo
+          <a href="https://github.com/bokk3/Vanguard" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 text-xs font-mono uppercase tracking-wider border border-white/10 bg-vanguard-panel text-slate-300 hover:border-amber-400/40 hover:text-white transition-all rounded-md">
+            GitHub
           </a>
-          <a href="#downloads" class="px-4 py-2 text-xs font-mono uppercase tracking-wider bg-vanguard-cyan text-black font-bold hover:bg-white hover:shadow-cyan-glow transition-all rounded">
-            Deploy Sortie
+          <a href="#downloads" class="px-4 py-2 text-xs font-mono uppercase tracking-wider bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition-all rounded-md shadow-sm">
+            Deploy
           </a>
         </div>
 
         <!-- Mobile Drawer Hamburger -->
-        <div class="lg:hidden">
-          <button id="mobile-menu-btn" class="p-2 text-slate-400 hover:text-vanguard-cyan">
+        <div class="lg:hidden flex items-center">
+          <button id="mobile-menu-btn" class="p-2 text-slate-400 hover:text-amber-400 transition-colors" aria-label="Toggle Navigation Menu">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
           </button>
         </div>
       </div>
 
       <!-- Mobile Navigation Drawer -->
-      <div id="mobile-nav" class="hidden lg:hidden border-t border-vanguard-border py-4 font-mono text-sm space-y-3">
-        <a href="#multiplayer" class="block py-1 text-slate-300 hover:text-vanguard-cyan">01. Multiplayer & Co-Op</a>
-        <a href="#campaign" class="block py-1 text-slate-300 hover:text-vanguard-cyan">02. 8-Mission Campaign</a>
-        <a href="#fighter" class="block py-1 text-slate-300 hover:text-vanguard-cyan">03. Fighter Specifications</a>
-        <a href="#controls" class="block py-1 text-slate-300 hover:text-vanguard-cyan">04. Flight Controls</a>
-        <a href="#pipeline" class="block py-1 text-slate-300 hover:text-vanguard-cyan">05. CAD Pipeline</a>
-        <a href="#stats" class="block py-1 text-slate-300 hover:text-vanguard-cyan">06. Combat Stats & Records</a>
-        <a href="#leaderboard" class="block py-1 text-slate-300 hover:text-vanguard-cyan">07. Global Fleet Leaderboard</a>
-        <a href="/controller.html" class="block py-1 text-vanguard-amber font-bold flex items-center gap-1.5">
+      <div id="mobile-nav" class="hidden lg:hidden border-t border-white/10 py-4 font-mono text-sm space-y-3 bg-vanguard-dark/95">
+        <a href="#multiplayer" class="block py-1.5 text-slate-300 hover:text-amber-400 transition-colors">01. Multiplayer & Co-Op</a>
+        <a href="#campaign" class="block py-1.5 text-slate-300 hover:text-amber-400 transition-colors">02. 8-Mission Campaign</a>
+        <a href="#fighter" class="block py-1.5 text-slate-300 hover:text-amber-400 transition-colors">03. Fighter Specifications</a>
+        <a href="#controls" class="block py-1.5 text-slate-300 hover:text-amber-400 transition-colors">04. Flight Controls</a>
+        <a href="#pipeline" class="block py-1.5 text-slate-300 hover:text-amber-400 transition-colors">05. CAD Pipeline</a>
+        <a href="#stats" class="block py-1.5 text-slate-300 hover:text-amber-400 transition-colors">06. Combat Stats & Records</a>
+        <a href="#leaderboard" class="block py-1.5 text-slate-300 hover:text-amber-400 transition-colors">07. Global Fleet Leaderboard</a>
+        <a href="/controller.html" class="block py-1.5 text-amber-400 font-bold flex items-center gap-1.5">
           <span>📱</span> 08. Mobile HOTAS Controller (PWA)
         </a>
-        <div id="mobile-stars-pill" class="hidden items-center justify-between px-3.5 py-2.5 rounded-lg border border-vanguard-gold/60 bg-vanguard-gold/10 text-vanguard-gold text-xs font-mono font-bold">
+        <div id="mobile-stars-pill" class="hidden items-center justify-between px-3.5 py-2.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-300 text-xs font-mono font-bold">
           <span class="flex items-center gap-1.5"><span class="text-sm">⭐</span> STARS BALANCE</span>
           <span id="mobile-stars-val" class="text-white text-sm">0 ★</span>
         </div>
-        <button id="mobile-pilot-portal-btn" class="w-full text-center py-3 px-4 rounded-lg bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/30 border-2 border-vanguard-gold text-vanguard-gold font-display font-black tracking-wider flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,215,0,0.3)]">
-          <span class="text-lg">🎖️</span> <span id="mobile-pilot-label">COMMISSION CALLSIGN</span>
+        <button id="mobile-pilot-portal-btn" class="w-full text-center py-3 px-4 rounded-lg bg-amber-500/15 border border-amber-500/50 text-amber-300 hover:bg-amber-500 hover:text-slate-950 font-display font-bold tracking-wider flex items-center justify-center gap-2 transition-all">
+          <span class="text-base">🎖️</span> <span id="mobile-pilot-label">COMMISSION CALLSIGN</span>
         </button>
-        <a href="#downloads" class="block py-2 text-vanguard-cyan font-bold">Deploy Sortie v0.9.4</a>
+        <a href="#downloads" class="block py-2 text-center rounded-lg bg-amber-500 text-slate-950 font-bold text-xs font-mono uppercase tracking-wider">Deploy Sortie v0.9.4</a>
       </div>
     </div>
   </header>
 
-  <!-- Hero Section -->
-  <section class="relative pt-16 pb-28 overflow-hidden border-b border-vanguard-border/50 bg-vanguard-dark">
-    <!-- Atmospheric Void Backdrop (100% Text Legibility, Zero Pattern Interference) -->
+  <!-- ===================================================================== -->
+  <!-- HERO SECTION                                                          -->
+  <!-- ===================================================================== -->
+  <section class="relative pt-16 pb-24 overflow-hidden border-b border-white/10 bg-vanguard-dark">
+    <!-- Atmospheric Stealth Void Backdrop -->
     <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-      <!-- Darkened Cockpit Ambience -->
-      <img src="/images/vanguard_cockpit_hud.jpg" alt="" class="w-full h-full object-cover object-center opacity-20 filter blur-[3px] scale-105">
-      <!-- Multi-layer gradient overlays ensuring zero pattern interference with text -->
+      <img src="/images/vanguard_cockpit_hud.webp" alt="" class="w-full h-full object-cover object-center opacity-15 filter blur-[2px] scale-105" fetchpriority="high">
       <div class="absolute inset-0 bg-gradient-to-r from-vanguard-dark via-vanguard-dark/95 to-vanguard-dark/85"></div>
       <div class="absolute inset-0 bg-gradient-to-b from-vanguard-dark/90 via-transparent to-vanguard-dark"></div>
-      <div class="absolute inset-0 bg-[radial-gradient(circle_at_75%_35%,rgba(0,229,255,0.08),transparent_60%)]"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_75%_35%,rgba(245,158,11,0.05),transparent_65%)]"></div>
     </div>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-      
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
         <!-- Left Hero Copy -->
         <div class="lg:col-span-7 space-y-6 text-center lg:text-left">
           
-          <div id="release-announcement" class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full border border-vanguard-cyan/40 bg-vanguard-cyan/10 text-vanguard-cyan text-xs font-mono tracking-wider transition-all">
-            <span class="w-2 h-2 rounded-full bg-vanguard-cyan animate-ping"></span>
+          <div id="release-announcement" class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs font-mono tracking-wider transition-all">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
             <span id="release-status-text">DISPATCH: <strong id="hero-tag-name">v0.9.4-alpha</strong> // LIVE ON GITHUB</span>
             <a id="release-notes-link" href="https://github.com/bokk3/Vanguard/releases" target="_blank" rel="noopener noreferrer" class="hidden sm:inline text-white hover:underline ml-1 font-bold">[NOTES]</a>
           </div>
 
-          <h1 class="text-4xl sm:text-6xl xl:text-7xl font-bold font-display tracking-tight text-white leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]">
+          <h1 class="text-4xl sm:text-6xl xl:text-7xl font-bold font-display tracking-tight text-white leading-tight">
             PRECISION IN THE VOID. <br>
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-vanguard-cyan via-vanguard-cyanDim to-white glow-cyan">
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-200 to-white">
               FIREPOWER IN THE ENVELOPE.
             </span>
           </h1>
 
-          <p class="text-base sm:text-lg text-slate-200 font-normal max-w-2xl mx-auto lg:mx-0 leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+          <p class="text-base sm:text-lg text-slate-300 font-normal max-w-2xl mx-auto lg:mx-0 leading-relaxed">
             An autonomous, <strong>$0-cost end-to-end 3D aerospace asset pipeline</strong> and military combat flight simulator. Parametric CAD solids in Fusion 360 engineered directly into game-ready fighters with procedural lift physics, split-screen co-op, and LAN dogfights in <strong>Godot 4</strong> and <strong>Unreal Engine 5</strong>.
           </p>
 
           <!-- Action Buttons -->
           <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
-            <a id="hero-download-btn" href="https://github.com/bokk3/Vanguard/releases" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-3.5 bg-vanguard-cyan text-black font-display font-bold text-base uppercase tracking-wider rounded-lg hover:bg-white hover:shadow-cyan-glow transition-all text-center flex items-center justify-center gap-2 active:scale-95">
+            <a id="hero-download-btn" href="https://github.com/bokk3/Vanguard/releases" target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-8 py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-base uppercase tracking-wider rounded-lg shadow-md transition-all text-center flex items-center justify-center gap-2 active:scale-95">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
               <span id="hero-download-text">Download v0.9.4-Alpha</span>
             </a>
-            <button id="hero-register-btn" class="w-full sm:w-auto px-7 py-3.5 border-2 border-vanguard-gold bg-gradient-to-r from-amber-500/20 to-amber-500/20 hover:from-vanguard-gold hover:to-amber-400 text-vanguard-gold hover:text-black font-display font-bold text-sm uppercase tracking-wider rounded-lg shadow-[0_0_15px_rgba(255,215,0,0.3)] transition-all text-center flex items-center justify-center gap-2 active:scale-95 cursor-pointer">
-              <span class="text-lg">🎖️</span>
+            <button id="hero-register-btn" class="w-full sm:w-auto px-7 py-3.5 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 hover:text-white font-display font-bold text-sm uppercase tracking-wider rounded-lg transition-all text-center flex items-center justify-center gap-2 active:scale-95 cursor-pointer">
+              <span class="text-base">🎖️</span>
               <span id="hero-register-text">COMMISSION CALLSIGN</span>
             </button>
           </div>
 
-
           <!-- Feature Pills -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-left">
-            <div class="p-3 tactical-box rounded">
-              <span class="block text-[10px] font-mono text-vanguard-textMuted uppercase">Flight Engine</span>
-              <span class="font-display font-bold text-slate-100 text-sm">Godot 4.7.2</span>
+            <div class="p-3 tactical-box rounded-lg">
+              <span class="block text-[10px] font-mono text-slate-400 uppercase">Flight Engine</span>
+              <span class="font-display font-bold text-white text-sm">Godot 4.7.2</span>
             </div>
-            <div class="p-3 tactical-box rounded">
-              <span class="block text-[10px] font-mono text-vanguard-textMuted uppercase">Campaign</span>
-              <span class="font-display font-bold text-slate-100 text-sm">8 Full Sorties</span>
+            <div class="p-3 tactical-box rounded-lg">
+              <span class="block text-[10px] font-mono text-slate-400 uppercase">Campaign</span>
+              <span class="font-display font-bold text-white text-sm">8 Full Sorties</span>
             </div>
-            <div class="p-3 tactical-box tactical-box-amber rounded">
-              <span class="block text-[10px] font-mono text-vanguard-amber uppercase">Multiplayer</span>
-              <span class="font-display font-bold text-slate-100 text-sm">Split-Screen & LAN</span>
+            <div class="p-3 tactical-box tactical-box-amber rounded-lg">
+              <span class="block text-[10px] font-mono text-amber-400 uppercase">Multiplayer</span>
+              <span class="font-display font-bold text-white text-sm">Split-Screen & LAN</span>
             </div>
-            <div class="p-3 tactical-box rounded">
-              <span class="block text-[10px] font-mono text-vanguard-textMuted uppercase">Port Ready</span>
-              <span class="font-display font-bold text-slate-100 text-sm">Unreal Engine 5</span>
+            <div class="p-3 tactical-box rounded-lg">
+              <span class="block text-[10px] font-mono text-slate-400 uppercase">Port Ready</span>
+              <span class="font-display font-bold text-white text-sm">Unreal Engine 5</span>
             </div>
           </div>
-
         </div>
 
         <!-- Right Hero 3D Fighter Showcase -->
         <div class="lg:col-span-5 relative">
           <div class="relative mx-auto max-w-md lg:max-w-none">
-            <!-- Glowing Backing Halo -->
-            <div class="absolute -inset-1 bg-gradient-to-r from-vanguard-cyan to-vanguard-amber rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition-opacity"></div>
-            
-            <div class="relative tactical-box rounded-xl p-2 overflow-hidden border border-vanguard-cyan/30 shadow-hud-box">
+            <div class="relative tactical-box rounded-xl p-2.5 overflow-hidden border border-white/10 shadow-xl bg-vanguard-panel">
               <div class="relative rounded-lg overflow-hidden bg-black aspect-video sm:aspect-4/3 flex items-center justify-center">
-                <img src="/images/vanguard_hero_fighter.jpg" alt="Vanguard Sculpted V-Hull Interceptor" class="w-full h-full object-cover transform hover:scale-105 transition-transform duration-700">
+                <img src="/images/vanguard_hero_fighter.webp" alt="Vanguard Sculpted V-Hull Interceptor" width="640" height="360" class="w-full h-full object-cover transform hover:scale-102 transition-transform duration-700" fetchpriority="high">
                 
-                <!-- Laser Scan Overlay Line -->
-                <div class="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-vanguard-cyan to-transparent animate-laser-scan opacity-70 pointer-events-none"></div>
-
-                <!-- HUD Overlays on top of image -->
-                <div class="absolute top-3 left-3 font-mono text-[10px] text-vanguard-cyan bg-black/60 px-2 py-1 rounded border border-vanguard-cyan/40">
+                <!-- HUD Corner Badges -->
+                <div class="absolute top-3 left-3 font-mono text-[10px] text-amber-300 bg-black/75 px-2.5 py-1 rounded border border-amber-500/30">
                   ACQUISITION // V-HULL 7-STATION
                 </div>
-                <div class="absolute bottom-3 right-3 font-mono text-[10px] text-vanguard-amber bg-black/60 px-2 py-1 rounded border border-vanguard-amber/40">
+                <div class="absolute bottom-3 right-3 font-mono text-[10px] text-slate-300 bg-black/75 px-2.5 py-1 rounded border border-white/15">
                   4X WING STRIKE MISSILES
                 </div>
               </div>
 
               <!-- Sub-bar Specs -->
-              <div class="p-3 font-mono text-xs flex justify-between items-center text-vanguard-textMuted border-t border-vanguard-border mt-2">
-                <span>SOL ORBITAL DIRECTORATE</span>
-                <span class="text-vanguard-cyan font-bold">404TH WING // AIRFRAME READY</span>
+              <div class="p-3 font-mono text-xs flex justify-between items-center text-slate-400 border-t border-white/5 mt-2">
+                <div class="flex items-center space-x-3 text-[11px]">
+                  <span>PILOTS: <strong id="hero-online-pilots" class="text-emerald-400">--</strong></span>
+                  <span>LOBBIES: <strong id="hero-active-lobbies" class="text-amber-400">--</strong></span>
+                  <span class="hidden sm:inline">ROSTER: <strong id="hero-registered-pilots" class="text-amber-300">--</strong></span>
+                </div>
+                <span class="text-amber-400 font-bold hidden sm:inline">404TH // AIRFRAME READY</span>
               </div>
             </div>
           </div>
         </div>
-
       </div>
-
     </div>
   </section>
 
-  <!-- Section 1: Multiplayer & Split-Screen Suite -->
-  <section id="multiplayer" class="py-20 border-b border-vanguard-border/50 relative bg-vanguard-deep/40">
+  <!-- ===================================================================== -->
+  <!-- SECTION 1: MULTIPLAYER, DROP-IN CO-OP & LAN ARENA                     -->
+  <!-- ===================================================================== -->
+  <section id="multiplayer" class="py-20 border-b border-white/10 relative bg-vanguard-deep/50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-amber">[ TACTICAL COMBAT EXPANSION // v0.9.4 ]</span>
+        <span class="text-xs font-mono uppercase tracking-widest text-amber-400">[ TACTICAL COMBAT EXPANSION // v0.9.4 ]</span>
         <h2 class="text-3xl sm:text-5xl font-bold text-white tracking-wide">
           MULTIPLAYER, DROP-IN CO-OP & LAN ARENA
         </h2>
@@ -257,77 +270,77 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
         
         <!-- Feature 1: Campaign Drop-In Co-Op -->
-        <div class="tactical-box tactical-box-amber p-6 rounded-lg space-y-4 hover:border-vanguard-amber transition-colors">
-          <div class="w-12 h-12 rounded bg-vanguard-amber/10 border border-vanguard-amber/40 flex items-center justify-center text-vanguard-amber font-display font-bold text-xl">
+        <div class="tactical-box tactical-box-amber p-6 rounded-lg space-y-4 hover:border-amber-400 transition-colors">
+          <div class="w-12 h-12 rounded bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400 font-display font-bold text-xl">
             01
           </div>
           <h3 class="text-xl font-bold text-white">Campaign Drop-In Co-Op</h3>
           <p class="text-sm text-slate-300 leading-relaxed">
             Every sortie starts in full screen. Player 2 joins dynamically in real time when secondary controls (Gamepad 2, NumPad, or IJKL) are pressed.
           </p>
-          <ul class="text-xs font-mono text-vanguard-textMuted space-y-2 pt-2 border-t border-vanguard-border">
-            <li class="flex items-center gap-2"><span class="text-vanguard-amber">▶</span> Solar Amber wingman livery</li>
-            <li class="flex items-center gap-2"><span class="text-vanguard-amber">▶</span> Starboard wingman formation spawn</li>
-            <li class="flex items-center gap-2"><span class="text-vanguard-amber">▶</span> 5-second field repair respawn loop</li>
-            <li class="flex items-center gap-2"><span class="text-vanguard-amber">▶</span> Dynamic threat AI target distribution</li>
+          <ul class="text-xs font-mono text-slate-400 space-y-2 pt-2 border-t border-white/5">
+            <li class="flex items-center gap-2"><span class="text-amber-400">▶</span> Solar Amber wingman livery</li>
+            <li class="flex items-center gap-2"><span class="text-amber-400">▶</span> Starboard wingman formation spawn</li>
+            <li class="flex items-center gap-2"><span class="text-amber-400">▶</span> 5-second field repair respawn loop</li>
+            <li class="flex items-center gap-2"><span class="text-amber-400">▶</span> Dynamic threat AI target distribution</li>
           </ul>
         </div>
 
         <!-- Feature 2: Local Split-Screen Dogfight -->
-        <div class="tactical-box p-6 rounded-lg space-y-4 hover:border-vanguard-cyan transition-colors">
-          <div class="w-12 h-12 rounded bg-vanguard-cyan/10 border border-vanguard-cyan/40 flex items-center justify-center text-vanguard-cyan font-display font-bold text-xl">
+        <div class="tactical-box p-6 rounded-lg space-y-4 hover:border-amber-400/50 transition-colors">
+          <div class="w-12 h-12 rounded bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-300 font-display font-bold text-xl">
             02
           </div>
           <h3 class="text-xl font-bold text-white">1v1 Split-Screen Arena</h3>
           <p class="text-sm text-slate-300 leading-relaxed">
-            First-to-5 confirmed kills dogfight arena. Switch layout between Horizontal (Top/Bottom) and Vertical (Left/Right) on the fly via <kbd class="px-1.5 py-0.5 rounded bg-black/60 border border-vanguard-border text-vanguard-cyan">F2</kbd>.
+            First-to-5 confirmed kills dogfight arena. Switch layout between Horizontal (Top/Bottom) and Vertical (Left/Right) on the fly via <kbd class="px-1.5 py-0.5 rounded bg-black/60 border border-white/10 text-amber-400">F2</kbd>.
           </p>
-          <ul class="text-xs font-mono text-vanguard-textMuted space-y-2 pt-2 border-t border-vanguard-border">
-            <li class="flex items-center gap-2"><span class="text-vanguard-cyan">▶</span> Dual independent cameras & HUDs</li>
-            <li class="flex items-center gap-2"><span class="text-vanguard-cyan">▶</span> Mutual radar lock & missile seeker cone</li>
-            <li class="flex items-center gap-2"><span class="text-vanguard-cyan">▶</span> Isolated device haptic rumble</li>
-            <li class="flex items-center gap-2"><span class="text-vanguard-cyan">▶</span> Shared World3D zero-overhead physics</li>
+          <ul class="text-xs font-mono text-slate-400 space-y-2 pt-2 border-t border-white/5">
+            <li class="flex items-center gap-2"><span class="text-amber-400">▶</span> Dual independent cameras & HUDs</li>
+            <li class="flex items-center gap-2"><span class="text-amber-400">▶</span> Mutual radar lock & missile seeker cone</li>
+            <li class="flex items-center gap-2"><span class="text-amber-400">▶</span> Isolated device haptic rumble</li>
+            <li class="flex items-center gap-2"><span class="text-amber-400">▶</span> Shared World3D zero-overhead physics</li>
           </ul>
         </div>
 
         <!-- Feature 3: LAN Matchmaker & P2P -->
-        <div class="tactical-box tactical-box-crimson p-6 rounded-lg space-y-4 hover:border-vanguard-crimson transition-colors">
-          <div class="w-12 h-12 rounded bg-vanguard-crimson/10 border border-vanguard-crimson/40 flex items-center justify-center text-vanguard-crimson font-display font-bold text-xl">
+        <div class="tactical-box p-6 rounded-lg space-y-4 hover:border-amber-400/50 transition-colors">
+          <div class="w-12 h-12 rounded bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-300 font-display font-bold text-xl">
             03
           </div>
           <h3 class="text-xl font-bold text-white">Zero-Config LAN P2P</h3>
           <p class="text-sm text-slate-300 leading-relaxed">
             High-performance ENet multiplayer architecture on UDP port 7779 with autonomous background UDP discovery beacons on port 7778.
           </p>
-          <ul class="text-xs font-mono text-vanguard-textMuted space-y-2 pt-2 border-t border-vanguard-border">
-            <li class="flex items-center gap-2"><span class="text-vanguard-crimson">▶</span> Zero port forwarding needed on LAN</li>
-            <li class="flex items-center gap-2"><span class="text-vanguard-crimson">▶</span> 20Hz snapshot interpolation</li>
-            <li class="flex items-center gap-2"><span class="text-vanguard-crimson">▶</span> Synchronized RPC gunfire & missiles</li>
-            <li class="flex items-center gap-2"><span class="text-vanguard-crimson">▶</span> Dedicated in-game LAN server browser</li>
+          <ul class="text-xs font-mono text-slate-400 space-y-2 pt-2 border-t border-white/5">
+            <li class="flex items-center gap-2"><span class="text-amber-400">▶</span> Zero port forwarding needed on LAN</li>
+            <li class="flex items-center gap-2"><span class="text-amber-400">▶</span> 20Hz snapshot interpolation</li>
+            <li class="flex items-center gap-2"><span class="text-amber-400">▶</span> Synchronized RPC gunfire & missiles</li>
+            <li class="flex items-center gap-2"><span class="text-amber-400">▶</span> Dedicated in-game LAN server browser</li>
           </ul>
         </div>
 
       </div>
 
       <!-- Feature 4 Showcase: Scan-to-Fly Mobile Web HOTAS Companion -->
-      <div class="tactical-box p-6 md:p-8 rounded-xl border border-vanguard-cyan/60 bg-gradient-to-r from-vanguard-panel via-vanguard-panel2 to-vanguard-panel flex flex-col lg:flex-row items-center justify-between gap-6 shadow-cyan-glow mt-8 mb-12">
+      <div class="tactical-box p-6 md:p-8 rounded-xl border border-amber-500/30 bg-vanguard-panel flex flex-col lg:flex-row items-center justify-between gap-6 shadow-md mt-8 mb-12">
         <div class="space-y-3 max-w-2xl text-center lg:text-left">
-          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-vanguard-amber/20 border border-vanguard-amber/50 text-vanguard-amber text-xs font-bold font-mono">
+          <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-amber-500/15 border border-amber-500/40 text-amber-400 text-xs font-bold font-mono">
             <span>📱</span> "SCAN-TO-FLY" ZERO-INSTALL MOBILE COMPANION
           </div>
           <h3 class="text-2xl font-bold font-display text-white">No Extra Controller? Use Any Smartphone.</h3>
           <p class="text-sm text-slate-300 leading-relaxed font-sans">
             Point your phone camera at the on-screen QR code in the game lobby. Your mobile browser instantly transforms into a low-latency cockpit HOTAS with an analog touch stick, continuous throttle, gyroscope motion steering, and tactile haptic rumble over local WiFi. Zero app store downloads required.
           </p>
-          <div class="flex flex-wrap gap-4 text-xs font-mono text-vanguard-textMuted justify-center lg:justify-start">
-            <span class="flex items-center gap-1.5"><span class="text-vanguard-cyan">✔</span> &lt;3ms Local WebSocket</span>
-            <span class="flex items-center gap-1.5"><span class="text-vanguard-cyan">✔</span> Gyro Tilt Steering</span>
-            <span class="flex items-center gap-1.5"><span class="text-vanguard-cyan">✔</span> Web Haptic Feedback</span>
-            <span class="flex items-center gap-1.5"><span class="text-vanguard-cyan">✔</span> Second-Screen HUD</span>
+          <div class="flex flex-wrap gap-4 text-xs font-mono text-slate-400 justify-center lg:justify-start">
+            <span class="flex items-center gap-1.5"><span class="text-amber-400">✔</span> &lt;3ms Local WebSocket</span>
+            <span class="flex items-center gap-1.5"><span class="text-amber-400">✔</span> Gyro Tilt Steering</span>
+            <span class="flex items-center gap-1.5"><span class="text-amber-400">✔</span> Web Haptic Feedback</span>
+            <span class="flex items-center gap-1.5"><span class="text-amber-400">✔</span> Second-Screen HUD</span>
           </div>
         </div>
         <div class="flex flex-col sm:flex-row items-center gap-3 shrink-0">
-          <a href="/controller.html" class="px-6 py-3 rounded-lg bg-vanguard-cyan hover:bg-white text-black font-display font-bold text-sm tracking-wider uppercase transition-all shadow-cyan-glow active:scale-95 flex items-center gap-2">
+          <a href="/controller.html" class="px-6 py-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-sm tracking-wider uppercase transition-all shadow-md active:scale-95 flex items-center gap-2">
             <span>🕹️</span>
             <span>Launch Web HOTAS</span>
           </a>
@@ -335,44 +348,44 @@
       </div>
 
       <!-- Interactive Split Screen Layout Simulator (F2 Demonstration) -->
-      <div class="tactical-box p-6 rounded-xl max-w-4xl mx-auto border border-vanguard-border bg-vanguard-panel/90">
-        <div class="flex flex-col sm:flex-row items-center justify-between pb-4 border-b border-vanguard-border gap-4">
+      <div class="tactical-box p-6 rounded-xl max-w-4xl mx-auto border border-white/10 bg-vanguard-panel">
+        <div class="flex flex-col sm:flex-row items-center justify-between pb-4 border-b border-white/10 gap-4">
           <div>
-            <span class="text-xs font-mono text-vanguard-cyan uppercase tracking-wider block">Interactive Viewport Simulator</span>
+            <span class="text-xs font-mono text-amber-400 uppercase tracking-wider block">Interactive Viewport Simulator</span>
             <h4 id="split-layout-label" class="text-lg font-bold text-white">LAYOUT: HORIZONTAL (TOP / BOTTOM)</h4>
           </div>
-          <button id="btn-toggle-split" class="px-5 py-2 rounded bg-vanguard-panel border border-vanguard-cyan text-vanguard-cyan font-mono text-xs uppercase tracking-wider hover:bg-vanguard-cyan hover:text-black transition-all flex items-center gap-2 shadow-cyan-glow">
+          <button id="btn-toggle-split" class="px-5 py-2 rounded-lg bg-vanguard-dark border border-amber-500/40 text-amber-300 font-mono text-xs uppercase tracking-wider hover:bg-amber-500 hover:text-slate-950 transition-all flex items-center gap-2 cursor-pointer shadow-sm">
             <span class="font-bold">[ PRESS F2 ]</span>
             <span>Toggle Orientation</span>
           </button>
         </div>
 
-        <div id="split-sim-container" class="grid grid-rows-2 h-72 border border-vanguard-border rounded-lg overflow-hidden bg-black/80 mt-4 transition-all">
+        <div id="split-sim-container" class="grid grid-rows-2 h-72 border border-white/10 rounded-lg overflow-hidden bg-black/90 mt-4 transition-all">
           
           <!-- Viewport P1 -->
-          <div id="split-p1" class="relative border-b border-vanguard-border/80 flex items-center justify-center p-4 bg-gradient-to-b from-vanguard-cyan/10 to-transparent">
-            <div class="absolute top-2 left-2 text-[10px] font-mono text-vanguard-cyan bg-black/60 px-2 py-0.5 rounded border border-vanguard-cyan/30">
+          <div id="split-p1" class="relative border-b border-white/10 flex items-center justify-center p-4 bg-gradient-to-b from-amber-500/10 to-transparent">
+            <div class="absolute top-2 left-2 text-[10px] font-mono text-amber-300 bg-black/80 px-2 py-0.5 rounded border border-amber-500/30">
               VIEWPORT 1 // PLAYER 1 (FLIGHT LEAD)
             </div>
             <div class="text-center space-y-1">
-              <span class="text-vanguard-cyan font-display text-lg font-bold tracking-widest block">CYAN TACTICAL OVERLAY</span>
+              <span class="text-amber-400 font-display text-lg font-bold tracking-widest block">TACTICAL AMBER OVERLAY</span>
               <span class="text-xs font-mono text-slate-400">Heading 045° | Cruise 65 m/s | Lock Ready</span>
             </div>
           </div>
 
           <!-- Viewport P2 -->
-          <div id="split-p2" class="relative flex items-center justify-center p-4 bg-gradient-to-t from-vanguard-amber/10 to-transparent">
-            <div class="absolute bottom-2 left-2 text-[10px] font-mono text-vanguard-amber bg-black/60 px-2 py-0.5 rounded border border-vanguard-amber/30">
+          <div id="split-p2" class="relative flex items-center justify-center p-4 bg-gradient-to-t from-amber-400/10 to-transparent">
+            <div class="absolute bottom-2 left-2 text-[10px] font-mono text-amber-300 bg-black/80 px-2 py-0.5 rounded border border-amber-500/30">
               VIEWPORT 2 // PLAYER 2 (WINGMAN / AGGRESSOR)
             </div>
             <div class="text-center space-y-1">
-              <span class="text-vanguard-amber font-display text-lg font-bold tracking-widest block">SOLAR AMBER AVIONICS</span>
+              <span class="text-amber-300 font-display text-lg font-bold tracking-widest block">SOLAR GOLD AVIONICS</span>
               <span class="text-xs font-mono text-slate-400">Wingman Formation Established | Armed</span>
             </div>
           </div>
 
         </div>
-        <p class="text-xs font-mono text-vanguard-textMuted text-center mt-3">
+        <p class="text-xs font-mono text-slate-500 text-center mt-3">
           Both viewports share the native World3D rendering context without duplicating entity nodes.
         </p>
       </div>
@@ -380,12 +393,14 @@
     </div>
   </section>
 
-  <!-- Section 2: 8-Mission Campaign Recon Hub -->
-  <section id="campaign" class="py-20 border-b border-vanguard-border/50 relative">
+  <!-- ===================================================================== -->
+  <!-- SECTION 2: 8-MISSION CAMPAIGN RECON HUB                               -->
+  <!-- ===================================================================== -->
+  <section id="campaign" class="py-20 border-b border-white/10 relative">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-cyan">[ THE ASCENSION WAR OPERATIONS ]</span>
+        <span class="text-xs font-mono uppercase tracking-widest text-amber-400">[ THE ASCENSION WAR OPERATIONS ]</span>
         <h2 class="text-3xl sm:text-5xl font-bold text-white tracking-wide">
           8-MISSION CAMPAIGN DOSSIER
         </h2>
@@ -399,54 +414,54 @@
         
         <!-- Left: Mission Selector Tabs -->
         <div class="lg:col-span-4 space-y-2">
-          <div class="text-xs font-mono text-vanguard-textMuted uppercase tracking-wider mb-2 flex justify-between">
+          <div class="text-xs font-mono text-slate-400 uppercase tracking-wider mb-2 flex justify-between">
             <span>SELECT SORTIE CARD</span>
-            <span>8 MISSIONS</span>
+            <span class="text-amber-400 font-bold">8 MISSIONS</span>
           </div>
           <div id="mission-tabs" class="space-y-2 max-h-[580px] overflow-y-auto pr-1">
-            <!-- Populated dynamically by missions.js -->
+            <!-- Populated dynamically by missions.js / main.js -->
           </div>
         </div>
 
         <!-- Right: Active Mission Recon Card Display -->
-        <div class="lg:col-span-8 tactical-box p-6 rounded-xl border border-vanguard-cyan/40 bg-vanguard-panel shadow-hud-box">
+        <div class="lg:col-span-8 tactical-box p-6 rounded-xl border border-white/10 bg-vanguard-panel shadow-xl">
           
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-vanguard-border gap-2">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-white/10 gap-2">
             <div>
-              <span id="mission-id-badge" class="text-xs font-mono text-vanguard-cyan tracking-wider font-bold">// OPERATION M01 //</span>
+              <span id="mission-id-badge" class="text-xs font-mono text-amber-400 tracking-wider font-bold">// OPERATION M01 //</span>
               <h3 id="mission-codename" class="text-2xl sm:text-3xl font-bold font-display text-white tracking-wide">CLOUDBURST</h3>
               <p id="mission-title" class="text-xs font-mono text-slate-300">Atmospheric Scramble</p>
             </div>
             <div class="text-left sm:text-right">
-              <span id="mission-act" class="text-xs font-mono px-2.5 py-1 rounded bg-black/60 border border-vanguard-border text-vanguard-cyanDim font-bold">Chapter I: Iron Canopy</span>
-              <span id="mission-threat" class="block text-xs font-mono text-vanguard-crimson mt-1 font-bold">CADET / TACTICAL</span>
+              <span id="mission-act" class="text-xs font-mono px-2.5 py-1 rounded bg-black/60 border border-white/10 text-amber-300 font-bold">Chapter I: Iron Canopy</span>
+              <span id="mission-threat" class="block text-xs font-mono text-red-400 mt-1 font-bold">CADET / TACTICAL</span>
             </div>
           </div>
 
           <!-- Recon Card Image & Details -->
           <div class="grid grid-cols-1 md:grid-cols-12 gap-6 mt-6 items-center">
             
-            <div class="md:col-span-6 relative rounded-lg overflow-hidden border border-vanguard-border/80 bg-black aspect-video flex items-center justify-center">
-              <img id="mission-card-img" src="/images/mission_card_m01.png" alt="Mission Reconnaissance Card" class="w-full h-full object-cover">
-              <div class="absolute bottom-2 left-2 text-[10px] font-mono text-white/90 bg-black/70 px-2 py-0.5 rounded border border-vanguard-border">
+            <div class="md:col-span-6 relative rounded-lg overflow-hidden border border-white/10 bg-black aspect-video flex items-center justify-center">
+              <img id="mission-card-img" src="/images/mission_card_m01.png" alt="Mission Reconnaissance Card" class="w-full h-full object-cover" loading="lazy" decoding="async">
+              <div class="absolute bottom-2 left-2 text-[10px] font-mono text-white/90 bg-black/80 px-2 py-0.5 rounded border border-white/10">
                 TACTICAL RECON CARD
               </div>
             </div>
 
             <div class="md:col-span-6 space-y-4">
               <div>
-                <span class="text-xs font-mono text-vanguard-textMuted uppercase block">Operational Theater</span>
+                <span class="text-xs font-mono text-slate-400 uppercase block">Operational Theater</span>
                 <p id="mission-theater" class="text-sm font-mono text-slate-200">Southern Stratospheric Defense Grid // Alt: 8,500m</p>
               </div>
 
               <div>
-                <span class="text-xs font-mono text-vanguard-textMuted uppercase block">Atmospheric Conditions</span>
-                <p id="mission-sky" class="text-sm font-mono text-vanguard-cyanDim">Cloudburst Dawn // Sun Elevation 32°</p>
+                <span class="text-xs font-mono text-slate-400 uppercase block">Atmospheric Conditions</span>
+                <p id="mission-sky" class="text-sm font-mono text-amber-300">Cloudburst Dawn // Sun Elevation 32°</p>
               </div>
 
               <div>
-                <span class="text-xs font-mono text-vanguard-textMuted uppercase block">Primary Objectives</span>
-                <ul id="mission-objectives" class="space-y-1.5 mt-1 font-mono">
+                <span class="text-xs font-mono text-slate-400 uppercase block">Primary Objectives</span>
+                <ul id="mission-objectives" class="space-y-1.5 mt-1 font-mono text-xs text-slate-300">
                   <!-- Injected via JS -->
                 </ul>
               </div>
@@ -455,14 +470,14 @@
           </div>
 
           <!-- Mission Briefing Text -->
-          <div class="mt-6 pt-6 border-t border-vanguard-border/60">
-            <span class="text-xs font-mono text-vanguard-cyan uppercase tracking-wider block mb-1">AWACS Command Tactical Briefing</span>
+          <div class="mt-6 pt-6 border-t border-white/10">
+            <span class="text-xs font-mono text-amber-400 uppercase tracking-wider block mb-1">AWACS Command Tactical Briefing</span>
             <p id="mission-briefing" class="text-sm text-slate-300 leading-relaxed font-light">
               Hostile Helion Combine reconnaissance UCAV swarms have breached the troposphere perimeter. Scramble from Alert-1 readiness, intercept advance patrol bogeys, and eliminate the target drones before their telemetry relays fire.
             </p>
-            <div class="mt-4 flex justify-between items-center text-xs font-mono text-vanguard-textMuted pt-2 border-t border-vanguard-border/30">
+            <div class="mt-4 flex justify-between items-center text-xs font-mono text-slate-400 pt-2 border-t border-white/5">
               <span id="mission-reward">Rank S: 10,000 PTS // Unlocks M02 Iron Canyon</span>
-              <span class="text-vanguard-emerald">100% ASSET FEASIBILITY CERTIFIED</span>
+              <span class="text-emerald-400">100% ASSET FEASIBILITY CERTIFIED</span>
             </div>
           </div>
 
@@ -473,12 +488,14 @@
     </div>
   </section>
 
-  <!-- Section 3: Aerospace Fighter & Ordnance Dossier -->
-  <section id="fighter" class="py-20 border-b border-vanguard-border/50 relative bg-vanguard-deep/40">
+  <!-- ===================================================================== -->
+  <!-- SECTION 3: AEROSPACE FIGHTER & ORDNANCE DOSSIER                       -->
+  <!-- ===================================================================== -->
+  <section id="fighter" class="py-20 border-b border-white/10 relative bg-vanguard-deep/50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-cyan">[ HARD-SURFACE AIRFRAME SPECIFICATIONS ]</span>
+        <span class="text-xs font-mono uppercase tracking-widest text-amber-400">[ HARD-SURFACE AIRFRAME SPECIFICATIONS ]</span>
         <h2 class="text-3xl sm:text-5xl font-bold text-white tracking-wide">
           SCULPTED V-HULL INTERCEPTOR
         </h2>
@@ -490,54 +507,54 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         
         <!-- Left: Top-Down CAD Blueprint -->
-        <div class="lg:col-span-6 tactical-box p-4 rounded-xl border border-vanguard-border bg-vanguard-panel">
+        <div class="lg:col-span-6 tactical-box p-4 rounded-xl border border-white/10 bg-vanguard-panel shadow-md">
           <div class="relative rounded-lg overflow-hidden bg-black/90 p-4 flex items-center justify-center">
-            <img src="/images/fighter_blueprint_topdown.png" alt="Top-down CAD Blueprint" class="max-h-[420px] object-contain drop-shadow-[0_0_15px_rgba(0,229,255,0.3)]">
-            <div class="absolute top-3 left-3 text-[10px] font-mono text-vanguard-cyan bg-black/80 px-2 py-1 rounded border border-vanguard-cyan/30">
+            <img src="/images/fighter_blueprint_topdown.png" alt="Top-down CAD Blueprint" class="max-h-[420px] object-contain drop-shadow-md" loading="lazy" decoding="async">
+            <div class="absolute top-3 left-3 text-[10px] font-mono text-amber-300 bg-black/80 px-2 py-1 rounded border border-amber-500/30">
               CAD SCHEMATIC // TOP-DOWN
             </div>
           </div>
           <div class="grid grid-cols-3 gap-2 mt-4 text-center font-mono text-xs">
-            <div class="p-2 bg-black/40 rounded border border-vanguard-border">
+            <div class="p-2.5 bg-black/50 rounded border border-white/5">
               <span class="block text-slate-500 text-[10px]">LENGTH</span>
-              <span class="text-vanguard-cyan font-bold">10.30 m</span>
+              <span class="text-amber-400 font-bold">10.30 m</span>
             </div>
-            <div class="p-2 bg-black/40 rounded border border-vanguard-border">
+            <div class="p-2.5 bg-black/50 rounded border border-white/5">
               <span class="block text-slate-500 text-[10px]">WINGSPAN</span>
-              <span class="text-vanguard-cyan font-bold">9.78 m</span>
+              <span class="text-amber-400 font-bold">9.78 m</span>
             </div>
-            <div class="p-2 bg-black/40 rounded border border-vanguard-border">
+            <div class="p-2.5 bg-black/50 rounded border border-white/5">
               <span class="block text-slate-500 text-[10px]">HEIGHT</span>
-              <span class="text-vanguard-cyan font-bold">2.70 m</span>
+              <span class="text-amber-400 font-bold">2.70 m</span>
             </div>
           </div>
         </div>
 
         <!-- Right: Technical Avionics & Weapons Breakdown -->
-        <div class="lg:col-span-6 space-y-6">
+        <div class="lg:col-span-6 space-y-4">
           
-          <div class="tactical-box p-5 rounded-lg border-l-4 border-l-vanguard-cyan">
+          <div class="tactical-box p-5 rounded-lg border-l-2 border-l-amber-500 bg-vanguard-panel">
             <h4 class="text-lg font-bold text-white font-display uppercase tracking-wide">Aerodynamic Lift & Keel Geometry</h4>
             <p class="text-xs sm:text-sm text-slate-300 font-light mt-1 leading-relaxed">
               Continuous compound dihedral angles with dual under-fuselage longitudinal stringers. Ventral FLIR/EOTS diamond targeting pod flush with forward nose assembly.
             </p>
           </div>
 
-          <div class="tactical-box p-5 rounded-lg border-l-4 border-l-vanguard-amber">
+          <div class="tactical-box p-5 rounded-lg border-l-2 border-l-amber-400 bg-vanguard-panel">
             <h4 class="text-lg font-bold text-white font-display uppercase tracking-wide">4x Under-Wing Pylon Missile Racks</h4>
             <p class="text-xs sm:text-sm text-slate-300 font-light mt-1 leading-relaxed">
               Equipped with 4 aerodynamic swept pylons holding <strong>Vanguard Precision Strike Missiles</strong>. Features alternating launch balance (1 &rarr; 4 &rarr; 2 &rarr; 3), proportional navigation homing, and active contrail particles.
             </p>
           </div>
 
-          <div class="tactical-box p-5 rounded-lg border-l-4 border-l-vanguard-crimson">
+          <div class="tactical-box p-5 rounded-lg border-l-2 border-l-amber-600 bg-vanguard-panel">
             <h4 class="text-lg font-bold text-white font-display uppercase tracking-wide">Avionics & High-G Tactical HUD</h4>
             <p class="text-xs sm:text-sm text-slate-300 font-light mt-1 leading-relaxed">
               Top compass horizon ribbon (0&deg;..360&deg;), 350m polar radar disc with altitude carrots, timed missile seeker acquisition ring, and dynamic 3-second nitro afterburner capacitor.
             </p>
           </div>
 
-          <div class="tactical-box p-5 rounded-lg border-l-4 border-l-vanguard-emerald">
+          <div class="tactical-box p-5 rounded-lg border-l-2 border-l-emerald-500 bg-vanguard-panel">
             <h4 class="text-lg font-bold text-white font-display uppercase tracking-wide">Dual Rotary Autocannons (20mm)</h4>
             <p class="text-xs sm:text-sm text-slate-300 font-light mt-1 leading-relaxed">
               High-velocity kinetic cannons firing at 600 RPM with tracer illumination, screen-space target lead prediction reticles, and spatialized 3D cannon audio.
@@ -551,12 +568,14 @@
     </div>
   </section>
 
-  <!-- Section 4: Flight Controls & Physics Engine -->
-  <section id="controls" class="py-20 border-b border-vanguard-border/50 relative">
+  <!-- ===================================================================== -->
+  <!-- SECTION 4: FLIGHT CONTROLS & PHYSICS ENGINE                           -->
+  <!-- ===================================================================== -->
+  <section id="controls" class="py-20 border-b border-white/10 relative">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-cyan">[ ZERO-LATENCY ERGONOMIC INPUT ]</span>
+        <span class="text-xs font-mono uppercase tracking-widest text-amber-400">[ ZERO-LATENCY ERGONOMIC INPUT ]</span>
         <h2 class="text-3xl sm:text-5xl font-bold text-white tracking-wide">
           CONTROLS & FLIGHT ENVELOPE
         </h2>
@@ -566,19 +585,19 @@
       </div>
 
       <!-- Controls Switcher Card -->
-      <div class="tactical-box p-6 rounded-xl border border-vanguard-border max-w-5xl mx-auto bg-vanguard-panel">
+      <div class="tactical-box p-6 rounded-xl border border-white/10 max-w-5xl mx-auto bg-vanguard-panel shadow-md">
         
-        <div class="flex flex-col sm:flex-row items-center justify-between pb-6 border-b border-vanguard-border gap-4">
+        <div class="flex flex-col sm:flex-row items-center justify-between pb-6 border-b border-white/10 gap-4">
           <div>
-            <span class="text-xs font-mono text-vanguard-textMuted uppercase tracking-wider block">KEYBOARD LAYOUT AUTO-DETECTION</span>
-            <span id="layout-indicator" class="text-sm font-mono text-vanguard-cyan font-bold">AUTODETECT: BE / FR AZERTY</span>
+            <span class="text-xs font-mono text-slate-400 uppercase tracking-wider block">KEYBOARD LAYOUT AUTO-DETECTION</span>
+            <span id="layout-indicator" class="text-sm font-mono text-amber-400 font-bold">AUTODETECT: BE / FR AZERTY</span>
           </div>
 
-          <div class="flex items-center space-x-2 bg-black/60 p-1 rounded border border-vanguard-border">
-            <button id="btn-azerty" class="px-4 py-1.5 rounded font-mono text-xs font-bold transition-all bg-vanguard-cyan text-black">
+          <div class="flex items-center space-x-2 bg-black/60 p-1 rounded-md border border-white/10">
+            <button id="btn-azerty" class="px-4 py-1.5 rounded font-mono text-xs font-bold transition-all bg-amber-500 text-slate-950 cursor-pointer">
               AZERTY (BE/FR)
             </button>
-            <button id="btn-qwerty" class="px-4 py-1.5 rounded font-mono text-xs font-bold transition-all bg-vanguard-panel text-slate-300 hover:text-white">
+            <button id="btn-qwerty" class="px-4 py-1.5 rounded font-mono text-xs font-bold transition-all bg-vanguard-panel text-slate-300 hover:text-white cursor-pointer">
               QWERTY (US/UK)
             </button>
           </div>
@@ -586,51 +605,51 @@
 
         <!-- Keybinding Comparison Grid -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
-          <div class="p-4 bg-black/50 rounded border border-vanguard-border text-center">
+          <div class="p-4 bg-black/50 rounded-lg border border-white/5 text-center">
             <span class="block text-xs font-mono text-slate-500 uppercase">THROTTLE UP / DOWN</span>
-            <span id="key-throttle" class="text-lg font-mono font-bold text-vanguard-cyan mt-1 block">Z / S</span>
+            <span id="key-throttle" class="text-lg font-mono font-bold text-amber-400 mt-1 block">Z / S</span>
           </div>
-          <div class="p-4 bg-black/50 rounded border border-vanguard-border text-center">
+          <div class="p-4 bg-black/50 rounded-lg border border-white/5 text-center">
             <span class="block text-xs font-mono text-slate-500 uppercase">BANK / ROLL</span>
-            <span class="text-lg font-mono font-bold text-vanguard-cyan mt-1 block">
+            <span class="text-lg font-mono font-bold text-amber-400 mt-1 block">
               <span id="key-roll-l">Q</span> / <span id="key-roll-r">D</span>
             </span>
           </div>
-          <div class="p-4 bg-black/50 rounded border border-vanguard-border text-center">
+          <div class="p-4 bg-black/50 rounded-lg border border-white/5 text-center">
             <span class="block text-xs font-mono text-slate-500 uppercase">YAW / RUDDER</span>
-            <span class="text-lg font-mono font-bold text-vanguard-cyan mt-1 block">
+            <span class="text-lg font-mono font-bold text-amber-400 mt-1 block">
               <span id="key-yaw-l">A</span> / <span id="key-yaw-r">E</span>
             </span>
           </div>
-          <div class="p-4 bg-black/50 rounded border border-vanguard-border text-center">
+          <div class="p-4 bg-black/50 rounded-lg border border-white/5 text-center">
             <span class="block text-xs font-mono text-slate-500 uppercase">AFTERBURNER BOOST</span>
-            <span class="text-lg font-mono font-bold text-vanguard-amber mt-1 block">LEFT SHIFT</span>
+            <span class="text-lg font-mono font-bold text-amber-300 mt-1 block">LEFT SHIFT</span>
           </div>
-          <div class="p-4 bg-black/50 rounded border border-vanguard-border text-center">
+          <div class="p-4 bg-black/50 rounded-lg border border-white/5 text-center">
             <span class="block text-xs font-mono text-slate-500 uppercase">FIRE ROTARY CANNON</span>
             <span class="text-lg font-mono font-bold text-white mt-1 block">SPACE / L-CLICK</span>
           </div>
-          <div class="p-4 bg-black/50 rounded border border-vanguard-border text-center">
+          <div class="p-4 bg-black/50 rounded-lg border border-white/5 text-center">
             <span class="block text-xs font-mono text-slate-500 uppercase">FIRE STRIKE MISSILE</span>
-            <span class="text-lg font-mono font-bold text-vanguard-crimson mt-1 block">R / R-CLICK</span>
+            <span class="text-lg font-mono font-bold text-red-400 mt-1 block">R / R-CLICK</span>
           </div>
-          <div class="p-4 bg-black/50 rounded border border-vanguard-border text-center">
+          <div class="p-4 bg-black/50 rounded-lg border border-white/5 text-center">
             <span class="block text-xs font-mono text-slate-500 uppercase">STEERING & PITCH</span>
             <span class="text-lg font-mono font-bold text-white mt-1 block">MOUSE 6-DOF</span>
           </div>
-          <div class="p-4 bg-black/50 rounded border border-vanguard-border text-center">
+          <div class="p-4 bg-black/50 rounded-lg border border-white/5 text-center">
             <span class="block text-xs font-mono text-slate-500 uppercase">LAYOUT / SPLIT TOGGLE</span>
-            <span class="text-lg font-mono font-bold text-vanguard-gold mt-1 block">F1 / F2</span>
+            <span class="text-lg font-mono font-bold text-amber-400 mt-1 block">F1 / F2</span>
           </div>
         </div>
 
         <!-- Gamepad Diagram Box -->
-        <div class="mt-8 p-4 bg-black/40 rounded border border-vanguard-border/80 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-mono">
+        <div class="mt-8 p-4 bg-black/40 rounded-lg border border-white/10 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-mono">
           <div class="flex items-center space-x-3">
-            <span class="text-vanguard-emerald font-bold text-sm">🎮 DUAL CONTROLLER READY:</span>
+            <span class="text-emerald-400 font-bold text-sm">🎮 DUAL CONTROLLER READY:</span>
             <span class="text-slate-300">PlayStation DualSense & Xbox Wireless controllers automatically route to Player 1 & Player 2 with dedicated motor haptics.</span>
           </div>
-          <span class="text-vanguard-cyanDim font-bold shrink-0">DEVICE 0 = LEAD // DEVICE 1 = WINGMAN</span>
+          <span class="text-amber-400 font-bold shrink-0">DEVICE 0 = LEAD // DEVICE 1 = WINGMAN</span>
         </div>
 
       </div>
@@ -638,12 +657,14 @@
     </div>
   </section>
 
-  <!-- Section 5: Autonomous CAD Pipeline -->
-  <section id="pipeline" class="py-20 border-b border-vanguard-border/50 relative bg-vanguard-deep/40">
+  <!-- ===================================================================== -->
+  <!-- SECTION 5: AUTONOMOUS CAD PIPELINE                                    -->
+  <!-- ===================================================================== -->
+  <section id="pipeline" class="py-20 border-b border-white/10 relative bg-vanguard-deep/50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-cyan">[ OPEN SOURCE AUTOMATION ]</span>
+        <span class="text-xs font-mono uppercase tracking-widest text-amber-400">[ OPEN SOURCE AUTOMATION ]</span>
         <h2 class="text-3xl sm:text-5xl font-bold text-white tracking-wide">
           AUTONOMOUS CAD-TO-ENGINE PIPELINE
         </h2>
@@ -655,32 +676,32 @@
       <!-- Pipeline Flowchart -->
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         
-        <div class="tactical-box p-5 rounded-lg space-y-3 border-t-2 border-t-vanguard-cyan">
-          <span class="text-xs font-mono text-vanguard-cyan font-bold uppercase block">STAGE 01 // CAD</span>
+        <div class="tactical-box p-5 rounded-lg space-y-3 border-t-2 border-t-amber-500 bg-vanguard-panel">
+          <span class="text-xs font-mono text-amber-400 font-bold uppercase block">STAGE 01 // CAD</span>
           <h4 class="text-lg font-bold text-white font-display">Autodesk Fusion 360</h4>
           <p class="text-xs text-slate-300 leading-relaxed font-light">
             Parametric sketches, compound 3D lofts, and precision solid modeling. STEP and STL export via local HTTP bridge on port 9876.
           </p>
         </div>
 
-        <div class="tactical-box p-5 rounded-lg space-y-3 border-t-2 border-t-vanguard-amber">
-          <span class="text-xs font-mono text-vanguard-amber font-bold uppercase block">STAGE 02 // DCC</span>
+        <div class="tactical-box p-5 rounded-lg space-y-3 border-t-2 border-t-amber-400 bg-vanguard-panel">
+          <span class="text-xs font-mono text-amber-300 font-bold uppercase block">STAGE 02 // DCC</span>
           <h4 class="text-lg font-bold text-white font-display">Blender 4.2 LTS</h4>
           <p class="text-xs text-slate-300 leading-relaxed font-light">
-            Automated Smart UV unwrapping, custom split normals, weapon socket placement (<code class="text-vanguard-amber">SOCKET_</code>), and convex collision hull generation (<code class="text-vanguard-amber">UCX_</code>).
+            Automated Smart UV unwrapping, custom split normals, weapon socket placement (<code class="text-amber-400">SOCKET_</code>), and convex collision hull generation (<code class="text-amber-400">UCX_</code>).
           </p>
         </div>
 
-        <div class="tactical-box p-5 rounded-lg space-y-3 border-t-2 border-t-vanguard-emerald">
-          <span class="text-xs font-mono text-vanguard-emerald font-bold uppercase block">STAGE 03 // TESTBED</span>
+        <div class="tactical-box p-5 rounded-lg space-y-3 border-t-2 border-t-emerald-500 bg-vanguard-panel">
+          <span class="text-xs font-mono text-emerald-400 font-bold uppercase block">STAGE 03 // TESTBED</span>
           <h4 class="text-lg font-bold text-white font-display">Godot 4 Engine</h4>
           <p class="text-xs text-slate-300 leading-relaxed font-light">
             Native glTF .glb import, procedural lift vs gravity physics, 6-DOF controls, split-screen co-op, and ENet multiplayer networking.
           </p>
         </div>
 
-        <div class="tactical-box p-5 rounded-lg space-y-3 border-t-2 border-t-vanguard-crimson">
-          <span class="text-xs font-mono text-vanguard-crimson font-bold uppercase block">STAGE 04 // TARGET</span>
+        <div class="tactical-box p-5 rounded-lg space-y-3 border-t-2 border-t-red-500 bg-vanguard-panel">
+          <span class="text-xs font-mono text-red-400 font-bold uppercase block">STAGE 04 // TARGET</span>
           <h4 class="text-lg font-bold text-white font-display">Unreal Engine 5</h4>
           <p class="text-xs text-slate-300 leading-relaxed font-light">
             Remote execution socket bridge, Nanite auto-import, Lumen PBR materials, and Chaos destruction physics ready.
@@ -690,12 +711,16 @@
       </div>
 
     </div>
-  <!-- Section: Web & Game Synergy Ecosystem -->
-  <section id="roadmap" class="py-20 border-b border-vanguard-border/50 relative">
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- SECTION: WEB & GAME SYNERGY ECOSYSTEM                                 -->
+  <!-- ===================================================================== -->
+  <section id="roadmap" class="py-20 border-b border-white/10 relative">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-cyan">[ THE CONNECTED WEB PORTAL ECOSYSTEM ]</span>
+        <span class="text-xs font-mono uppercase tracking-widest text-amber-400">[ THE CONNECTED WEB PORTAL ECOSYSTEM ]</span>
         <h2 class="text-3xl sm:text-5xl font-bold text-white tracking-wide">
           HOW THIS PORTAL EVOLVES WITH VANGUARD
         </h2>
@@ -707,22 +732,22 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         <!-- Pillar 1: Black Box Flight Telemetry Viewer -->
-        <div class="tactical-box p-6 rounded-lg space-y-3 border-t-2 border-t-vanguard-cyan">
+        <div class="tactical-box p-6 rounded-lg space-y-3 border-t-2 border-t-amber-500 bg-vanguard-panel">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-mono text-vanguard-cyan font-bold uppercase">PHASE I // TELEMETRY</span>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-vanguard-cyan/10 text-vanguard-cyan border border-vanguard-cyan/30">CLIENT-SIDE JSON</span>
+            <span class="text-xs font-mono text-amber-400 font-bold uppercase">PHASE I // TELEMETRY</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">CLIENT-SIDE JSON</span>
           </div>
           <h4 class="text-xl font-bold text-white font-display">Black Box Sortie Replay</h4>
           <p class="text-xs sm:text-sm text-slate-300 leading-relaxed font-light">
-            Drag-and-drop your local <code class="text-vanguard-cyan">vanguard_savegame.json</code> directly onto the web portal. The browser parses telemetry to render 3D flight trajectories, weapon hit-rate breakdowns, and exports high-res pilot scorecard badges with your Rank (S/A/B) for Discord and social sharing.
+            Drag-and-drop your local <code class="text-amber-400">vanguard_savegame.json</code> directly onto the web portal. The browser parses telemetry to render 3D flight trajectories, weapon hit-rate breakdowns, and exports high-res pilot scorecard badges with your Rank (S/A/B) for Discord and social sharing.
           </p>
         </div>
 
         <!-- Pillar 2: WebAssembly Proving Ground -->
-        <div class="tactical-box p-6 rounded-lg space-y-3 border-t-2 border-t-vanguard-amber">
+        <div class="tactical-box p-6 rounded-lg space-y-3 border-t-2 border-t-amber-400 bg-vanguard-panel">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-mono text-vanguard-amber font-bold uppercase">PHASE II // WEB EMBED</span>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-vanguard-amber/10 text-vanguard-amber border border-vanguard-amber/30">GODOT 4 WASM</span>
+            <span class="text-xs font-mono text-amber-300 font-bold uppercase">PHASE II // WEB EMBED</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">GODOT 4 WASM</span>
           </div>
           <h4 class="text-xl font-bold text-white font-display">Instant Browser Hangar & Trial</h4>
           <p class="text-xs sm:text-sm text-slate-300 leading-relaxed font-light">
@@ -731,30 +756,30 @@
         </div>
 
         <!-- Pillar 3: Edge Leaderboards & Ghost Data -->
-        <div class="tactical-box p-6 rounded-lg space-y-3 border-t-2 border-t-vanguard-emerald">
+        <div class="tactical-box p-6 rounded-lg space-y-3 border-t-2 border-t-emerald-500 bg-vanguard-panel">
           <div class="flex items-center justify-between">
-            <span class="text-xs font-mono text-vanguard-emerald font-bold uppercase">PHASE III // CLOUDFLARE EDGE</span>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-vanguard-emerald/10 text-vanguard-emerald border border-vanguard-emerald/30">WORKERS + D1 DB</span>
+            <span class="text-xs font-mono text-emerald-400 font-bold uppercase">PHASE III // CLOUDFLARE EDGE</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">WORKERS + D1 DB</span>
           </div>
           <h4 class="text-xl font-bold text-white font-display">Global Ace Leaderboard & Ghosts</h4>
           <p class="text-xs sm:text-sm text-slate-300 leading-relaxed font-light">
-            Cloudflare Workers and D1 database host a lightweight global leaderboard. Godot reports authenticated sortie times and PvP win streaks via <code class="text-vanguard-emerald">HTTPRequest</code>. Pilots can download top-ranked flight ghost trajectories to race against rival flight paths in-game.
+            Cloudflare Workers and D1 database host a lightweight global leaderboard. Godot reports authenticated sortie times and PvP win streaks via <code class="text-emerald-400">HTTPRequest</code>. Pilots can download top-ranked flight ghost trajectories to race against rival flight paths in-game.
           </p>
         </div>
 
       </div>
 
       <!-- Live AWACS Daily Operations Uplink Box -->
-      <div class="tactical-box p-6 rounded-xl border border-vanguard-border bg-vanguard-panel max-w-4xl mx-auto mt-8">
+      <div class="tactical-box p-6 rounded-xl border border-white/10 bg-vanguard-panel max-w-4xl mx-auto mt-8">
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div class="space-y-1 text-center sm:text-left">
-            <span class="text-xs font-mono text-vanguard-cyan font-bold uppercase tracking-wider block">// DYNAMIC CONTENT SYNC //</span>
+            <span class="text-xs font-mono text-amber-400 font-bold uppercase tracking-wider block">// DYNAMIC CONTENT SYNC //</span>
             <h5 class="text-lg font-bold text-white font-display uppercase tracking-wide">AWACS Daily Operation Feed</h5>
             <p class="text-xs text-slate-300 font-light">
-              Cloudflare Pages Functions serve dynamic mission modifiers (<code class="text-vanguard-cyanDim">/api/daily_sortie.json</code>). On boot, the game pulls daily weather variations, high-density minefields, and tactical bounties generated by the web community.
+              Cloudflare Pages Functions serve dynamic mission modifiers (<code class="text-amber-400">/api/daily_sortie.json</code>). On boot, the game pulls daily weather variations, high-density minefields, and tactical bounties generated by the web community.
             </p>
           </div>
-          <span class="px-4 py-2 rounded bg-black/60 border border-vanguard-cyan/30 text-vanguard-cyan font-mono text-xs uppercase tracking-wider whitespace-nowrap">
+          <span class="px-4 py-2 rounded bg-black/60 border border-amber-500/30 text-amber-300 font-mono text-xs uppercase tracking-wider whitespace-nowrap">
             ONLINE UPLINK READY
           </span>
         </div>
@@ -763,12 +788,14 @@
     </div>
   </section>
 
-  <!-- Section: Combat Stats & Battle Records -->
-  <section id="stats" class="py-20 border-b border-vanguard-border/50 relative bg-vanguard-deep/40">
+  <!-- ===================================================================== -->
+  <!-- SECTION 6: COMBAT STATS & BATTLE RECORDS                              -->
+  <!-- ===================================================================== -->
+  <section id="stats" class="py-20 border-b border-white/10 relative bg-vanguard-deep/50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <div class="text-center max-w-3xl mx-auto mb-12 space-y-3">
-        <span class="text-xs font-mono uppercase tracking-widest text-vanguard-cyan">[ REAL-TIME FLIGHT TELEMETRY & SORTIE LOGS ]</span>
+        <span class="text-xs font-mono uppercase tracking-widest text-amber-400">[ REAL-TIME FLIGHT TELEMETRY & SORTIE LOGS ]</span>
         <h2 class="text-3xl sm:text-5xl font-bold text-white tracking-wide">
           COMBAT STATS & SERVICE RECORD
         </h2>
@@ -778,29 +805,29 @@
       </div>
 
       <!-- Pilot ID & Cloud Status Banner -->
-      <div class="tactical-box p-6 rounded-xl border border-vanguard-border max-w-5xl mx-auto mb-8 bg-vanguard-panel/90 shadow-hud-box">
-        <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-vanguard-border/70">
+      <div class="tactical-box p-6 rounded-xl border border-white/10 max-w-5xl mx-auto mb-8 bg-vanguard-panel shadow-md">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-white/10">
           <div class="flex items-center space-x-4">
-            <img src="/images/vanguard_squadron_patch_cropped.png" alt="404th Wing" class="w-14 h-14 object-contain drop-shadow-[0_0_12px_#00e5ff]">
+            <img src="/images/vanguard_squadron_patch_128.webp" alt="404th Wing" width="56" height="56" class="w-14 h-14 object-contain" loading="lazy" decoding="async">
             <div>
-              <div class="text-[10px] font-mono text-vanguard-cyan font-bold tracking-widest uppercase">// SOL ORBITAL DIRECTORATE //</div>
+              <div class="text-[10px] font-mono text-amber-400 font-bold tracking-widest uppercase">// SOL ORBITAL DIRECTORATE //</div>
               <h3 id="stats-pilot-callsign" class="text-2xl sm:text-3xl font-black text-white font-display tracking-wider">VANGUARD-LEAD</h3>
-              <div id="stats-pilot-rank-squadron" class="text-xs font-mono text-vanguard-amber font-semibold">
+              <div id="stats-pilot-rank-squadron" class="text-xs font-mono text-amber-300 font-semibold">
                 FLIGHT LIEUTENANT // 404TH STRIKE WING
               </div>
             </div>
           </div>
 
           <div class="flex flex-wrap items-center gap-3">
-            <div id="stats-cloud-badge" class="px-3 py-1.5 rounded bg-black/60 border border-vanguard-cyan/30 text-vanguard-cyan text-xs font-mono font-bold flex items-center gap-1.5">
-              <span id="stats-cloud-dot" class="w-2 h-2 rounded-full bg-vanguard-cyan animate-pulse"></span>
+            <div id="stats-cloud-badge" class="px-3 py-1.5 rounded-md bg-black/60 border border-white/10 text-slate-300 text-xs font-mono font-bold flex items-center gap-1.5">
+              <span id="stats-cloud-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
               <span id="stats-cloud-status">LOCAL TELEMETRY</span>
             </div>
-            <button id="btn-sync-stats" class="px-4 py-1.5 rounded bg-vanguard-cyan hover:bg-white text-black text-xs font-mono font-bold transition-all shadow-cyan-glow flex items-center gap-1.5 cursor-pointer">
+            <button id="btn-sync-stats" class="px-4 py-1.5 rounded-md bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-mono font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer">
               <span>🔄</span>
               <span>SYNC STATS</span>
             </button>
-            <button id="btn-portal-from-stats" class="px-4 py-1.5 rounded border border-vanguard-gold bg-vanguard-gold/10 hover:bg-vanguard-gold hover:text-black text-vanguard-gold text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer">
+            <button id="btn-portal-from-stats" class="px-4 py-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500 hover:text-slate-950 text-amber-300 text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer">
               <span>🎖️</span>
               <span id="stats-auth-btn-label">COMMISSION / LOGIN</span>
             </button>
@@ -809,68 +836,68 @@
 
         <!-- 8 Core Combat Metrics Grid -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
-          <div class="p-4 bg-black/50 rounded border border-vanguard-border/80 text-center">
+          <div class="p-4 bg-black/50 rounded-lg border border-white/5 text-center">
             <span class="block text-[11px] font-mono text-slate-400 uppercase">CAREER SORTIES</span>
             <span id="stats-total-sorties" class="text-2xl sm:text-3xl font-mono font-black text-white mt-1 block">0</span>
             <span class="text-[10px] font-mono text-slate-500">Missions & Battles</span>
           </div>
 
-          <div class="p-4 bg-black/50 rounded border border-vanguard-emerald/40 text-center">
+          <div class="p-4 bg-black/50 rounded-lg border border-emerald-500/30 text-center">
             <span class="block text-[11px] font-mono text-emerald-400 uppercase">DOGFIGHT WINS</span>
             <span id="stats-battles-won" class="text-2xl sm:text-3xl font-mono font-black text-emerald-400 mt-1 block">0</span>
             <span class="text-[10px] font-mono text-emerald-500/70">PvP / AI Victories</span>
           </div>
 
-          <div class="p-4 bg-black/50 rounded border border-vanguard-crimson/40 text-center">
+          <div class="p-4 bg-black/50 rounded-lg border border-red-500/30 text-center">
             <span class="block text-[11px] font-mono text-red-400 uppercase">BATTLES LOST</span>
             <span id="stats-battles-lost" class="text-2xl sm:text-3xl font-mono font-black text-red-400 mt-1 block">0</span>
             <span class="text-[10px] font-mono text-red-500/70">Combat Defeats</span>
           </div>
 
-          <div class="p-4 bg-black/50 rounded border border-vanguard-gold/40 text-center">
-            <span class="block text-[11px] font-mono text-yellow-400 uppercase">WIN RATE</span>
-            <span id="stats-win-rate" class="text-2xl sm:text-3xl font-mono font-black text-yellow-400 mt-1 block">0.0%</span>
-            <span class="text-[10px] font-mono text-yellow-500/70">Victory Ratio</span>
+          <div class="p-4 bg-black/50 rounded-lg border border-amber-500/30 text-center">
+            <span class="block text-[11px] font-mono text-amber-300 uppercase">WIN RATE</span>
+            <span id="stats-win-rate" class="text-2xl sm:text-3xl font-mono font-black text-amber-300 mt-1 block">0.0%</span>
+            <span class="text-[10px] font-mono text-amber-500/70">Victory Ratio</span>
           </div>
 
-          <div class="p-4 bg-black/50 rounded border border-vanguard-border/80 text-center">
+          <div class="p-4 bg-black/50 rounded-lg border border-white/5 text-center">
             <span class="block text-[11px] font-mono text-slate-400 uppercase">AIR-TO-AIR KILLS</span>
-            <span id="stats-total-kills" class="text-2xl sm:text-3xl font-mono font-black text-vanguard-cyan mt-1 block">0</span>
+            <span id="stats-total-kills" class="text-2xl sm:text-3xl font-mono font-black text-amber-400 mt-1 block">0</span>
             <span class="text-[10px] font-mono text-slate-500">Hostiles Destroyed</span>
           </div>
 
-          <div class="p-4 bg-black/50 rounded border border-vanguard-border/80 text-center">
+          <div class="p-4 bg-black/50 rounded-lg border border-white/5 text-center">
             <span class="block text-[11px] font-mono text-slate-400 uppercase">FLIGHT TIME</span>
             <span id="stats-flight-time" class="text-xl sm:text-2xl font-mono font-black text-white mt-1 block">00m 00s</span>
             <span class="text-[10px] font-mono text-slate-500">Time in Envelope</span>
           </div>
 
-          <div class="p-4 bg-black/50 rounded border border-vanguard-border/80 text-center">
+          <div class="p-4 bg-black/50 rounded-lg border border-white/5 text-center">
             <span class="block text-[11px] font-mono text-slate-400 uppercase">PREFERRED AVIONICS</span>
-            <span id="stats-preferred-controls" class="text-lg sm:text-xl font-mono font-black text-vanguard-amber mt-1 block">AZERTY</span>
+            <span id="stats-preferred-controls" class="text-lg sm:text-xl font-mono font-black text-amber-400 mt-1 block">AZERTY</span>
             <span class="text-[10px] font-mono text-slate-500">Input Layout</span>
           </div>
 
-          <div class="p-4 bg-black/50 rounded border border-vanguard-border/80 text-center">
+          <div class="p-4 bg-black/50 rounded-lg border border-white/5 text-center">
             <span class="block text-[11px] font-mono text-slate-400 uppercase">HIGHEST SORTIE</span>
-            <span id="stats-highest-mission" class="text-lg sm:text-xl font-mono font-black text-vanguard-gold mt-1 block">M01</span>
+            <span id="stats-highest-mission" class="text-lg sm:text-xl font-mono font-black text-amber-300 mt-1 block">M01</span>
             <span class="text-[10px] font-mono text-slate-500">Campaign Clearance</span>
           </div>
         </div>
 
         <!-- Recent Combat Engagements Log -->
-        <div class="mt-8 pt-6 border-t border-vanguard-border/70">
+        <div class="mt-8 pt-6 border-t border-white/10">
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center space-x-2">
-              <span class="text-vanguard-cyan">⚔️</span>
+              <span class="text-amber-400">⚔️</span>
               <span class="font-display font-bold text-sm tracking-wider uppercase text-white">RECENT COMBAT ENGAGEMENTS & DOGFIGHTS</span>
             </div>
             <span class="text-[11px] font-mono text-slate-500 uppercase tracking-wider">// LAST 10 SORTIES //</span>
           </div>
 
-          <div class="overflow-x-auto rounded-lg border border-vanguard-border/80 bg-black/60">
+          <div class="overflow-x-auto rounded-lg border border-white/10 bg-black/60">
             <table class="w-full text-left font-mono text-xs">
-              <thead class="bg-vanguard-deep text-slate-400 border-b border-vanguard-border/80 uppercase text-[10px] tracking-wider">
+              <thead class="bg-vanguard-deep text-slate-400 border-b border-white/10 uppercase text-[10px] tracking-wider">
                 <tr>
                   <th class="py-2.5 px-4">TIMESTAMP</th>
                   <th class="py-2.5 px-4">THEATER / OP</th>
@@ -880,7 +907,7 @@
                   <th class="py-2.5 px-4">AVIONICS</th>
                 </tr>
               </thead>
-              <tbody id="stats-history-tbody" class="divide-y divide-vanguard-border/40 text-slate-300">
+              <tbody id="stats-history-tbody" class="divide-y divide-white/5 text-slate-300">
                 <tr>
                   <td colspan="6" class="py-6 text-center text-slate-500 font-mono text-xs">
                     NO COMBAT SORTIES LOGGED YET. DEPLOY INTO COMBAT OR PAIR PHONE TO RECORD FLIGHT TELEMETRY.
@@ -895,15 +922,17 @@
     </div>
   </section>
 
-  <!-- Section 7: Global Leaderboard & Ace Rankings -->
-  <section id="leaderboard" class="py-24 relative border-b border-vanguard-border/50 bg-vanguard-dark">
+  <!-- ===================================================================== -->
+  <!-- SECTION 7: GLOBAL LEADERBOARD & ACE RANKINGS                          -->
+  <!-- ===================================================================== -->
+  <section id="leaderboard" class="py-24 relative border-b border-white/10 bg-vanguard-dark">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       
       <!-- Section Header -->
       <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
         <div>
-          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-vanguard-gold/30 bg-vanguard-gold/10 text-vanguard-gold text-xs font-mono tracking-wider mb-4">
-            <span class="w-1.5 h-1.5 rounded-full bg-vanguard-gold animate-pulse"></span>
+          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs font-mono tracking-wider mb-4">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
             <span>VERIFIED FLIGHT TELEMETRY // GLOBAL FLEET STANDINGS</span>
           </div>
           <h2 class="text-3xl sm:text-5xl font-bold font-display text-white tracking-wide">
@@ -917,10 +946,10 @@
         <!-- Controls: Search & Refresh -->
         <div class="flex flex-wrap items-center gap-3">
           <div class="relative">
-            <input id="leaderboard-search" type="text" placeholder="FILTER CALLSIGN..." class="px-3.5 py-2 pl-9 bg-black/60 border border-vanguard-border/80 rounded-lg text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-vanguard-cyan w-48 sm:w-60 transition-colors">
+            <input id="leaderboard-search" type="text" placeholder="FILTER CALLSIGN..." class="px-3.5 py-2 pl-9 bg-black/60 border border-white/10 rounded-lg text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 w-48 sm:w-60 transition-colors">
             <span class="absolute left-3 top-2.5 text-xs text-slate-500">🔍</span>
           </div>
-          <button id="leaderboard-refresh-btn" class="px-3.5 py-2 bg-vanguard-panel border border-vanguard-border/80 hover:border-vanguard-cyan hover:text-vanguard-cyan text-slate-300 text-xs font-mono rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
+          <button id="leaderboard-refresh-btn" class="px-3.5 py-2 bg-vanguard-panel border border-white/10 hover:border-amber-400 hover:text-amber-300 text-slate-300 text-xs font-mono rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
             <span id="leaderboard-refresh-icon">🔄</span>
             <span>REFRESH</span>
           </button>
@@ -928,51 +957,51 @@
       </div>
 
       <!-- Personal Rank Banner (Dynamic) -->
-      <div id="leaderboard-personal-banner" class="hidden mb-8 p-4 rounded-xl border border-vanguard-gold/60 bg-gradient-to-r from-amber-500/15 via-yellow-400/10 to-transparent flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono text-xs">
+      <div id="leaderboard-personal-banner" class="hidden mb-8 p-4 rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono text-xs">
         <div class="flex items-center space-x-3">
           <span class="text-2xl">🎖️</span>
           <div>
-            <div class="text-vanguard-gold font-bold uppercase tracking-wider text-sm flex items-center gap-2">
+            <div class="text-amber-300 font-bold uppercase tracking-wider text-sm flex items-center gap-2">
               <span id="personal-callsign-display">YOUR PILOT DOSSIER</span>
-              <span id="personal-rank-badge" class="px-2 py-0.5 rounded text-[10px] bg-vanguard-gold/20 border border-vanguard-gold/40 text-vanguard-gold">RANK #--</span>
+              <span id="personal-rank-badge" class="px-2 py-0.5 rounded text-[10px] bg-amber-500/20 border border-amber-500/40 text-amber-300">RANK #--</span>
             </div>
             <div id="personal-squadron-display" class="text-slate-400 text-[11px] mt-0.5">404th Vanguard Strike Wing</div>
           </div>
         </div>
         <div class="flex items-center gap-6 text-slate-300">
-          <div><span class="text-slate-500 block text-[10px]">TOTAL SCORE</span><span id="personal-score-display" class="text-vanguard-cyan font-bold text-sm">--</span></div>
+          <div><span class="text-slate-500 block text-[10px]">TOTAL SCORE</span><span id="personal-score-display" class="text-amber-400 font-bold text-sm">--</span></div>
           <div><span class="text-slate-500 block text-[10px]">KILLS</span><span id="personal-kills-display" class="text-emerald-400 font-bold text-sm">--</span></div>
-          <div><span class="text-slate-500 block text-[10px]">SORTIES</span><span id="personal-sorties-display" class="text-amber-400 font-bold text-sm">--</span></div>
+          <div><span class="text-slate-500 block text-[10px]">SORTIES</span><span id="personal-sorties-display" class="text-amber-300 font-bold text-sm">--</span></div>
         </div>
       </div>
 
       <!-- Category Filter Tabs -->
-      <div class="flex items-center space-x-2 overflow-x-auto pb-4 mb-6 border-b border-vanguard-border/60 font-mono text-xs scrollbar-none">
-        <button data-cat="global" class="leaderboard-tab-btn active px-4 py-2 rounded-lg font-bold transition-all border border-vanguard-gold bg-vanguard-gold/15 text-vanguard-gold flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+      <div class="flex items-center space-x-2 overflow-x-auto pb-4 mb-6 border-b border-white/10 font-mono text-xs scrollbar-none">
+        <button data-cat="global" class="leaderboard-tab-btn active px-4 py-2 rounded-lg font-bold transition-all border border-amber-400 bg-amber-500/15 text-amber-300 flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
           <span>🏆</span> TOP FLEET ACES
         </button>
-        <button data-cat="M01" class="leaderboard-tab-btn px-4 py-2 rounded-lg font-bold transition-all border border-vanguard-border/60 bg-vanguard-panel/60 text-slate-400 hover:text-white hover:border-vanguard-border flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
-          <span>🚀</span> M01: CANYON RUN
+        <button data-cat="M01" class="leaderboard-tab-btn px-4 py-2 rounded-lg font-bold transition-all border border-white/10 bg-vanguard-panel/60 text-slate-400 hover:text-white hover:border-white/20 flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+          <span>🚀</span> M01: CLOUDBURST
         </button>
-        <button data-cat="M02" class="leaderboard-tab-btn px-4 py-2 rounded-lg font-bold transition-all border border-vanguard-border/60 bg-vanguard-panel/60 text-slate-400 hover:text-white hover:border-vanguard-border flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
-          <span>🚀</span> M02: SHADOW CITADEL
+        <button data-cat="M02" class="leaderboard-tab-btn px-4 py-2 rounded-lg font-bold transition-all border border-white/10 bg-vanguard-panel/60 text-slate-400 hover:text-white hover:border-white/20 flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+          <span>🚀</span> M02: IRON CANYON
         </button>
-        <button data-cat="M03" class="leaderboard-tab-btn px-4 py-2 rounded-lg font-bold transition-all border border-vanguard-border/60 bg-vanguard-panel/60 text-slate-400 hover:text-white hover:border-vanguard-border flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
-          <span>🚀</span> M03: ORBITAL DEFENSE
+        <button data-cat="M03" class="leaderboard-tab-btn px-4 py-2 rounded-lg font-bold transition-all border border-white/10 bg-vanguard-panel/60 text-slate-400 hover:text-white hover:border-white/20 flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+          <span>🚀</span> M03: APEX LIFTOFF
         </button>
-        <button data-cat="M04" class="leaderboard-tab-btn px-4 py-2 rounded-lg font-bold transition-all border border-vanguard-border/60 bg-vanguard-panel/60 text-slate-400 hover:text-white hover:border-vanguard-border flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
-          <span>🚀</span> M04: TITAN'S FALL
+        <button data-cat="M04" class="leaderboard-tab-btn px-4 py-2 rounded-lg font-bold transition-all border border-white/10 bg-vanguard-panel/60 text-slate-400 hover:text-white hover:border-white/20 flex items-center gap-1.5 whitespace-nowrap cursor-pointer">
+          <span>🚀</span> M04: STRATOSPHERE ZERO
         </button>
       </div>
 
       <!-- Leaderboard Tactical Table -->
-      <div class="tactical-box rounded-xl border border-vanguard-border/80 overflow-hidden bg-black/60 shadow-2xl">
+      <div class="tactical-box rounded-xl border border-white/10 overflow-hidden bg-black/60 shadow-xl">
         <div class="overflow-x-auto">
           <table class="w-full text-left font-mono text-xs">
-            <thead id="leaderboard-thead" class="bg-vanguard-deep text-slate-400 border-b border-vanguard-border/80 uppercase text-[10px] tracking-wider">
+            <thead id="leaderboard-thead" class="bg-vanguard-deep text-slate-400 border-b border-white/10 uppercase text-[10px] tracking-wider">
               <!-- Rendered dynamically depending on global vs mission -->
             </thead>
-            <tbody id="leaderboard-tbody" class="divide-y divide-vanguard-border/40 text-slate-300">
+            <tbody id="leaderboard-tbody" class="divide-y divide-white/5 text-slate-300">
               <tr>
                 <td colspan="7" class="py-12 text-center text-slate-400 font-mono text-xs animate-pulse">
                   <span class="inline-block mr-2">⚡</span> INITIALIZING QUANTUM UPLINK TO FLEET ARCHIVES...
@@ -986,12 +1015,14 @@
     </div>
   </section>
 
-  <!-- Section 8: Downloads & System Specs -->
+  <!-- ===================================================================== -->
+  <!-- SECTION 8: DOWNLOADS & SYSTEM SPECS                                   -->
+  <!-- ===================================================================== -->
   <section id="downloads" class="py-24 relative">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8">
       
-      <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-vanguard-emerald/30 bg-vanguard-emerald/10 text-vanguard-emerald text-xs font-mono tracking-wider">
-        <span class="w-1.5 h-1.5 rounded-full bg-vanguard-emerald animate-ping"></span>
+      <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-mono tracking-wider">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
         <span>STABLE COMPILED ALPHA READY</span>
       </div>
 
@@ -1000,22 +1031,22 @@
       </h2>
 
       <p class="text-base sm:text-lg text-slate-300 font-light max-w-2xl mx-auto leading-relaxed">
-        Download the compiled Windows 64-bit binaries for <strong>Project Vanguard v0.9.3-alpha</strong>. Includes all 8 campaign missions, split-screen co-op, and LAN multiplayer.
+        Download the compiled Windows 64-bit binaries for <strong>Project Vanguard v0.9.4-alpha</strong>. Includes all 8 campaign missions, split-screen co-op, and LAN multiplayer.
       </p>
 
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-        <a id="download-section-btn" href="https://github.com/bokk3/Vanguard/releases/latest" target="_blank" rel="noopener noreferrer" class="px-10 py-4 bg-vanguard-cyan text-black font-display font-bold text-xl uppercase tracking-wider rounded hover:bg-white hover:shadow-cyan-glow transition-all flex items-center gap-3">
+        <a id="download-section-btn" href="https://github.com/bokk3/Vanguard/releases/latest" target="_blank" rel="noopener noreferrer" class="px-10 py-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-xl uppercase tracking-wider rounded-lg shadow-md transition-all flex items-center gap-3">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          <span id="download-section-text">Download v0.9.3-Alpha (Win64)</span>
+          <span id="download-section-text">Download v0.9.4-Alpha (Win64)</span>
         </a>
-        <a href="https://github.com/bokk3/Vanguard" target="_blank" rel="noopener noreferrer" class="px-8 py-4 border border-vanguard-border bg-vanguard-panel text-slate-200 font-mono text-sm uppercase tracking-wider rounded hover:border-vanguard-cyan hover:text-vanguard-cyan transition-all">
+        <a href="https://github.com/bokk3/Vanguard" target="_blank" rel="noopener noreferrer" class="px-8 py-4 border border-white/10 bg-vanguard-panel text-slate-200 font-mono text-sm uppercase tracking-wider rounded-lg hover:border-amber-400/50 hover:text-amber-300 transition-all">
           Browse Source on GitHub
         </a>
       </div>
 
       <!-- System Requirements Card -->
-      <div class="tactical-box p-6 rounded-xl border border-vanguard-border max-w-2xl mx-auto mt-12 text-left font-mono text-xs text-slate-300 space-y-2">
-        <span class="text-vanguard-cyan font-bold uppercase tracking-wider block border-b border-vanguard-border pb-2">RECOMMENDED FLIGHT HARDWARE</span>
+      <div class="tactical-box p-6 rounded-xl border border-white/10 max-w-2xl mx-auto mt-12 text-left font-mono text-xs text-slate-300 space-y-2 bg-vanguard-panel">
+        <span class="text-amber-400 font-bold uppercase tracking-wider block border-b border-white/10 pb-2">RECOMMENDED FLIGHT HARDWARE</span>
         <div class="grid grid-cols-2 gap-2 pt-1">
           <div><strong class="text-white">OS:</strong> Windows 10/11 (64-bit) or Linux</div>
           <div><strong class="text-white">GPU:</strong> Vulkan 1.2+ Compatible (GTX 1060 / RX 580+)</div>
@@ -1027,12 +1058,14 @@
     </div>
   </section>
 
-  <!-- Footer -->
-  <footer class="bg-vanguard-dark border-t border-vanguard-border py-12 text-xs font-mono text-vanguard-textMuted">
+  <!-- ===================================================================== -->
+  <!-- FOOTER                                                                -->
+  <!-- ===================================================================== -->
+  <footer class="bg-vanguard-dark border-t border-white/10 py-12 text-xs font-mono text-slate-400">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
       
       <div class="flex items-center space-x-3">
-        <img src="/images/vanguard_squadron_patch_cropped.png" alt="404th Wing" class="w-8 h-8 object-contain">
+        <img src="/images/vanguard_squadron_patch_128.webp" alt="404th Wing" width="32" height="32" class="w-8 h-8 object-contain" loading="lazy" decoding="async">
         <div>
           <span class="text-white font-display font-bold text-sm tracking-wider">PROJECT VANGUARD</span>
           <p class="text-[10px] text-slate-500">Autonomous Sci-Fi 3D Asset Pipeline & Combat Flight Simulator</p>
@@ -1045,36 +1078,38 @@
       </div>
 
     </div>
+  </footer>
+
   <!-- ===================================================================== -->
   <!-- PILOT OPERATIONS PORTAL & REGISTRATION MODAL                          -->
   <!-- ===================================================================== -->
   <div id="pilotModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="relative w-full max-w-xl bg-vanguard-panel border border-vanguard-cyan/60 rounded-xl shadow-cyan-glow overflow-hidden font-mono flex flex-col">
+    <div class="relative w-full max-w-xl bg-vanguard-panel border border-amber-500/30 rounded-xl shadow-2xl overflow-hidden font-mono flex flex-col">
       
       <!-- Modal Header -->
-      <div class="bg-vanguard-deep/90 px-6 py-4 border-b border-vanguard-border flex items-center justify-between">
+      <div class="bg-vanguard-deep px-6 py-4 border-b border-white/10 flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <img src="/images/vanguard_squadron_patch_cropped.png" alt="404th Wing" class="w-8 h-8 object-contain">
+          <img src="/images/vanguard_squadron_patch_128.webp" alt="404th Wing" width="32" height="32" class="w-8 h-8 object-contain" loading="lazy" decoding="async">
           <div>
             <h3 class="font-display font-bold text-white text-base tracking-wider flex items-center gap-2">
               <span>PILOT COMMISSION TERMINAL</span>
-              <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px]">D1 EDGE LIVE</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px]">D1 EDGE LIVE</span>
             </h3>
-            <p class="text-[10px] text-vanguard-textMuted uppercase tracking-widest">Sol Orbital Directorate // Personnel Registry</p>
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest">Sol Orbital Directorate // Personnel Registry</p>
           </div>
         </div>
-        <button id="close-pilot-modal-btn" class="text-slate-400 hover:text-white p-1 text-lg">✕</button>
+        <button id="close-pilot-modal-btn" class="text-slate-400 hover:text-white p-1 text-lg cursor-pointer">✕</button>
       </div>
 
       <!-- Navigation Tabs -->
-      <div class="flex border-b border-vanguard-border text-xs uppercase tracking-wider bg-black/40">
-        <button id="tab-register-btn" class="flex-1 py-3 text-center border-b-2 border-vanguard-cyan text-vanguard-cyan font-bold transition-all bg-vanguard-cyan/5">
+      <div class="flex border-b border-white/10 text-xs uppercase tracking-wider bg-black/40">
+        <button id="tab-register-btn" class="flex-1 py-3 text-center border-b-2 border-amber-400 text-amber-400 font-bold transition-all bg-amber-500/10 cursor-pointer">
           🚀 Commission (Register)
         </button>
-        <button id="tab-login-btn" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-bold transition-all">
+        <button id="tab-login-btn" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-bold transition-all cursor-pointer">
           🔐 Authenticate (Login)
         </button>
-        <button id="tab-dossier-btn" class="hidden flex-1 py-3 text-center border-b-2 border-transparent text-vanguard-amber hover:text-white font-bold transition-all">
+        <button id="tab-dossier-btn" class="hidden flex-1 py-3 text-center border-b-2 border-transparent text-amber-300 hover:text-white font-bold transition-all cursor-pointer">
           🎖️ Pilot Dossier
         </button>
       </div>
@@ -1092,34 +1127,34 @@
 
           <form id="register-form" class="space-y-3">
             <div>
-              <label class="block text-[11px] font-bold text-vanguard-textMuted uppercase mb-1">
+              <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">
                 Flight Callsign (Unique Pilot Identifier)
               </label>
               <div class="relative">
-                <input id="reg-callsign" type="text" required placeholder="e.g. VIPER, MAVERICK-7, GHOST" class="w-full bg-slate-950 border border-vanguard-border rounded px-3 py-2 text-white font-mono text-xs uppercase tracking-wider focus:border-vanguard-cyan focus:outline-none">
+                <input id="reg-callsign" type="text" required placeholder="e.g. VIPER, MAVERICK-7, GHOST" class="w-full bg-slate-950 border border-white/10 rounded px-3 py-2 text-white font-mono text-xs uppercase tracking-wider focus:border-amber-400 focus:outline-none">
                 <span class="absolute right-3 top-2 text-[10px] text-slate-500">3-20 CHARS</span>
               </div>
             </div>
 
             <div>
-              <label class="block text-[11px] font-bold text-vanguard-textMuted uppercase mb-1">
+              <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">
                 Pilot Comm Email
               </label>
-              <input id="reg-email" type="email" required placeholder="pilot@vanguard.space" class="w-full bg-slate-950 border border-vanguard-border rounded px-3 py-2 text-white font-mono text-xs focus:border-vanguard-cyan focus:outline-none">
+              <input id="reg-email" type="email" required placeholder="pilot@vanguard.space" class="w-full bg-slate-950 border border-white/10 rounded px-3 py-2 text-white font-mono text-xs focus:border-amber-400 focus:outline-none">
             </div>
 
             <div>
-              <label class="block text-[11px] font-bold text-vanguard-textMuted uppercase mb-1">
+              <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">
                 Secure Security Passcode
               </label>
-              <input id="reg-password" type="password" required minlength="8" placeholder="••••••••••••" class="w-full bg-slate-950 border border-vanguard-border rounded px-3 py-2 text-white font-mono text-xs focus:border-vanguard-cyan focus:outline-none">
+              <input id="reg-password" type="password" required minlength="8" placeholder="••••••••••••" class="w-full bg-slate-950 border border-white/10 rounded px-3 py-2 text-white font-mono text-xs focus:border-amber-400 focus:outline-none">
               <span class="text-[10px] text-slate-500 mt-1 block">Protected with edge PBKDF2-HMAC-SHA256 (100,000 rounds).</span>
             </div>
 
             <div class="grid grid-cols-2 gap-3 pt-1">
               <div>
-                <label class="block text-[10px] font-bold text-vanguard-textMuted uppercase mb-1">Rank</label>
-                <select id="reg-rank" class="w-full bg-slate-950 border border-vanguard-border rounded px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Rank</label>
+                <select id="reg-rank" class="w-full bg-slate-950 border border-white/10 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400">
                   <option value="FLIGHT LIEUTENANT">FLIGHT LIEUTENANT</option>
                   <option value="CAPTAIN">CAPTAIN</option>
                   <option value="MAJOR">MAJOR</option>
@@ -1127,8 +1162,8 @@
                 </select>
               </div>
               <div>
-                <label class="block text-[10px] font-bold text-vanguard-textMuted uppercase mb-1">Squadron</label>
-                <select id="reg-squadron" class="w-full bg-slate-950 border border-vanguard-border rounded px-2.5 py-1.5 text-xs text-white focus:outline-none">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Squadron</label>
+                <select id="reg-squadron" class="w-full bg-slate-950 border border-white/10 rounded px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400">
                   <option value="404th Vanguard Strike Wing">404th Vanguard Strike Wing</option>
                   <option value="Sol Orbital Directorate">Sol Orbital Directorate</option>
                   <option value="Helion Aggressor Wing">Helion Aggressor Wing</option>
@@ -1136,7 +1171,7 @@
               </div>
             </div>
 
-            <button type="submit" id="btn-submit-reg" class="w-full mt-5 py-3.5 rounded-lg border-2 border-vanguard-gold bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-300 text-black font-display font-black text-sm uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(255,215,0,0.5)] hover:shadow-[0_0_30px_rgba(255,215,0,0.85)] active:scale-98 flex items-center justify-center gap-2 cursor-pointer">
+            <button type="submit" id="btn-submit-reg" class="w-full mt-5 py-3.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-sm uppercase tracking-widest transition-all shadow-md active:scale-98 flex items-center justify-center gap-2 cursor-pointer">
               <span class="text-base">🎖️</span>
               <span>COMMISSION CALLSIGN // ENLIST NOW</span>
             </button>
@@ -1153,20 +1188,20 @@
 
           <form id="login-form" class="space-y-3">
             <div>
-              <label class="block text-[11px] font-bold text-vanguard-textMuted uppercase mb-1">
+              <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">
                 Callsign or Registered Email
               </label>
-              <input id="login-identifier" type="text" required placeholder="VIPER or pilot@vanguard.space" class="w-full bg-slate-950 border border-vanguard-border rounded px-3 py-2 text-white font-mono text-xs focus:border-vanguard-cyan focus:outline-none uppercase">
+              <input id="login-identifier" type="text" required placeholder="VIPER or pilot@vanguard.space" class="w-full bg-slate-950 border border-white/10 rounded px-3 py-2 text-white font-mono text-xs focus:border-amber-400 focus:outline-none uppercase">
             </div>
 
             <div>
-              <label class="block text-[11px] font-bold text-vanguard-textMuted uppercase mb-1">
+              <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">
                 Passcode
               </label>
-              <input id="login-password" type="password" required placeholder="••••••••••••" class="w-full bg-slate-950 border border-vanguard-border rounded px-3 py-2 text-white font-mono text-xs focus:border-vanguard-cyan focus:outline-none">
+              <input id="login-password" type="password" required placeholder="••••••••••••" class="w-full bg-slate-950 border border-white/10 rounded px-3 py-2 text-white font-mono text-xs focus:border-amber-400 focus:outline-none">
             </div>
 
-            <button type="submit" id="btn-submit-login" class="w-full mt-4 py-3 rounded bg-vanguard-cyan hover:bg-white text-black font-display font-bold text-xs uppercase tracking-widest transition-all shadow-cyan-glow active:scale-98 flex items-center justify-center gap-2">
+            <button type="submit" id="btn-submit-login" class="w-full mt-4 py-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-xs uppercase tracking-widest transition-all shadow-md active:scale-98 flex items-center justify-center gap-2 cursor-pointer">
               <span>🔐</span>
               <span>AUTHENTICATE PILOT</span>
             </button>
@@ -1176,57 +1211,55 @@
         <!-- VIEW 3: PILOT DOSSIER / SERVICE RECORD -->
         <div id="view-dossier" class="hidden space-y-5">
           <!-- Military ID Badge -->
-          <div class="p-4 rounded-xl border border-vanguard-cyan/60 bg-gradient-to-r from-vanguard-deep via-vanguard-panel to-vanguard-deep shadow-hud-box relative overflow-hidden">
-            <div class="absolute -right-6 -bottom-6 w-32 h-32 rounded-full border border-vanguard-cyan/10 pointer-events-none"></div>
-            
-            <div class="flex items-center justify-between pb-3 border-b border-vanguard-border/60">
+          <div class="p-4 rounded-xl border border-amber-500/30 bg-vanguard-deep shadow-md relative overflow-hidden">
+            <div class="flex items-center justify-between pb-3 border-b border-white/10">
               <div class="flex items-center gap-3">
-                <img src="/images/vanguard_squadron_patch_cropped.png" alt="404th Wing" class="w-12 h-12 object-contain drop-shadow-[0_0_8px_#00e5ff]">
+                <img src="/images/vanguard_squadron_patch_128.webp" alt="404th Wing" width="48" height="48" class="w-12 h-12 object-contain" loading="lazy" decoding="async">
                 <div>
-                  <div class="text-[9px] text-vanguard-cyan font-bold tracking-widest uppercase">// SOL ORBITAL DIRECTORATE //</div>
+                  <div class="text-[9px] text-amber-400 font-bold tracking-widest uppercase">// SOL ORBITAL DIRECTORATE //</div>
                   <h4 id="dossier-callsign" class="text-2xl font-black text-white font-display tracking-wider">VANGUARD-LEAD</h4>
-                  <div id="dossier-rank-squadron" class="text-[11px] text-vanguard-amber font-bold">FLIGHT LIEUTENANT // 404TH STRIKE WING</div>
+                  <div id="dossier-rank-squadron" class="text-[11px] text-amber-300 font-bold">FLIGHT LIEUTENANT // 404TH STRIKE WING</div>
                 </div>
               </div>
               <div class="text-right flex flex-col items-end gap-1">
-                <span class="inline-block px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-bold">ACTIVE SERVICE</span>
-                <span id="dossier-verified-badge" class="inline-block px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-[10px] font-bold">⚡ VERIFIED</span>
+                <span class="inline-block px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">ACTIVE SERVICE</span>
+                <span id="dossier-verified-badge" class="inline-block px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">⚡ VERIFIED</span>
               </div>
             </div>
 
             <!-- Stats Grid -->
             <div class="grid grid-cols-3 gap-3 pt-3 text-center">
-              <div class="p-2 rounded bg-black/40 border border-vanguard-border/50">
-                <div class="text-[10px] text-vanguard-textMuted uppercase">Sorties Flown</div>
+              <div class="p-2 rounded bg-black/40 border border-white/5">
+                <div class="text-[10px] text-slate-400 uppercase">Sorties Flown</div>
                 <div id="dossier-sorties" class="text-lg font-bold text-white mt-0.5">0</div>
               </div>
-              <div class="p-2 rounded bg-black/40 border border-vanguard-border/50">
-                <div class="text-[10px] text-vanguard-textMuted uppercase">Confirmed Kills</div>
-                <div id="dossier-kills" class="text-lg font-bold text-vanguard-cyan mt-0.5">0</div>
+              <div class="p-2 rounded bg-black/40 border border-white/5">
+                <div class="text-[10px] text-slate-400 uppercase">Confirmed Kills</div>
+                <div id="dossier-kills" class="text-lg font-bold text-amber-400 mt-0.5">0</div>
               </div>
-              <div class="p-2 rounded bg-black/40 border border-vanguard-border/50">
-                <div class="text-[10px] text-vanguard-textMuted uppercase">Campaign Status</div>
-                <div id="dossier-campaign" class="text-lg font-bold text-vanguard-amber mt-0.5">M01</div>
+              <div class="p-2 rounded bg-black/40 border border-white/5">
+                <div class="text-[10px] text-slate-400 uppercase">Campaign Status</div>
+                <div id="dossier-campaign" class="text-lg font-bold text-amber-300 mt-0.5">M01</div>
               </div>
             </div>
 
             <div class="grid grid-cols-3 gap-3 pt-2 text-center">
-              <div class="p-2 rounded bg-black/40 border border-vanguard-border/50">
+              <div class="p-2 rounded bg-black/40 border border-white/5">
                 <div class="text-[10px] text-emerald-400 uppercase">Dogfight Record</div>
                 <div id="dossier-record" class="text-base font-bold text-emerald-400 mt-0.5">0W - 0L</div>
               </div>
-              <div class="p-2 rounded bg-black/40 border border-vanguard-border/50">
-                <div class="text-[10px] text-yellow-400 uppercase">Win Rate</div>
-                <div id="dossier-win-rate" class="text-base font-bold text-yellow-400 mt-0.5">0.0%</div>
+              <div class="p-2 rounded bg-black/40 border border-white/5">
+                <div class="text-[10px] text-amber-300 uppercase">Win Rate</div>
+                <div id="dossier-win-rate" class="text-base font-bold text-amber-300 mt-0.5">0.0%</div>
               </div>
-              <div class="p-2 rounded bg-black/40 border border-vanguard-border/50">
-                <div class="text-[10px] text-vanguard-textMuted uppercase">Controls</div>
-                <div id="dossier-controls" class="text-base font-bold text-vanguard-cyan mt-0.5">AZERTY</div>
+              <div class="p-2 rounded bg-black/40 border border-white/5">
+                <div class="text-[10px] text-slate-400 uppercase">Controls</div>
+                <div id="dossier-controls" class="text-base font-bold text-white mt-0.5">AZERTY</div>
               </div>
             </div>
 
             <div class="pt-2 text-center">
-              <a href="#stats" id="dossier-stats-link" class="text-[11px] font-mono text-vanguard-cyan hover:underline inline-flex items-center gap-1">
+              <a href="#stats" id="dossier-stats-link" class="text-[11px] font-mono text-amber-400 hover:underline inline-flex items-center gap-1">
                 <span>📊</span>
                 <span>Open Full Combat Stats & Sortie History &rarr;</span>
               </a>
@@ -1234,24 +1267,24 @@
           </div>
 
           <!-- Currency & Daily Rewards Tactical Hub -->
-          <div class="p-4 rounded-xl border border-vanguard-gold/50 bg-gradient-to-r from-amber-950/20 via-black/60 to-amber-950/20 shadow-hud-box space-y-3">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-vanguard-border/50">
+          <div class="p-4 rounded-xl border border-amber-500/30 bg-vanguard-deep shadow-md space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-white/10">
               <div class="flex items-center gap-2">
                 <span class="text-2xl animate-pulse">⭐</span>
                 <div>
-                  <div class="text-[10px] text-vanguard-textMuted uppercase font-mono tracking-widest">TACTICAL CURRENCY BALANCE</div>
+                  <div class="text-[10px] text-slate-400 uppercase font-mono tracking-widest">TACTICAL CURRENCY BALANCE</div>
                   <div class="flex items-baseline gap-1.5">
-                    <span id="dossier-stars-val" class="text-2xl font-black text-vanguard-gold font-display">0</span>
-                    <span class="text-xs text-amber-300 font-mono font-bold">STARS</span>
+                    <span id="dossier-stars-val" class="text-2xl font-black text-amber-300 font-display">0</span>
+                    <span class="text-xs text-amber-400 font-mono font-bold">STARS</span>
                   </div>
                 </div>
               </div>
               <div class="flex items-center gap-2">
-                <button id="btn-claim-streak" class="px-3.5 py-2 rounded-lg bg-gradient-to-r from-amber-500/25 to-yellow-400/20 border border-vanguard-gold/80 text-vanguard-gold hover:from-vanguard-gold hover:to-amber-400 hover:text-black font-display font-bold text-xs uppercase tracking-wider transition-all shadow-[0_0_12px_rgba(255,215,0,0.25)] flex items-center gap-1.5 cursor-pointer">
+                <button id="btn-claim-streak" class="px-3.5 py-2 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500 hover:text-slate-950 font-display font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-sm">
                   <span>🎁</span>
                   <span id="streak-claim-label">CLAIM DAILY BONUS</span>
                 </button>
-                <button id="btn-open-wheel" class="px-3.5 py-2 rounded-lg bg-gradient-to-r from-vanguard-cyan/25 to-blue-500/20 border border-vanguard-cyan/80 text-vanguard-cyan hover:bg-vanguard-cyan hover:text-black font-display font-bold text-xs uppercase tracking-wider transition-all shadow-cyan-glow flex items-center gap-1.5 cursor-pointer">
+                <button id="btn-open-wheel" class="px-3.5 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-xs uppercase tracking-wider transition-all shadow-sm flex items-center gap-1.5 cursor-pointer">
                   <span>🎡</span>
                   <span id="wheel-btn-label">REWARD WHEEL</span>
                 </button>
@@ -1261,7 +1294,7 @@
             <!-- 7-Day Login Streak Progress -->
             <div>
               <div class="flex items-center justify-between text-[10px] font-mono text-slate-300 mb-1.5">
-                <span class="text-vanguard-gold font-bold">CONSECUTIVE LOGIN STREAK: <span id="streak-count-text">Day 1 / 7</span></span>
+                <span class="text-amber-400 font-bold">CONSECUTIVE LOGIN STREAK: <span id="streak-count-text">Day 1 / 7</span></span>
                 <span id="streak-bonus-hint" class="text-slate-400">Day 7: +500★ &amp; 🎖️ Fleet Dedication</span>
               </div>
               <div class="grid grid-cols-7 gap-1.5" id="streak-pips-container">
@@ -1271,22 +1304,22 @@
           </div>
 
           <!-- Dossier Sub-Navigation Tabs -->
-          <div class="flex border-b border-vanguard-border/60 font-mono text-xs">
-            <button id="subtab-record-btn" class="flex-1 py-2 text-center border-b-2 border-vanguard-cyan text-vanguard-cyan font-bold transition-colors">
+          <div class="flex border-b border-white/10 font-mono text-xs">
+            <button id="subtab-record-btn" class="flex-1 py-2 text-center border-b-2 border-amber-400 text-amber-400 font-bold transition-colors cursor-pointer">
               📊 Service Record
             </button>
-            <button id="subtab-badges-btn" class="flex-1 py-2 text-center border-b-2 border-transparent text-slate-400 hover:text-white transition-colors">
+            <button id="subtab-badges-btn" class="flex-1 py-2 text-center border-b-2 border-transparent text-slate-400 hover:text-white transition-colors cursor-pointer">
               🎖️ Badges (<span id="badges-unlocked-badge">0/10</span>)
             </button>
-            <button id="subtab-armory-btn" class="flex-1 py-2 text-center border-b-2 border-transparent text-slate-400 hover:text-white transition-colors">
+            <button id="subtab-armory-btn" class="flex-1 py-2 text-center border-b-2 border-transparent text-slate-400 hover:text-white transition-colors cursor-pointer">
               🛠️ Hangar Armory
             </button>
           </div>
 
           <!-- SUB-VIEW 1: RECORD & AUTHENTICATION -->
           <div id="dossier-view-record" class="space-y-4">
-            <!-- Email Verification Banner (Shown when pilot.email_verified == 0) -->
-            <div id="dossier-unverified-box" class="hidden p-3.5 rounded-lg border border-amber-500/60 bg-amber-950/30 space-y-2">
+            <!-- Email Verification Banner -->
+            <div id="dossier-unverified-box" class="hidden p-3.5 rounded-lg border border-amber-500/40 bg-amber-500/10 space-y-2">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <span class="text-amber-400 text-sm">⚠️</span>
@@ -1298,11 +1331,11 @@
                 Check your inbox for your 6-digit tactical clearance code or click the activation link dispatched via Brevo.
               </p>
               <div class="flex gap-2 pt-1">
-                <input id="input-dossier-verify-code" type="text" maxlength="6" placeholder="6-DIGIT CODE" class="w-32 bg-slate-950 border border-amber-500/50 rounded px-3 py-1.5 text-xs text-center text-white font-mono tracking-widest uppercase focus:border-amber-400 focus:outline-none">
-                <button id="btn-dossier-submit-verify" class="px-4 py-1.5 rounded bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase tracking-wider transition-all cursor-pointer">
+                <input id="input-dossier-verify-code" type="text" maxlength="6" placeholder="6-DIGIT CODE" class="w-32 bg-slate-950 border border-amber-500/40 rounded px-3 py-1.5 text-xs text-center text-white font-mono tracking-widest uppercase focus:border-amber-400 focus:outline-none">
+                <button id="btn-dossier-submit-verify" class="px-4 py-1.5 rounded bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer">
                   Confirm
                 </button>
-                <button id="btn-dossier-resend-verify" class="px-3 py-1.5 rounded border border-amber-500/40 hover:bg-amber-500/10 text-amber-300 text-xs font-mono transition-all cursor-pointer">
+                <button id="btn-dossier-resend-verify" class="px-3 py-1.5 rounded border border-amber-500/30 hover:bg-amber-500/10 text-amber-300 text-xs font-mono transition-all cursor-pointer">
                   Resend
                 </button>
               </div>
@@ -1310,17 +1343,17 @@
             </div>
 
             <!-- Quick Game Station Link Section -->
-            <div class="p-4 rounded-lg border border-vanguard-border bg-black/50 space-y-2">
+            <div class="p-4 rounded-lg border border-white/10 bg-black/50 space-y-2">
               <div class="flex items-center gap-2">
-                <span class="text-vanguard-cyan text-sm">📺</span>
+                <span class="text-amber-400 text-sm">📺</span>
                 <span class="text-xs font-bold text-white">PAIR WITH GAME STATION (PC / TV)</span>
               </div>
               <p class="text-[11px] text-slate-400 font-sans">
                 Enter the 6-character code shown on your game station screen to authenticate the PC without typing your password.
               </p>
               <div class="flex gap-2 pt-1">
-                <input id="input-station-code" type="text" placeholder="e.g. ACE-782" class="flex-1 bg-slate-950 border border-vanguard-border rounded px-3 py-1.5 text-xs text-white uppercase font-mono tracking-widest focus:border-vanguard-cyan focus:outline-none">
-                <button id="btn-approve-station" class="px-4 py-1.5 rounded bg-vanguard-cyan hover:bg-white text-black font-bold text-xs uppercase tracking-wider transition-all cursor-pointer">
+                <input id="input-station-code" type="text" placeholder="e.g. ACE-782" class="flex-1 bg-slate-950 border border-white/10 rounded px-3 py-1.5 text-xs text-white uppercase font-mono tracking-widest focus:border-amber-400 focus:outline-none">
+                <button id="btn-approve-station" class="px-4 py-1.5 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer">
                   Authorize
                 </button>
               </div>
@@ -1343,7 +1376,7 @@
             <!-- Fighter Liveries -->
             <div class="space-y-2">
               <div class="flex items-center justify-between text-xs font-mono">
-                <span class="text-vanguard-cyan font-bold uppercase tracking-wider">🎨 Interceptor Liveries (Skins)</span>
+                <span class="text-amber-400 font-bold uppercase tracking-wider">🎨 Interceptor Liveries (Skins)</span>
                 <span class="text-[10px] text-slate-400">APPLIED IN GODOT CLIENT</span>
               </div>
               <div id="skins-grid-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -1352,9 +1385,9 @@
             </div>
 
             <!-- Systems & Weapon Upgrades -->
-            <div class="space-y-2 pt-2 border-t border-vanguard-border/50">
+            <div class="space-y-2 pt-2 border-t border-white/10">
               <div class="flex items-center justify-between text-xs font-mono">
-                <span class="text-vanguard-gold font-bold uppercase tracking-wider">⚡ Combat Systems Upgrades</span>
+                <span class="text-amber-300 font-bold uppercase tracking-wider">⚡ Combat Systems Upgrades</span>
                 <span class="text-[10px] text-slate-400">TIERS I - III</span>
               </div>
               <div id="upgrades-list-container" class="space-y-2.5">
@@ -1364,12 +1397,12 @@
           </div>
 
           <!-- Modal Actions -->
-          <div class="flex items-center justify-between pt-2 border-t border-vanguard-border/60">
-            <a href="/controller.html" class="px-4 py-2 rounded border border-vanguard-amber/50 bg-vanguard-amber/10 hover:bg-vanguard-amber/20 text-vanguard-amber text-xs font-bold transition-all flex items-center gap-1.5">
+          <div class="flex items-center justify-between pt-2 border-t border-white/10">
+            <a href="/controller.html" class="px-4 py-2 rounded-lg border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-bold transition-all flex items-center gap-1.5">
               <span>📱</span>
               <span>Launch Mobile HOTAS</span>
             </a>
-            <button id="btn-logout" class="px-4 py-2 rounded border border-red-500/40 bg-red-950/20 hover:bg-red-900/40 text-red-400 text-xs font-bold transition-all cursor-pointer">
+            <button id="btn-logout" class="px-4 py-2 rounded-lg border border-red-500/40 bg-red-950/20 hover:bg-red-900/40 text-red-400 text-xs font-bold transition-all cursor-pointer">
               ⎋ Decommission / Logout
             </button>
           </div>
@@ -1380,40 +1413,42 @@
     </div>
   </div>
 
-  <!-- TACTICAL DAILY REWARD WHEEL MODAL -->
+  <!-- ===================================================================== -->
+  <!-- TACTICAL DAILY REWARD WHEEL MODAL                                     -->
+  <!-- ===================================================================== -->
   <div id="wheel-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-    <div class="tactical-box max-w-md w-full p-6 rounded-2xl border-2 border-vanguard-gold bg-black/95 shadow-[0_0_50px_rgba(255,215,0,0.3)] relative overflow-hidden text-center space-y-4">
-      <button id="close-wheel-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 text-lg font-mono">✕</button>
+    <div class="tactical-box max-w-md w-full p-6 rounded-2xl border border-amber-500/40 bg-vanguard-panel shadow-2xl relative overflow-hidden text-center space-y-4">
+      <button id="close-wheel-modal-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 text-lg font-mono cursor-pointer">✕</button>
       
       <div>
-        <div class="text-[10px] text-vanguard-gold font-bold tracking-widest uppercase flex items-center justify-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-vanguard-gold animate-pulse"></span>
+        <div class="text-[10px] text-amber-400 font-bold tracking-widest uppercase flex items-center justify-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
           SOL ORBITAL REWARD DISPATCH
         </div>
         <h3 class="text-xl font-display font-black text-white tracking-wider mt-1">DAILY REWARD WHEEL</h3>
-        <p class="text-xs text-slate-400 mt-1">Spin the orbital wheel once every 24 hours to win Stars, rare Liveries, and weapon modules!</p>
+        <p class="text-xs text-slate-300 mt-1">Spin the orbital wheel once every 24 hours to win Stars, rare Liveries, and weapon modules!</p>
       </div>
 
       <!-- Wheel Graphic Container -->
       <div class="relative w-64 h-64 mx-auto my-2 flex items-center justify-center">
         <!-- Center Pointer Arrow -->
-        <div class="absolute -top-3 z-20 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[18px] border-t-vanguard-gold drop-shadow-[0_0_8px_rgba(255,215,0,0.8)]"></div>
+        <div class="absolute -top-3 z-20 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[18px] border-t-amber-400 drop-shadow-md"></div>
         
         <!-- Rotating Canvas -->
-        <canvas id="wheel-canvas" width="256" height="256" class="w-64 h-64 rounded-full border-4 border-vanguard-border shadow-[0_0_25px_rgba(0,229,255,0.2)] transition-transform ease-out"></canvas>
+        <canvas id="wheel-canvas" width="256" height="256" class="w-64 h-64 rounded-full border-4 border-white/10 shadow-lg transition-transform ease-out"></canvas>
         
         <!-- Center Hub -->
-        <div class="absolute z-10 w-12 h-12 rounded-full bg-vanguard-dark border-2 border-vanguard-gold flex items-center justify-center shadow-lg pointer-events-none">
+        <div class="absolute z-10 w-12 h-12 rounded-full bg-vanguard-dark border-2 border-amber-400 flex items-center justify-center shadow-lg pointer-events-none">
           <span class="text-lg">⭐</span>
         </div>
       </div>
 
       <!-- Spin Outcome Feedback -->
-      <div id="wheel-feedback" class="min-h-[36px] flex items-center justify-center text-xs font-mono font-bold text-vanguard-cyan"></div>
+      <div id="wheel-feedback" class="min-h-[36px] flex items-center justify-center text-xs font-mono font-bold text-amber-400"></div>
 
       <!-- Spin Button -->
       <div>
-        <button id="btn-spin-wheel-action" class="w-full py-3.5 rounded-lg bg-gradient-to-r from-amber-500/25 via-yellow-400/20 to-amber-500/30 border-2 border-vanguard-gold text-vanguard-gold hover:from-vanguard-gold hover:to-amber-400 hover:text-black font-display font-black text-sm uppercase tracking-wider rounded-lg transition-all shadow-[0_0_20px_rgba(255,215,0,0.35)] cursor-pointer active:scale-98">
+        <button id="btn-spin-wheel-action" class="w-full py-3.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-sm uppercase tracking-wider transition-all shadow-md cursor-pointer active:scale-98">
           🎡 SPIN TACTICAL WHEEL
         </button>
       </div>

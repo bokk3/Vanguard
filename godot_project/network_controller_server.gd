@@ -418,7 +418,7 @@ func _broadcast_telemetry_to_phones() -> void:
 				ev_list.clear()
 
 		if is_instance_valid(ship):
-			var telem_node = ship.get_node_or_null("CombatTelemetry")
+			var telem_node = ship.telemetry if ("telemetry" in ship and is_instance_valid(ship.telemetry)) else ship.get_node_or_null("CombatTelemetry")
 			if telem_node:
 				telem_payload["shield"] = telem_node.current_shield
 				telem_payload["hull"] = telem_node.current_hull

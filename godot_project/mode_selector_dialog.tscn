@@ -3,50 +3,51 @@
 [ext_resource type="Script" path="res://mode_selector_dialog.gd" id="1_mod"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bg"]
-bg_color = Color(0.02, 0.05, 0.09, 0.96)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0, 0.85, 1, 0.8)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-shadow_color = Color(0, 0.85, 1, 0.3)
-shadow_size = 25
+bg_color = Color(0.08, 0.09, 0.12, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.25, 0.28, 0.35, 0.7)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.5)
+shadow_size = 20
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_solo"]
 content_margin_left = 20.0
 content_margin_top = 20.0
 content_margin_right = 20.0
 content_margin_bottom = 20.0
-bg_color = Color(0.04, 0.12, 0.2, 0.9)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0, 0.85, 1, 0.6)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+bg_color = Color(0.11, 0.13, 0.17, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.24, 0.28, 0.35, 0.7)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_online"]
 content_margin_left = 20.0
 content_margin_top = 20.0
 content_margin_right = 20.0
 content_margin_bottom = 20.0
-bg_color = Color(0.16, 0.1, 0.02, 0.9)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.84, 0, 0.6)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+bg_color = Color(0.14, 0.12, 0.08, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.96, 0.62, 0.04, 0.7)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
 
 [node name="ModeSelectorDialog" type="Control"]
 process_mode = 3
@@ -97,7 +98,7 @@ theme_override_constants/separation = 4
 
 [node name="HeaderTitle" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/HeaderBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 18
 text = "◈ VANGUARD COMMAND // SELECT OPERATIONAL THEATER"
 horizontal_alignment = 1
@@ -110,7 +111,7 @@ alignment = 1
 [node name="PilotTagLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/HeaderBox/PilotTagHBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.84, 0, 0.9)
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
 theme_override_font_sizes/font_size = 12
 text = "PILOT IDENTIFIED: VANGUARD-LEAD // 404TH WING"
 horizontal_alignment = 1
@@ -119,13 +120,13 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 custom_minimum_size = Vector2(130, 24)
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
 theme_override_font_sizes/font_size = 10
-text = "🧑‍✈️ [LOGIN / SWITCH]"
+text = "COMMISSION / SWITCH"
 
 [node name="Subtitle" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/HeaderBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.8, 0.92, 0.85)
+theme_override_colors/font_color = Color(0.65, 0.7, 0.76, 0.9)
 theme_override_font_sizes/font_size = 11
 text = "Select your deployment directive. You may switch theaters at any time from the hangar."
 horizontal_alignment = 1
@@ -133,7 +134,7 @@ horizontal_alignment = 1
 [node name="FleetTelemetryLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/HeaderBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.15, 0.95, 0.5, 0.95)
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
 theme_override_font_sizes/font_size = 11
 text = "🟢 GLOBAL FLEET RADAR: 1 PILOTS ONLINE // 0 COMBAT LOBBIES ACTIVE"
 horizontal_alignment = 1
@@ -157,14 +158,13 @@ theme_override_constants/separation = 12
 
 [node name="CardIcon" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/SoloCard/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 32
 text = "🤖"
 horizontal_alignment = 1
 
 [node name="CardTitle" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/SoloCard/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 15
 text = "SOLO SORTIE // VS AI"
 horizontal_alignment = 1
@@ -172,7 +172,7 @@ horizontal_alignment = 1
 [node name="CardDesc" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/SoloCard/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_colors/font_color = Color(0.75, 0.88, 0.95, 0.9)
+theme_override_colors/font_color = Color(0.75, 0.8, 0.86, 0.9)
 theme_override_font_sizes/font_size = 11
 text = "• 8-Mission Campaign Narrative
 • AI Drone Combat & Dogfights
@@ -185,9 +185,9 @@ autowrap_mode = 2
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 1, 0.85, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 13
-text = "[ 1 ]  ENGAGE SOLO // VS AI"
+text = "ENGAGE SOLO // VS AI"
 
 [node name="OnlineCard" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox"]
 layout_mode = 2
@@ -200,14 +200,14 @@ theme_override_constants/separation = 12
 
 [node name="CardIcon" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/OnlineCard/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
 theme_override_font_sizes/font_size = 32
 text = "🌐"
 horizontal_alignment = 1
 
 [node name="CardTitle" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/OnlineCard/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
 theme_override_font_sizes/font_size = 15
 text = "SQUADRON LOBBIES // MULTIPLAYER"
 horizontal_alignment = 1
@@ -215,7 +215,7 @@ horizontal_alignment = 1
 [node name="CardDesc" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/OnlineCard/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_colors/font_color = Color(0.95, 0.9, 0.75, 0.9)
+theme_override_colors/font_color = Color(0.85, 0.88, 0.92, 0.9)
 theme_override_font_sizes/font_size = 11
 text = "• LAN & Direct-IP Dogfight Arenas
 • Squadrons Configured into Parties
@@ -228,9 +228,9 @@ autowrap_mode = 2
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
 theme_override_font_sizes/font_size = 13
-text = "[ 2 ]  ENTER SQUADRON LOBBIES"
+text = "ENTER SQUADRON LOBBIES"
 
 [node name="Sep2" type="HSeparator" parent="CenterContainer/MainPanel/Margin/VBox"]
 layout_mode = 2
@@ -244,7 +244,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_colors/font_color = Color(0.88, 0.92, 0.96, 1)
 theme_override_font_sizes/font_size = 11
 text = "📱 [F3] PAIR PHONE AS CONTROLLER 1 (GYRO HOTAS)"
 
@@ -253,6 +253,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_color = Color(0.88, 0.92, 0.96, 1)
 theme_override_font_sizes/font_size = 11
 text = "⌨ [F1] FLIGHT LAYOUT: AZERTY (ZQSD)"
+

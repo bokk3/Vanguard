@@ -26,44 +26,27 @@ export async function onRequestGet({ env }) {
     }
 
     try {
-        // Defensive self-healing table initialization
-        await env.DB.prepare(`
-            CREATE TABLE IF NOT EXISTS active_sessions (
-                session_id TEXT PRIMARY KEY,
-                pilot_id TEXT,
-                callsign TEXT NOT NULL,
-                session_type TEXT DEFAULT 'PILOT',
-                metadata TEXT,
-                last_heartbeat DATETIME DEFAULT CURRENT_TIMESTAMP,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-        `).run();
+        // High-performance batched query (1 single edge-to-D1 round trip instead of 3 sequential round trips)
+        const [regBatch, onlineBatch, lobbyBatch] = await env.DB.batch([
+            env.DB.prepare("SELECT COUNT(*) AS count FROM pilots"),
+            env.DB.prepare("SELECT COUNT(DISTINCT session_id) AS count FROM active_sessions WHERE last_heartbeat >= datetime('now', '-90 seconds')"),
+            env.DB.prepare(`
+                SELECT session_id, callsign, metadata, last_heartbeat 
+                FROM active_sessions 
+                WHERE session_type = 'LOBBY' 
+                  AND last_heartbeat >= datetime('now', '-90 seconds')
+                ORDER BY last_heartbeat DESC 
+                LIMIT 20
+            `)
+        ]);
 
-        // 1. Registered Pilots Count
-        const regRow = await env.DB.prepare("SELECT COUNT(*) AS count FROM pilots").first();
-        const rawRegistered = regRow ? (regRow.count || 0) : 0;
-        // Baseline of 1,420 squadron enlistees plus organic registrations
+        const rawRegistered = regBatch?.results?.[0]?.count || 0;
         const registeredPilots = 1420 + rawRegistered;
 
-        // 2. Currently Online Pilots (heartbeat within last 90 seconds)
-        const onlineRow = await env.DB.prepare(`
-            SELECT COUNT(DISTINCT session_id) AS count 
-            FROM active_sessions 
-            WHERE last_heartbeat >= datetime('now', '-90 seconds')
-        `).first();
-        const onlinePilots = Math.max(onlineRow ? (onlineRow.count || 0) : 0, 1);
+        const onlinePilots = Math.max(onlineBatch?.results?.[0]?.count || 0, 1);
+        const lobbyRows = lobbyBatch?.results || [];
 
-        // 3. Active PvP Combat Lobbies (heartbeat within last 90 seconds)
-        const lobbyRows = await env.DB.prepare(`
-            SELECT session_id, callsign, metadata, last_heartbeat 
-            FROM active_sessions 
-            WHERE session_type = 'LOBBY' 
-              AND last_heartbeat >= datetime('now', '-90 seconds')
-            ORDER BY last_heartbeat DESC 
-            LIMIT 20
-        `).all();
-
-        const lobbies = (lobbyRows.results || []).map(r => {
+        const lobbies = lobbyRows.map(r => {
             let meta = {};
             try {
                 meta = JSON.parse(r.metadata || "{}");
@@ -96,7 +79,7 @@ export async function onRequestGet({ env }) {
             lobbies: lobbies,
             timestamp: new Date().toISOString()
         }, 200, {
-            "Cache-Control": "public, max-age=5, s-maxage=5"
+            "Cache-Control": "public, max-age=5, s-maxage=5, stale-while-revalidate=10"
         });
     } catch (err) {
         return jsonResponse({

@@ -102,11 +102,19 @@ func _ready() -> void:
 	current_nitro = max_nitro
 	missiles_remaining = max_missiles
 
+var radar_scan_timer: float = 0.0
+const RADAR_SCAN_INTERVAL: float = 0.066 ## ~15 Hz radar target sweep
+
 func _process(delta: float) -> void:
 	_process_shield_recharge(delta)
 	_process_nitro_recovery(delta)
 	_process_missile_reload(delta)
-	_scan_radar_targets()
+	
+	radar_scan_timer += delta
+	if radar_scan_timer >= RADAR_SCAN_INTERVAL:
+		radar_scan_timer = 0.0
+		_scan_radar_targets()
+		
 	_update_target_lock(delta)
 
 # --------------------------------------------------------
@@ -295,8 +303,13 @@ func _update_target_lock(delta: float) -> void:
 		duration *= 0.5 # 2x faster missile lock acquisition
 		
 	if current_target != null:
-		lock_progress = min(1.0, lock_progress + (delta / duration))
-		is_locked = (lock_progress >= 1.0)
+		if not is_instance_valid(current_target):
+			current_target = null
+			lock_progress = 0.0
+			is_locked = false
+		else:
+			lock_progress = min(1.0, lock_progress + (delta / duration))
+			is_locked = (lock_progress >= 1.0)
 	else:
 		lock_progress = max(0.0, lock_progress - (delta * 2.0))
 		is_locked = false

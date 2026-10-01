@@ -6,7 +6,7 @@
 
 @layer base {
   body {
-    @apply bg-vanguard-dark text-slate-100 font-sans antialiased overflow-x-hidden selection:bg-vanguard-cyan/30 selection:text-vanguard-cyan;
+    @apply bg-vanguard-dark text-slate-100 font-sans antialiased overflow-x-hidden selection:bg-amber-500/30 selection:text-amber-300;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -30,70 +30,50 @@
   opacity: 0.6;
 }
 
-/* Tactical Corner Brackets */
+/* Stealth Skunk Works Modern Aerospace Cards */
 .tactical-box {
   position: relative;
-  border: 1px solid rgba(27, 44, 68, 0.85);
-  background: rgba(14, 23, 36, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(21, 25, 33, 0.8);
   backdrop-filter: blur(12px);
+  border-radius: 0.5rem;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
-.tactical-box::before,
-.tactical-box::after {
-  content: '';
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  border-color: #00E5FF;
-  pointer-events: none;
-}
-
-.tactical-box::before {
-  top: -1px;
-  left: -1px;
-  border-top: 2px solid #00E5FF;
-  border-left: 2px solid #00E5FF;
-}
-
-.tactical-box::after {
-  bottom: -1px;
-  right: -1px;
-  border-bottom: 2px solid #00E5FF;
-  border-right: 2px solid #00E5FF;
+.tactical-box:hover {
+  border-color: rgba(245, 158, 11, 0.35);
 }
 
 /* Amber variant */
-.tactical-box-amber::before {
-  border-top-color: #FFB300;
-  border-left-color: #FFB300;
+.tactical-box-amber {
+  border-color: rgba(245, 158, 11, 0.25);
+  background: rgba(26, 29, 38, 0.85);
 }
-.tactical-box-amber::after {
-  border-bottom-color: #FFB300;
-  border-right-color: #FFB300;
+
+.tactical-box-amber:hover {
+  border-color: rgba(245, 158, 11, 0.6);
 }
 
 /* Crimson variant */
-.tactical-box-crimson::before {
-  border-top-color: #FF2A4D;
-  border-left-color: #FF2A4D;
-}
-.tactical-box-crimson::after {
-  border-bottom-color: #FF2A4D;
-  border-right-color: #FF2A4D;
+.tactical-box-crimson {
+  border-color: rgba(239, 68, 68, 0.25);
+  background: rgba(28, 22, 25, 0.85);
 }
 
-/* HUD Glowing Text */
-.glow-cyan {
-  text-shadow: 0 0 12px rgba(0, 229, 255, 0.65);
+.tactical-box-crimson:hover {
+  border-color: rgba(239, 68, 68, 0.6);
 }
 
+/* Refined Subtle Glow */
+.glow-cyan,
 .glow-amber {
-  text-shadow: 0 0 12px rgba(255, 179, 0, 0.65);
+  text-shadow: 0 0 16px rgba(245, 158, 11, 0.35);
 }
 
 .glow-crimson {
-  text-shadow: 0 0 12px rgba(255, 42, 77, 0.65);
+  text-shadow: 0 0 16px rgba(239, 68, 68, 0.35);
 }
+
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
@@ -102,15 +82,15 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #06090E;
+  background: #0B0D11;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1B2C44;
+  background: #1C222C;
   border-radius: 2px;
-  border: 1px solid rgba(0, 229, 255, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #00E5FF;
+  background: #F59E0B;
 }

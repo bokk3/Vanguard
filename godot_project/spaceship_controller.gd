@@ -3,6 +3,9 @@ extends CharacterBody3D
 signal layout_changed(is_azerty: bool)
 signal pvp_destroyed(killer_node: Node)
 
+const BULLET_SCENE: PackedScene = preload("res://bullet.tscn")
+const MISSILE_SCENE: PackedScene = preload("res://missile.tscn")
+
 @export_group("Multiplayer & PvP")
 @export var player_id: int = 1               ## 1 = Player 1, 2 = Player 2
 @export var is_split_screen: bool = false    ## Local split-screen active
@@ -754,9 +757,8 @@ func _fire_missile() -> void:
 		hardpoint_missiles[hp_idx].visible = false
 	
 	# Spawn live missile projectile
-	var missile_scene = load("res://missile.tscn")
-	if missile_scene:
-		var missile = missile_scene.instantiate()
+	if MISSILE_SCENE:
+		var missile = MISSILE_SCENE.instantiate()
 		var spawn_parent = get_tree().current_scene if get_tree().current_scene else get_parent()
 		if not spawn_parent:
 			spawn_parent = get_tree().root
@@ -998,9 +1000,8 @@ func _fire_machine_gun_round() -> void:
 	if gun_aim_assist_enabled and not is_network_remote:
 		bullet_dir = _calculate_aim_assist_dir(spawn_pos, bullet_dir)
 
-	var bullet_scene = load("res://bullet.tscn")
-	if bullet_scene:
-		var bullet = bullet_scene.instantiate()
+	if BULLET_SCENE:
+		var bullet = BULLET_SCENE.instantiate()
 		var tree = get_tree()
 		var spawn_parent = null
 		if tree:

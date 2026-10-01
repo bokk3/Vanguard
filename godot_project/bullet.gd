@@ -17,7 +17,10 @@ var has_hit: bool = false
 static var _cached_mesh: SphereMesh = null
 static var _cached_hull_mat: StandardMaterial3D = null
 static var _cached_shield_mat: StandardMaterial3D = null
+static var _cached_hostile_mat: StandardMaterial3D = null
 static var _proxy_sphere: SphereShape3D = null
+
+var shooter_exclude_rids: Array[RID] = []
 
 static func _init_cached_resources() -> void:
 	if _proxy_sphere == null:
@@ -39,6 +42,12 @@ static func _init_cached_resources() -> void:
 		_cached_shield_mat.emission_enabled = true
 		_cached_shield_mat.emission = Color(0.1, 0.7, 1.0, 1.0)
 		_cached_shield_mat.emission_energy_multiplier = 4.5
+	if _cached_hostile_mat == null:
+		_cached_hostile_mat = StandardMaterial3D.new()
+		_cached_hostile_mat.albedo_color = Color(1.0, 0.2, 0.1, 1.0)
+		_cached_hostile_mat.emission_enabled = true
+		_cached_hostile_mat.emission = Color(1.0, 0.15, 0.05, 1.0)
+		_cached_hostile_mat.emission_energy_multiplier = 5.5
 
 func _ready() -> void:
 	_init_cached_resources()
@@ -46,8 +55,19 @@ func _ready() -> void:
 		_apply_hostile_visuals()
 
 func setup(from_shooter: Node3D, forward_dir: Vector3, initial_speed: float = 0.0, hostile: bool = false) -> void:
+	_init_cached_resources()
 	shooter = from_shooter
 	is_hostile = hostile
+	
+	# Pre-cache shooter collision RIDs once upon spawn rather than traversing node hierarchy each physics tick
+	shooter_exclude_rids.clear()
+	if shooter and is_instance_valid(shooter):
+		if shooter is CollisionObject3D:
+			shooter_exclude_rids.append((shooter as CollisionObject3D).get_rid())
+		for child in shooter.find_children("*", "CollisionObject3D", true, false):
+			if child is CollisionObject3D:
+				shooter_exclude_rids.append((child as CollisionObject3D).get_rid())
+				
 	# Projectile inherits forward ship speed + bullet muzzle velocity
 	velocity = forward_dir.normalized() * (speed + max(initial_speed, 0.0))
 	if is_inside_tree():
@@ -58,12 +78,7 @@ func setup(from_shooter: Node3D, forward_dir: Vector3, initial_speed: float = 0.
 func _apply_hostile_visuals() -> void:
 	var tracer_mesh = get_node_or_null("TracerMesh") as MeshInstance3D
 	if tracer_mesh:
-		var red_mat = StandardMaterial3D.new()
-		red_mat.albedo_color = Color(1.0, 0.2, 0.1, 1.0)
-		red_mat.emission_enabled = true
-		red_mat.emission = Color(1.0, 0.15, 0.05, 1.0)
-		red_mat.emission_energy_multiplier = 5.5
-		tracer_mesh.material_override = red_mat
+		tracer_mesh.material_override = _cached_hostile_mat
 	var light = get_node_or_null("TracerLight") as OmniLight3D
 	if light:
 		light.light_color = Color(1.0, 0.25, 0.1, 1.0)
@@ -86,14 +101,8 @@ func _physics_process(delta: float) -> void:
 	var query = PhysicsRayQueryParameters3D.create(current_pos, next_pos)
 	query.collide_with_areas = true
 	query.collide_with_bodies = true
-	
-	if shooter:
-		var excludes: Array[RID] = []
-		if shooter is CollisionObject3D:
-			excludes.append(shooter.get_rid())
-		for child in shooter.find_children("*", "CollisionObject3D", true, false):
-			excludes.append((child as CollisionObject3D).get_rid())
-		query.exclude = excludes
+	if not shooter_exclude_rids.is_empty():
+		query.exclude = shooter_exclude_rids
 	
 	var hit = space_state.intersect_ray(query)
 	if not hit.is_empty():
@@ -105,8 +114,9 @@ func _physics_process(delta: float) -> void:
 		shape_query.transform = Transform3D(Basis(), next_pos)
 		shape_query.collide_with_areas = true
 		shape_query.collide_with_bodies = true
-		if shooter:
-			shape_query.exclude = query.exclude
+		if not shooter_exclude_rids.is_empty():
+			shape_query.exclude = shooter_exclude_rids
+
 		var shape_hits = space_state.intersect_shape(shape_query, 1)
 		if not shape_hits.is_empty():
 			_handle_hit(shape_hits[0].collider, next_pos, -velocity.normalized())
