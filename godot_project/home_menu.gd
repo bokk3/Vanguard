@@ -337,19 +337,24 @@ func _update_responsive_layout() -> void:
 		var tag_size = int(roundf(clampf(11.0 * ui_scale, 11.0, 15.0)))
 		hangar_tagline.add_theme_font_size_override("font_size", tag_size)
 	
-	# 3. Information box below Vanguard logo (PilotHUDCard)
+	# 3. Pilot overview card (PilotHUDCard) anchored to the bottom of the viewport
+	#    Sticks to the bottom-right so it never obscures the rotating hangar airplane animation.
 	if pilot_hud_card:
+		pilot_hud_card.anchor_left = 1.0
+		pilot_hud_card.anchor_right = 1.0
+		pilot_hud_card.anchor_top = 1.0
+		pilot_hud_card.anchor_bottom = 1.0
+		pilot_hud_card.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+		pilot_hud_card.grow_vertical = Control.GROW_DIRECTION_BEGIN
+		
 		pilot_hud_card.offset_left = - (right_width + right_margin)
 		pilot_hud_card.offset_right = - right_margin
 		
-		# Position cleanly underneath title_box_right
-		var logo_h_cur = title_logo.custom_minimum_size.y if title_logo else 130.0
-		var title_h_total = logo_h_cur + 38.0 * ui_scale
-		var hud_top = top_offset + title_h_total + 10.0 * ui_scale
-		pilot_hud_card.offset_top = hud_top
-		
 		var hud_h = roundf(clampf(156.0 * ui_scale, 156.0, 220.0))
-		pilot_hud_card.offset_bottom = hud_top + hud_h
+		var bottom_margin = roundf(clampf(24.0 * scale_y, 20.0, 44.0))
+		pilot_hud_card.offset_bottom = - bottom_margin
+		pilot_hud_card.offset_top = - (bottom_margin + hud_h)
+
 		
 		# Dynamically scale font sizes inside PilotHUDCard
 		var f_callsign = int(roundf(clampf(13.0 * ui_scale, 13.0, 18.0)))

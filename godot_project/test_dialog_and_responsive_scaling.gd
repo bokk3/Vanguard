@@ -61,7 +61,9 @@ func _run_all_tests() -> void:
 	assert(base_title_w >= 620.0, "TitleBoxRight base width should be at least 620")
 	assert(base_hud_w >= 620.0, "PilotHUDCard base width should be at least 620")
 	assert(menu.title_logo.custom_minimum_size.y >= 130.0, "TitleLogo base height should be at least 130")
-	print("[PASS] Base windowed metrics: Logo H=%d, Right Box W=%d, HUD W=%d" % [
+	assert(menu.pilot_hud_card.anchor_bottom == 1.0, "PilotHUDCard must be anchored to bottom of viewport")
+	assert(menu.pilot_hud_card.offset_bottom <= -20.0, "PilotHUDCard must have clean bottom offset")
+	print("[PASS] Base windowed metrics: Logo H=%d, Right Box W=%d, HUD W=%d (Anchored to Bottom)" % [
 		int(menu.title_logo.custom_minimum_size.y),
 		int(base_title_w),
 		int(base_hud_w)
