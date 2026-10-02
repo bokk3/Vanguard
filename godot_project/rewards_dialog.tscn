@@ -136,20 +136,20 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="MainPanel" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(920, 640)
+custom_minimum_size = Vector2(920, 520)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
 
 [node name="Margin" type="MarginContainer" parent="CenterContainer/MainPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 20
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
 
 [node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="HeaderHBox" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
 layout_mode = 2
@@ -277,12 +277,12 @@ layout_mode = 2
 theme_override_constants/separation = 28
 
 [node name="WheelCenter" type="CenterContainer" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer/ViewWheel"]
-custom_minimum_size = Vector2(360, 0)
+custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 
 [node name="WheelCanvas" type="Control" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer/ViewWheel/WheelCenter"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(320, 320)
+custom_minimum_size = Vector2(280, 280)
 layout_mode = 2
 
 [node name="WheelInfoVBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer/ViewWheel"]

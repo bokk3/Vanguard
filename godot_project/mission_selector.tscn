@@ -90,20 +90,20 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="MainPanel" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(1040, 680)
+custom_minimum_size = Vector2(1020, 520)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
 
 [node name="Margin" type="MarginContainer" parent="CenterContainer/MainPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 20
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
 
 [node name="MainVBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="HeaderBox" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/MainVBox"]
 layout_mode = 2

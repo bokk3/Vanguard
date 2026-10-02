@@ -3,10 +3,10 @@
 [ext_resource type="Script" path="res://agility_selector_dialog.gd" id="1_sel"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
-content_margin_left = 28.0
-content_margin_top = 22.0
-content_margin_right = 28.0
-content_margin_bottom = 22.0
+content_margin_left = 22.0
+content_margin_top = 16.0
+content_margin_right = 22.0
+content_margin_bottom = 16.0
 bg_color = Color(0.06, 0.08, 0.11, 0.98)
 border_width_left = 2
 border_width_top = 2
@@ -80,13 +80,13 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(1040, 680)
+custom_minimum_size = Vector2(1000, 520)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
 
 [node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 10
 
 [node name="Header" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
@@ -154,7 +154,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_ghost")
 text = "👻 GHOST: ON"
 
 [node name="Scroll" type="ScrollContainer" parent="CenterContainer/Panel/VBox"]
-custom_minimum_size = Vector2(0, 480)
+custom_minimum_size = Vector2(0, 350)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0

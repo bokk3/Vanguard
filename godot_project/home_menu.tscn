@@ -324,7 +324,8 @@ layout_mode = 2
 theme_override_constants/separation = 14
 
 [node name="SquadronBadge" type="TextureRect" parent="UI/Sidebar/Margin/VBox/HeaderBox"]
-custom_minimum_size = Vector2(80, 80)
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 100)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -477,42 +478,15 @@ theme_override_colors/font_color = Color(0.4, 0.8, 1, 1)
 theme_override_font_sizes/font_size = 10
 text = "🎖️ 0/10"
 
-[node name="BtnRow" type="HBoxContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="SwitchPilotBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox/BtnRow"]
+[node name="StatsQuickBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 26)
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
-size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 11
 theme_override_styles/normal = SubResource("StyleBoxFlat_badge")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "LOGIN"
-
-[node name="StatsQuickBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox/BtnRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 26)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
-theme_override_font_sizes/font_size = 10
-theme_override_styles/normal = SubResource("StyleBoxFlat_badge")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "DOSSIER"
-
-[node name="RewardsBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox/BtnRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 26)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
-theme_override_font_sizes/font_size = 10
-theme_override_styles/normal = SubResource("StyleBoxFlat_badge")
-theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "REWARDS"
+text = "  ▶ VIEW SERVICE DOSSIER"
 
 [node name="FleetRadarBox" type="PanelContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
 unique_name_in_owner = true
@@ -869,6 +843,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="HangarTagline" type="Label" parent="UI/TitleOverlay/TitleBoxRight"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 0.8)
 theme_override_font_sizes/font_size = 11

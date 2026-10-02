@@ -37,7 +37,7 @@ extends Node3D
 
 @onready var leaderboard_btn: Button = %LeaderboardBtn
 @onready var leaderboard_dialog: Control = %LeaderboardDialog
-@onready var rewards_btn: Button = %RewardsBtn
+@onready var rewards_btn: Button = get_node_or_null("%RewardsBtn")
 @onready var sub_intel_rewards_btn: Button = %SubIntelRewardsBtn
 @onready var rewards_dialog: Control = %RewardsDialog
 @onready var agility_selector: Control = %AgilitySelectorDialog
@@ -64,7 +64,7 @@ extends Node3D
 @onready var pilot_badges_label: Label = %PilotBadgesLabel
 @onready var pilot_avionics_label: Label = %PilotAvionicsLabel
 @onready var stats_quick_btn: Button = %StatsQuickBtn
-@onready var switch_pilot_btn: Button = %SwitchPilotBtn
+@onready var switch_pilot_btn: Button = get_node_or_null("%SwitchPilotBtn")
 @onready var fleet_stats_label: Label = %FleetStatsLabel
 @onready var fade_overlay: ColorRect = %FadeOverlay
 @onready var warp_audio: AudioStreamPlayer = %WarpAudio
@@ -92,6 +92,9 @@ extends Node3D
 @onready var telemetry_summary: Label = %TelemetrySummary
 @onready var footer_label: Label = %FooterLabel
 @onready var title_box_right: Control = %TitleBoxRight
+@onready var title_logo: TextureRect = %TitleLogo
+@onready var hangar_tagline: Label = %HangarTagline
+@onready var squadron_badge: TextureRect = %SquadronBadge
 
 var anim_time: float = 0.0
 var repair_percent: float = 84.0
@@ -278,6 +281,97 @@ func _ready() -> void:
 	_setup_turntable_hardpoints()
 	_check_save_game_state()
 	_setup_menu_music()
+
+	if get_viewport():
+		if not get_viewport().size_changed.is_connected(_on_viewport_size_changed):
+			get_viewport().size_changed.connect(_on_viewport_size_changed)
+	_update_responsive_layout()
+
+func _on_viewport_size_changed() -> void:
+	_update_responsive_layout()
+
+func _update_responsive_layout() -> void:
+	if not is_inside_tree():
+		return
+	var vp = get_viewport()
+	if not vp:
+		return
+	var vp_size = vp.get_visible_rect().size
+	if vp_size.x <= 0.0 or vp_size.y <= 0.0:
+		return
+	
+	# Reference base resolution is 1152 x 648
+	var scale_x: float = vp_size.x / 1152.0
+	var scale_y: float = vp_size.y / 648.0
+	var scale_min: float = minf(scale_x, scale_y)
+	var ui_scale: float = clampf(scale_min, 1.0, 1.75)
+	
+	# 1. 404 Badge scaling (+25% base = 100px, dynamically scaled)
+	if squadron_badge:
+		var badge_dim = roundf(100.0 * clampf(scale_min, 1.0, 1.45))
+		squadron_badge.custom_minimum_size = Vector2(badge_dim, badge_dim)
+	
+	# 2. Right Title Box & Vanguard Logo dynamic scaling
+	var base_width: float = 620.0
+	var right_width = roundf(clampf(base_width * scale_x, 620.0, 960.0))
+	var right_margin = roundf(clampf(40.0 * scale_x, 40.0, 72.0))
+	var top_offset = roundf(clampf(28.0 * scale_y, 28.0, 56.0))
+	
+	if title_box_right:
+		title_box_right.offset_left = - (right_width + right_margin)
+		title_box_right.offset_right = - right_margin
+		title_box_right.offset_top = top_offset
+		initial_title_y = top_offset
+	
+	if title_logo:
+		var logo_h = roundf(clampf(130.0 * ui_scale, 130.0, 220.0))
+		title_logo.custom_minimum_size = Vector2(0, logo_h)
+	
+	if hangar_tagline:
+		var tag_size = int(roundf(clampf(11.0 * ui_scale, 11.0, 15.0)))
+		hangar_tagline.add_theme_font_size_override("font_size", tag_size)
+	
+	# 3. Information box below Vanguard logo (PilotHUDCard)
+	if pilot_hud_card:
+		pilot_hud_card.offset_left = - (right_width + right_margin)
+		pilot_hud_card.offset_right = - right_margin
+		
+		# Position cleanly underneath title_box_right
+		var logo_h_cur = title_logo.custom_minimum_size.y if title_logo else 130.0
+		var title_h_total = logo_h_cur + 38.0 * ui_scale
+		var hud_top = top_offset + title_h_total + 10.0 * ui_scale
+		pilot_hud_card.offset_top = hud_top
+		
+		var hud_h = roundf(clampf(156.0 * ui_scale, 156.0, 220.0))
+		pilot_hud_card.offset_bottom = hud_top + hud_h
+		
+		# Dynamically scale font sizes inside PilotHUDCard
+		var f_callsign = int(roundf(clampf(13.0 * ui_scale, 13.0, 18.0)))
+		var f_sub = int(roundf(clampf(10.0 * ui_scale, 10.0, 14.0)))
+		var f_chip = int(roundf(clampf(10.0 * ui_scale, 10.0, 13.0)))
+		var f_btn = int(roundf(clampf(10.0 * ui_scale, 10.0, 13.0)))
+		
+		if hud_pilot_callsign_label:
+			hud_pilot_callsign_label.add_theme_font_size_override("font_size", f_callsign)
+		if hud_pilot_rank_label:
+			hud_pilot_rank_label.add_theme_font_size_override("font_size", f_sub)
+		if hud_avionics_label:
+			hud_avionics_label.add_theme_font_size_override("font_size", f_sub)
+		if hud_online_status_label:
+			var f_status = int(roundf(clampf(9.0 * ui_scale, 9.0, 12.0)))
+			hud_online_status_label.add_theme_font_size_override("font_size", f_status)
+		
+		for chip_lbl in [hud_stars_label, hud_streak_label, hud_badges_label, hud_sorties_label, hud_kills_label, hud_win_rate_label]:
+			if chip_lbl:
+				chip_lbl.add_theme_font_size_override("font_size", f_chip)
+		
+		var btn_h = roundf(clampf(26.0 * ui_scale, 26.0, 36.0))
+		for btn in [hud_stats_btn, hud_armory_btn, hud_profile_btn, hud_agility_btn]:
+			if btn:
+				btn.add_theme_font_size_override("font_size", f_btn)
+				btn.custom_minimum_size = Vector2(0, btn_h)
+
+
 
 func _show_login_dialog() -> void:
 	if login_dialog:

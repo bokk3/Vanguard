@@ -18,9 +18,9 @@ shadow_size = 24
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_statcard"]
 content_margin_left = 12.0
-content_margin_top = 10.0
+content_margin_top = 6.0
 content_margin_right = 12.0
-content_margin_bottom = 10.0
+content_margin_bottom = 6.0
 bg_color = Color(0.10, 0.12, 0.16, 0.85)
 border_width_left = 1
 border_width_top = 1
@@ -76,20 +76,20 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="MainPanel" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(840, 620)
+custom_minimum_size = Vector2(840, 500)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
 
 [node name="Margin" type="MarginContainer" parent="CenterContainer/MainPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 20
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 14
 
 [node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
 [node name="HeaderHBox" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
 layout_mode = 2
@@ -154,7 +154,7 @@ horizontal_alignment = 2
 [node name="Grid" type="GridContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
 layout_mode = 2
 theme_override_constants/h_separation = 12
-theme_override_constants/v_separation = 10
+theme_override_constants/v_separation = 6
 columns = 3
 
 [node name="CardSorties" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
@@ -175,7 +175,7 @@ text = "TOTAL SORTIES"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 17
 text = "0"
 
 [node name="CardKills" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
@@ -196,7 +196,7 @@ text = "BANDITS NEUTRALIZED"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.3, 0.2, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 17
 text = "0"
 
 [node name="CardTime" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
@@ -217,7 +217,7 @@ text = "FLIGHT TIME"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0.85, 1, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 17
 text = "0h 00m"
 
 [node name="CardWins" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
@@ -238,7 +238,7 @@ text = "DOGFIGHT WINS"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.1, 0.95, 0.4, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 17
 text = "0"
 
 [node name="CardLosses" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
@@ -259,7 +259,7 @@ text = "DOGFIGHT LOSSES"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.5, 0.5, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 17
 text = "0"
 
 [node name="CardRatio" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
@@ -280,7 +280,7 @@ text = "COMBAT WIN RATE"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.84, 0, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 17
 text = "0.0%"
 
 [node name="CardAgilityScore" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
@@ -301,7 +301,7 @@ text = "AVIONICS EXPERTISE"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0, 0.85, 1, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 17
 text = "0 PTS"
 
 [node name="CardAgilityMedals" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
@@ -321,8 +321,8 @@ text = "AGILITY MEDALS"
 [node name="AgilityMedalsVal" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardAgilityMedals/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.84, 0, 1)
-theme_override_font_sizes/font_size = 18
+	theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 15
 text = "🏆 0  🥇 0  🥈 0  🥉 0"
 
 [node name="CardAgilityClass" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
@@ -343,7 +343,7 @@ text = "FLIGHT MASTERY CLASS"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 text = "CLASS-E ROOKIE"
 
 [node name="HistoryHeader" type="Label" parent="CenterContainer/MainPanel/Margin/VBox"]
@@ -353,6 +353,7 @@ theme_override_font_sizes/font_size = 11
 text = "// RECENT COMBAT ENGAGEMENTS"
 
 [node name="HistoryBox" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 95)
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_logbox")
