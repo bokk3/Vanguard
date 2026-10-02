@@ -11,7 +11,7 @@ signal destroyed()
 @export var hull: float = 500.0
 @export var max_shield: float = 300.0
 @export var shield: float = 300.0
-@export var forward_speed: float = 18.0
+@export var forward_speed: float = 32.0
 
 var is_alive: bool = true
 var is_under_fire_warned: bool = false

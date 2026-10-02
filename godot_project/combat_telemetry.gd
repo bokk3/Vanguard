@@ -364,3 +364,17 @@ func restore_save_data(data: Dictionary) -> void:
 	nitro_changed.emit(current_nitro, max_nitro, is_overheated)
 	missile_fired.emit(missiles_remaining)
 
+func reset_telemetry() -> void:
+	current_shield = max_shield
+	current_hull = max_hull
+	current_nitro = max_nitro
+	is_overheated = false
+	overheat_timer = 0.0
+	missiles_remaining = max_missiles
+	time_since_damage = 10.0
+	shield_changed.emit(current_shield, max_shield)
+	hull_changed.emit(current_hull, max_hull)
+	nitro_changed.emit(current_nitro, max_nitro, false)
+	missile_replenished.emit(missiles_remaining)
+
+

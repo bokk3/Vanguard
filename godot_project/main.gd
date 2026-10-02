@@ -132,7 +132,8 @@ func join_player_2() -> void:
 	# Formation spawn alongside Player 1
 	var fwd = -ship_p1.global_transform.basis.z.normalized()
 	var right = ship_p1.global_transform.basis.x.normalized()
-	p2_ship.global_position = ship_p1.global_position + (right * 22.0) - (fwd * 6.0)
+	var lateral = -right * 20.0 if ship_p1.global_position.x < -20.0 else (right * 22.0)
+	p2_ship.global_position = ship_p1.global_position + lateral - (fwd * 6.0)
 	p2_ship.rotation = ship_p1.rotation
 	p2_ship.current_speed = ship_p1.current_speed
 	

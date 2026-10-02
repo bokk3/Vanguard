@@ -76,6 +76,7 @@ var last_pitch_input: float = 0.0
 
 var collision_cooldown: float = 0.0
 var is_airframe_destroyed: bool = false
+var catapult_locked: bool = false
 var camera_shake_trauma: float = 0.0
 var scrape_audio_player: AudioStreamPlayer = null
 var crash_audio_player: AudioStreamPlayer = null
@@ -522,6 +523,12 @@ func _physics_process(delta: float) -> void:
 		_process_machine_gun(delta)
 		return
 
+	if catapult_locked:
+		move_and_slide()
+		_process_flight_collisions(delta)
+		_process_camera_follow(delta)
+		return
+
 	# ----------------------------------------------------
 	# 1. Action-Based Throttle & Speed Management
 	# ----------------------------------------------------
@@ -862,6 +869,30 @@ func restore_save_data(data: Dictionary) -> void:
 		camera.look_at(global_position + (forward_dir * 8.0), global_transform.basis.y)
 	
 	if telemetry:
+		update_missile_racks(telemetry.missiles_remaining)
+
+func reset_state() -> void:
+	current_speed = cruise_speed
+	downward_velocity = 0.0
+	is_airframe_destroyed = false
+	collision_cooldown = 0.0
+	camera_shake_trauma = 0.0
+	was_boosting = false
+	catapult_locked = false
+	
+	var ship_model = get_node_or_null("Model")
+	if ship_model:
+		ship_model.visible = true
+		
+	var active_cam = custom_camera if custom_camera else camera
+	if active_cam and is_inside_tree() and active_cam.is_inside_tree():
+		var forward_dir = -global_transform.basis.z.normalized()
+		active_cam.global_position = global_position + (global_transform.basis.z * camera_distance) + (global_transform.basis.y * camera_height)
+		active_cam.look_at(global_position + (forward_dir * 8.0), global_transform.basis.y)
+		cam_first_frame = true
+	
+	if telemetry and telemetry.has_method("reset_telemetry"):
+		telemetry.reset_telemetry()
 		update_missile_racks(telemetry.missiles_remaining)
 
 # -----------------------------------------------------------------------------

@@ -595,7 +595,7 @@ func _spawn_m03_transport_and_allies() -> void:
 	m03_wave_drones_alive = 0
 	m03_is_cleared = false
 	
-	# Allied Heavy Transport Olympus-4
+	# Allied Heavy Transport Olympus-4 — center catapult rail (X = 0)
 	if transport_scene:
 		var transport = transport_scene.instantiate()
 		transport.name = "TransportOlympus4"
@@ -606,13 +606,52 @@ func _spawn_m03_transport_and_allies() -> void:
 			fail_mission("TRANSPORT_LOST", "Catastrophic hull failure on Olympus-4. The orbital payload was destroyed.")
 		)
 	
-	# Allied Wingman Viper 2
+	# Reposition Vanguard 1 (Player 1) in Combat Air Patrol port escort formation
+	# Flanking Olympus-4 safely on the port rail (-48m), clearing the center catapult track
+	if is_instance_valid(active_ship):
+		var p_pos = Vector3(-48.0, 42.0, -20.0)
+		if active_ship.is_inside_tree():
+			active_ship.global_position = p_pos
+			active_ship.global_rotation = Vector3.ZERO
+		else:
+			active_ship.position = p_pos
+			active_ship.rotation = Vector3.ZERO
+		
+		if active_ship.has_method("reset_state"):
+			active_ship.reset_state()
+		else:
+			if "current_speed" in active_ship:
+				active_ship.current_speed = 60.0
+			if "downward_velocity" in active_ship:
+				active_ship.downward_velocity = 0.0
+			if "is_airframe_destroyed" in active_ship:
+				active_ship.is_airframe_destroyed = false
+			if "collision_cooldown" in active_ship:
+				active_ship.collision_cooldown = 0.0
+		
+		# Reset camera immediately behind port escort position
+		var cam = active_ship.camera if ("camera" in active_ship and active_ship.camera) else (active_root.get_node_or_null("Camera3D") if active_root else null)
+		if cam and is_instance_valid(cam):
+			var dist = active_ship.camera_distance if "camera_distance" in active_ship else 14.0
+			var hgt = active_ship.camera_height if "camera_height" in active_ship else 4.0
+			cam.global_position = p_pos + Vector3(0, hgt, dist)
+			cam.look_at(p_pos + Vector3(0, 0, -8.0), Vector3.UP)
+		if "smoothed_look_target" in active_ship:
+			active_ship.smoothed_look_target = p_pos + Vector3(0, 0, -12.0)
+		if "smoothed_cam_up" in active_ship:
+			active_ship.smoothed_cam_up = Vector3.UP
+		if "cam_first_frame" in active_ship:
+			active_ship.cam_first_frame = true
+			
+		print("[MissionManager] M03: Vanguard 1 positioned in port escort formation @ ", p_pos)
+	
+	# Allied Wingman Viper 2 (Lt. Vance Miller) — starboard escort formation (+48m)
 	if viper_mesh:
 		var wingman = Node3D.new()
 		wingman.name = "Wingman_Viper2"
 		var v_inst = viper_mesh.instantiate()
 		wingman.add_child(v_inst)
-		wingman.position = Vector3(45, 42, -20)
+		wingman.position = Vector3(48.0, 42.0, -20.0)
 		active_root.add_child(wingman)
 	
 	# Spawn Wave 1

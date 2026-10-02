@@ -49,6 +49,7 @@ shape = SubResource("BoxShape3D_hitbox")
 [node name="PhysicalHull" type="AnimatableBody3D" parent="."]
 collision_layer = 16
 collision_mask = 0
+sync_to_physics = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="PhysicalHull"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
