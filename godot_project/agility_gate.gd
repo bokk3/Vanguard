@@ -43,16 +43,22 @@ func _setup_visuals() -> void:
 
 	_apply_material_color(default_color)
 
+var _cached_mat: StandardMaterial3D = null
+
 func _apply_material_color(col: Color) -> void:
 	if ring_mesh:
-		var mat = StandardMaterial3D.new()
-		mat.albedo_color = col
-		mat.emission_enabled = true
-		mat.emission = col
-		mat.emission_energy_multiplier = 2.5
-		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-		ring_mesh.material_override = mat
+		if not _cached_mat:
+			_cached_mat = StandardMaterial3D.new()
+			_cached_mat.emission_enabled = true
+			_cached_mat.emission_energy_multiplier = 2.5
+			_cached_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			_cached_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+			ring_mesh.material_override = _cached_mat
+		_cached_mat.albedo_color = col
+		_cached_mat.emission = col
+
+func _exit_tree() -> void:
+	_cached_mat = null
 
 func _on_body_entered(body: Node3D) -> void:
 	if is_cleared:

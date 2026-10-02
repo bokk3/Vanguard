@@ -387,12 +387,51 @@ func complete_trial() -> void:
 	# Update avionics expertise rating
 	_recalculate_avionics_expertise()
 	
+	# Check for Agility & Avionics military achievement badges
+	_check_agility_achievement_badges()
+	
 	_save_profile()
 	
 	trial_completed.emit(active_trial_id, stats)
 	print(">>> [AgilityManager] Trial [%s] Completed in %.3fs // Medal: %s // Precision: %.1f%%" % [
 		active_trial_id, final_time, medal, precision_pct
 	])
+
+func _check_agility_achievement_badges() -> void:
+	var rm = get_node_or_null("/root/RewardManager")
+	if not rm:
+		var main_loop = Engine.get_main_loop()
+		if main_loop and "root" in main_loop:
+			rm = main_loop.root.get_node_or_null("RewardManager")
+	if not rm or not rm.has_method("unlock_badge"):
+		return
+		
+	var all_completed = true
+	var all_gold_or_ace = true
+	var has_ace = false
+	
+	for t_id in TRIALS_DEF.keys():
+		if not trial_records.has(t_id):
+			all_completed = false
+			all_gold_or_ace = false
+			continue
+		var m = trial_records[t_id].get("medal", "NONE")
+		if m == "NONE":
+			all_completed = false
+			all_gold_or_ace = false
+		elif m == "ACE":
+			has_ace = true
+		elif m != "GOLD":
+			all_gold_or_ace = false
+			
+	if has_ace:
+		rm.unlock_badge("CHRONO_MASTER")
+	if all_completed and TRIALS_DEF.size() > 0:
+		rm.unlock_badge("KINETIC_ACE")
+	if all_gold_or_ace and TRIALS_DEF.size() > 0:
+		rm.unlock_badge("GOLDEN_VECTOR")
+	if avionics_score >= 2500:
+		rm.unlock_badge("AVIONICS_LEGEND")
 
 func _calculate_medal(t_id: String, time_val: float) -> String:
 	var t_def = TRIALS_DEF.get(t_id, {})

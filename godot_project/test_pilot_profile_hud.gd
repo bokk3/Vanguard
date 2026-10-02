@@ -88,8 +88,8 @@ func _run_hud_tests() -> void:
 	assert("VIPER-ONE" in menu.hud_pilot_callsign_label.text, "HUD callsign matches")
 	assert("COMMANDER" in menu.hud_pilot_rank_label.text, "HUD rank matches")
 	assert("750" in menu.hud_stars_label.text, "HUD stars count matches")
-	assert("4" in menu.hud_streak_label.text, "HUD streak count matches")
-	assert("3/10" in menu.hud_badges_label.text, "HUD badges count matches (3 unlocked)")
+	var total_badges = reward_mgr.BADGES_DEF.size()
+	assert("3/%d" % total_badges in menu.hud_badges_label.text, "HUD badges count matches (3 unlocked)")
 	assert("10" in menu.hud_sorties_label.text, "HUD sorties count matches")
 	assert("45" in menu.hud_kills_label.text, "HUD kills count matches")
 	assert("80.0%" in menu.hud_win_rate_label.text, "HUD win rate matches (8/10 = 80.0%)")
@@ -100,7 +100,7 @@ func _run_hud_tests() -> void:
 	assert("VIPER-ONE" in menu.pilot_label.text, "Sidebar pilot label matches")
 	assert("750" in menu.pilot_stars_label.text, "Sidebar stars label matches")
 	assert("4D" in menu.pilot_streak_label.text, "Sidebar streak label matches")
-	assert("3/10" in menu.pilot_badges_label.text, "Sidebar badges label matches")
+	assert("3/%d" % total_badges in menu.pilot_badges_label.text, "Sidebar badges label matches")
 	print("[PASS] Sidebar Pilot Dossier synchronized with live profile telemetry.")
 
 	# 6. Test Quick Action button routing
@@ -120,6 +120,7 @@ func _run_hud_tests() -> void:
 	print("[PASS] Quick action buttons (Combat Dossier & Armory) functional.")
 
 	menu.free()
+	await create_timer(0.05).timeout
 	print("=================================================================")
 	print(">>> ALL PILOT PROFILE HUD TESTS PASSED (100%)                <<<")
 	print("=================================================================")

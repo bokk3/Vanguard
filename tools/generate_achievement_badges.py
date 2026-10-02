@@ -3,8 +3,13 @@ import math
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "godot_project", "ui", "badges")
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUTPUT_DIRS = [
+    os.path.join(PROJECT_ROOT, "godot_project", "ui", "badges"),
+    os.path.join(PROJECT_ROOT, "website", "public", "images", "badges"),
+]
+for d in OUTPUT_DIRS:
+    os.makedirs(d, exist_ok=True)
 
 SIZE = 512
 SCALE = 2
@@ -108,11 +113,12 @@ def create_base_badge(primary_color, rim_color, bg_dark=(15, 18, 26)):
     return img, draw, r_inner
 
 def finalize_badge(img, filename):
-    # Downscale for super-sampled anti-aliasing
+    # Downscale for super-sampled anti-aliasing with optimized PNG compression
     final_img = img.resize((SIZE // 2, SIZE // 2), Image.Resampling.LANCZOS)
-    target_path = os.path.join(OUTPUT_DIR, filename)
-    final_img.save(target_path, "PNG")
-    print(f"Generated badge: {target_path} (256x256)")
+    for out_dir in OUTPUT_DIRS:
+        target_path = os.path.join(out_dir, filename)
+        final_img.save(target_path, "PNG", optimize=True)
+    print(f"Generated badge: {filename} (256x256) -> {len(OUTPUT_DIRS)} targets")
 
 # =============================================================================
 # 1. FIRST_SORTIE: Novice Pilot Wings & Supersonic Delta Climb
@@ -336,16 +342,132 @@ def gen_solar_fashion():
     draw_star(draw, CENTER, CENTER - int(r * 0.52), 32, 14, fill=(255, 215, 0))
     finalize_badge(img, "badge_solar_fashion.png")
 
+# =============================================================================
+# 11. KINETIC_ACE: All 8 Agility Flight Trials Completed
+# =============================================================================
+def gen_kinetic_ace():
+    img, draw, r = create_base_badge((255, 145, 0), (255, 185, 30), bg_dark=(18, 12, 10))
+    # Slalom Gate Pylons (Left & Right vertical high-g markers)
+    pylon_l = [(CENTER - int(r*0.62), CENTER + int(r*0.55)), (CENTER - int(r*0.48), CENTER - int(r*0.55)), (CENTER - int(r*0.40), CENTER - int(r*0.50)), (CENTER - int(r*0.54), CENTER + int(r*0.55))]
+    pylon_r = [(CENTER + int(r*0.62), CENTER + int(r*0.55)), (CENTER + int(r*0.48), CENTER - int(r*0.55)), (CENTER + int(r*0.40), CENTER - int(r*0.50)), (CENTER + int(r*0.54), CENTER + int(r*0.55))]
+    draw.polygon(pylon_l, fill=(255, 120, 0), outline=(255, 220, 80), width=2)
+    draw.polygon(pylon_r, fill=(255, 120, 0), outline=(255, 220, 80), width=2)
+    
+    # Glowing Holographic Gate Ring
+    draw.ellipse([CENTER - int(r*0.55), CENTER - int(r*0.25), CENTER + int(r*0.55), CENTER + int(r*0.45)], fill=None, outline=(255, 195, 0, 200), width=4)
+    
+    # Supersonic knife-edge banking fighter slicing through the apex
+    draw_fighter_jet(draw, CENTER, CENTER + 5, int(r * 0.48), (255, 255, 255), rot=math.radians(35))
+    draw_fighter_jet(draw, CENTER, CENTER + 5, int(r * 0.35), (255, 140, 0), rot=math.radians(35))
+    
+    # Kinetic commission star at zenith
+    draw_star(draw, CENTER, CENTER - int(r * 0.58), 34, 16, fill=(255, 215, 0), outline=(255, 255, 255), width=2)
+    finalize_badge(img, "badge_kinetic_ace.png")
+
+# =============================================================================
+# 12. GOLDEN_VECTOR: Gold / Ace Standard Across All 8 Trials
+# =============================================================================
+def gen_golden_vector():
+    img, draw, r = create_base_badge((255, 215, 0), (255, 230, 80), bg_dark=(26, 20, 4))
+    # Radiating golden coronal velocity lines
+    for deg in range(0, 360, 20):
+        rad = math.radians(deg)
+        p1 = (CENTER + int(r * 0.45 * math.cos(rad)), CENTER + int(r * 0.45 * math.sin(rad)))
+        p2 = (CENTER + int(r * 0.72 * math.cos(rad)), CENTER + int(r * 0.72 * math.sin(rad)))
+        draw.line([p1, p2], fill=(255, 210, 40, 160), width=3)
+        
+    # Dual polished gold laurel wings
+    draw_wings(draw, CENTER, CENTER + 45, int(r * 1.05), int(r * 0.42), (230, 175, 10))
+    draw_wings(draw, CENTER, CENTER + 38, int(r * 0.95), int(r * 0.36), (255, 225, 60))
+    
+    # Central Golden Apex Delta Vector
+    draw_fighter_jet(draw, CENTER, CENTER - 10, int(r * 0.52), (255, 255, 255))
+    draw_fighter_jet(draw, CENTER, CENTER - 10, int(r * 0.38), (255, 200, 0))
+    
+    # Tri-Star Golden Crown (Ace standards)
+    draw_star(draw, CENTER, CENTER - int(r * 0.55), 36, 16, fill=(255, 240, 80))
+    draw_star(draw, CENTER - 58, CENTER - int(r * 0.38), 26, 12, fill=(255, 215, 0))
+    draw_star(draw, CENTER + 58, CENTER - int(r * 0.38), 26, 12, fill=(255, 215, 0))
+    finalize_badge(img, "badge_golden_vector.png")
+
+# =============================================================================
+# 13. AVIONICS_LEGEND: 2,500+ Avionics Expertise Score
+# =============================================================================
+def gen_avionics_legend():
+    img, draw, r = create_base_badge((0, 240, 255), (140, 230, 255), bg_dark=(8, 18, 28))
+    # Precision telemetry compass rose & concentric bullseye rings
+    for radius in [int(r*0.68), int(r*0.50), int(r*0.30)]:
+        draw.ellipse([CENTER - radius, CENTER - radius, CENTER + radius, CENTER + radius], fill=None, outline=(0, 220, 255, 160), width=3)
+        
+    # Micro compass ticks (every 15 deg)
+    for deg in range(0, 360, 15):
+        rad = math.radians(deg)
+        l_in = r * 0.65 if deg % 45 == 0 else r * 0.69
+        p1 = (CENTER + int(l_in * math.cos(rad)), CENTER + int(l_in * math.sin(rad)))
+        p2 = (CENTER + int(r * 0.72 * math.cos(rad)), CENTER + int(r * 0.72 * math.sin(rad)))
+        draw.line([p1, p2], fill=(0, 240, 255), width=2 if deg % 45 != 0 else 4)
+        
+    # Swept supersonic cyber wings
+    draw_wings(draw, CENTER, CENTER + 25, int(r * 0.90), int(r * 0.35), (0, 160, 200))
+    draw_wings(draw, CENTER, CENTER + 20, int(r * 0.80), int(r * 0.30), (0, 240, 255))
+    
+    # Diamond Avionics Legend Star
+    draw_star(draw, CENTER, CENTER - int(r * 0.45), 42, 18, points=4, fill=(255, 255, 255), outline=(0, 240, 255), width=3)
+    finalize_badge(img, "badge_avionics_legend.png")
+
+# =============================================================================
+# 14. CHRONO_MASTER: Ace Standard Time Clocked on Flight Challenge
+# =============================================================================
+def gen_chrono_master():
+    img, draw, r = create_base_badge((50, 240, 140), (255, 200, 40), bg_dark=(6, 22, 16))
+    # Outer Chronometer Dial Ticks (60-second perimeter scale)
+    for s in range(60):
+        rad = math.radians(s * 6 - 90)
+        t_len = 22 if s % 5 == 0 else 10
+        p1 = (CENTER + int((r * 0.72 - t_len) * math.cos(rad)), CENTER + int((r * 0.72 - t_len) * math.sin(rad)))
+        p2 = (CENTER + int(r * 0.72 * math.cos(rad)), CENTER + int(r * 0.72 * math.sin(rad)))
+        draw.line([p1, p2], fill=(50, 240, 140, 220) if s % 5 == 0 else (40, 180, 100, 140), width=3 if s % 5 == 0 else 1)
+        
+    # Stopwatch Needle pointing at supersonic record mark (-45 deg)
+    needle_ang = math.radians(-50)
+    np1 = (CENTER - int(25 * math.cos(needle_ang)), CENTER - int(25 * math.sin(needle_ang)))
+    np2 = (CENTER + int(r * 0.65 * math.cos(needle_ang)), CENTER + int(r * 0.65 * math.sin(needle_ang)))
+    draw.line([np1, np2], fill=(255, 220, 50), width=5)
+    draw.ellipse([CENTER - 14, CENTER - 14, CENTER + 14, CENTER + 14], fill=(255, 220, 50), outline=(255, 255, 255), width=2)
+    
+    # Central Mach Sprint Delta Silhouette
+    draw_fighter_jet(draw, CENTER + 20, CENTER + 20, int(r * 0.40), (50, 240, 140))
+    draw_fighter_jet(draw, CENTER + 20, CENTER + 20, int(r * 0.28), (255, 255, 255))
+    
+    # Chrono Star at 12 o'clock
+    draw_star(draw, CENTER, CENTER - int(r * 0.55), 26, 12, fill=(255, 215, 0))
+    finalize_badge(img, "badge_chrono_master.png")
+
 if __name__ == "__main__":
-    print("Generating 10 tactical achievement badges for Project Vanguard...")
-    gen_first_sortie()
-    gen_ace_interceptor()
-    gen_war_god_of_sol()
-    gen_ghost_protocol()
-    gen_campaign_hero()
-    gen_fleet_dedication()
-    gen_lucky_strike()
-    gen_pvp_gladiator()
-    gen_arsenal_overlord()
-    gen_solar_fashion()
-    print("All 10 badges generated successfully!")
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+
+    t0 = time.time()
+    badge_generators = [
+        gen_first_sortie,
+        gen_ace_interceptor,
+        gen_war_god_of_sol,
+        gen_ghost_protocol,
+        gen_campaign_hero,
+        gen_fleet_dedication,
+        gen_lucky_strike,
+        gen_pvp_gladiator,
+        gen_arsenal_overlord,
+        gen_solar_fashion,
+        gen_kinetic_ace,
+        gen_golden_vector,
+        gen_avionics_legend,
+        gen_chrono_master,
+    ]
+    print(f"Generating {len(badge_generators)} tactical achievement badges for Project Vanguard...")
+    with ThreadPoolExecutor(max_workers=min(8, os.cpu_count() or 4)) as executor:
+        list(executor.map(lambda fn: fn(), badge_generators))
+        
+    elapsed = time.time() - t0
+    print(f"All {len(badge_generators)} badges generated & optimized successfully in {elapsed:.2f}s!")
+

@@ -13,6 +13,7 @@ from .laser_sentry import build_laser_sentry
 from .cavern_core import build_cavern_generator_core
 from .asteroids import build_asteroid_boulder, build_asteroid_cluster, build_tether_mine
 from .cavern_tunnel import build_cavern_tunnel
+from .agility_assets import build_agility_gate_pylon, build_target_buoy_drone
 
 BUILDERS = {
     "player_fighter_v_hull": build_player_fighter,
@@ -27,6 +28,8 @@ BUILDERS = {
     "asteroid_boulder_medium": build_asteroid_boulder,
     "asteroid_cluster_large": build_asteroid_cluster,
     "cavern_tunnel_straight": build_cavern_tunnel,
+    "agility_gate_pylon": build_agility_gate_pylon,
+    "target_buoy_drone": build_target_buoy_drone,
 }
 
 __all__ = [
@@ -42,5 +45,7 @@ __all__ = [
     "build_asteroid_boulder",
     "build_asteroid_cluster",
     "build_cavern_tunnel",
+    "build_agility_gate_pylon",
+    "build_target_buoy_drone",
     "BUILDERS",
 ]

@@ -133,6 +133,7 @@ func _run_all_tests() -> void:
 		inst.free()
 
 	menu.free()
+	await create_timer(0.05).timeout
 	print("=================================================================")
 	print(">>> ALL RESPONSIVE SCALING & DIALOG SIZING TESTS PASSED (100%) <<<")
 	print("=================================================================")

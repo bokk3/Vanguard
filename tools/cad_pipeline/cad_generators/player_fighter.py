@@ -119,6 +119,14 @@ def build_player_fighter(config=None):
         # Read-only import of baseline geometry to preserve exact hand-crafted custom split normals,
         # UVs, materials, and discrete prop meshes
         bpy.ops.import_scene.gltf(filepath=active_glb_path)
+        for o in bpy.data.objects:
+            if o.type == 'MESH':
+                bm = bmesh.new()
+                bm.from_mesh(o.data)
+                bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=0.001)
+                bm.to_mesh(o.data)
+                bm.free()
+                o.data.update()
         root = bpy.data.objects.get("Spaceship_Sculpted_V_Hull")
         bpy.context.view_layer.objects.active = root
     elif os.path.exists(stl_path):

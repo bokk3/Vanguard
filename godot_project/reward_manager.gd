@@ -21,6 +21,10 @@ const BADGES_DEF: Dictionary = {
 	"PVP_GLADIATOR": { "icon": "⚔️", "icon_texture": "res://ui/badges/badge_pvp_gladiator.png", "name": "PVP Gladiator", "desc": "Score victory against a rival pilot in local or online dogfight arena.", "condition": "Win a PvP match." },
 	"ARSENAL_OVERLORD": { "icon": "🛠️", "icon_texture": "res://ui/badges/badge_arsenal_overlord.png", "name": "Arsenal Overlord", "desc": "Upgrade any weapon or kinetic defense system to Tier III.", "condition": "Upgrade system to Tier 3." },
 	"SOLAR_FASHION": { "icon": "🎨", "icon_texture": "res://ui/badges/badge_solar_fashion.png", "name": "Solar Fashion", "desc": "Acquire and equip a custom aerospace livery from the Hangar.", "condition": "Equip custom livery." },
+	"KINETIC_ACE": { "icon": "⚡", "icon_texture": "res://ui/badges/badge_kinetic_ace.png", "name": "Kinetic Ace", "desc": "Flight mastery qualification: Complete all 8 Agility Flight Trials.", "condition": "Complete all 8 Trials." },
+	"GOLDEN_VECTOR": { "icon": "👑", "icon_texture": "res://ui/badges/badge_golden_vector.png", "name": "Golden Vector", "desc": "Apex flight excellence: Attain Gold or Ace grade across all 8 Agility Flight Trials.", "condition": "Earn Gold/Ace in 8 Trials." },
+	"AVIONICS_LEGEND": { "icon": "💎", "icon_texture": "res://ui/badges/badge_avionics_legend.png", "name": "Avionics Legend", "desc": "Master Aeronaut: Attain 2,500+ Avionics Expertise rating through precision bullseyes and flight maneuvers.", "condition": "Avionics score >= 2,500." },
+	"CHRONO_MASTER": { "icon": "⏱️", "icon_texture": "res://ui/badges/badge_chrono_master.png", "name": "Chrono Master", "desc": "Sub-second reflex precision: Clock an Ace standard time on any Agility flight challenge.", "condition": "Achieve Ace standard time." },
 }
 
 const SKINS_DEF: Dictionary = {

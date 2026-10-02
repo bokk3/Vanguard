@@ -431,25 +431,231 @@ def create_card_m08():
               fill=(255, 80, 100, 240), font=f_info)
     return img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
 
+# =============================================================================
+# AGILITY FLIGHT TRIALS (OPERATION KINETIC: T01 - T08)
+# =============================================================================
+
+def draw_agility_gate_hud(draw, cx, cy, rad, color=(245, 158, 11, 240)):
+    # Outer ring
+    draw.ellipse([cx - rad, cy - rad, cx + rad, cy + rad], outline=color, width=3 * SCALE)
+    # Inner bullseye ring
+    draw.ellipse([cx - rad * 0.45, cy - rad * 0.45, cx + rad * 0.45, cy + rad * 0.45], outline=(255, 255, 255, 200), width=2 * SCALE)
+    # Pylon support base
+    draw.line([(cx - rad, cy + rad), (cx - rad, cy + rad + 35 * SCALE)], fill=color, width=3 * SCALE)
+    draw.line([(cx + rad, cy + rad), (cx + rad, cy + rad + 35 * SCALE)], fill=color, width=3 * SCALE)
+
+def create_card_t01():
+    img = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    pad = 20 * SCALE
+    draw_hud_frame(draw, "TRIAL 01: SLALOM VECTOR [T-01]", "THEATER: APEX SALT FLATS // 20 PYLONS // CADENCE BANKING", (245, 158, 11, 240), border_color=(245, 158, 11, 180))
+    
+    # Alternating Slalom Gates along an S-curve trajectory
+    cx, cy = SW // 2, SH // 2 + 10 * SCALE
+    points = [
+        (cx - 180 * SCALE, cy + 30 * SCALE),
+        (cx - 80 * SCALE, cy - 20 * SCALE),
+        (cx + 20 * SCALE, cy + 30 * SCALE),
+        (cx + 120 * SCALE, cy - 20 * SCALE),
+        (cx + 200 * SCALE, cy + 20 * SCALE),
+    ]
+    # S-curve path
+    for i in range(len(points) - 1):
+        draw.line([points[i], points[i+1]], fill=(255, 180, 50, 100), width=2 * SCALE)
+    for px, py in points:
+        draw_agility_gate_hud(draw, px, py, 22 * SCALE, (245, 158, 11, 240))
+        
+    f_info = get_font(9)
+    draw.text((pad + 18 * SCALE, SH - pad - 26 * SCALE), "BENCHMARKS: GOLD 54.0s (500★) // ACE 48.5s (1000★) // REQUIRED: HIGH-G DRIFTS", fill=(255, 180, 50, 240), font=f_info)
+    return img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+
+def create_card_t02():
+    img = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    pad = 20 * SCALE
+    draw_hud_frame(draw, "TRIAL 02: CANYON NEEDLE [T-02]", "THEATER: IRON CANYON TRENCHES // 22 GATES // DECK SKIMMING", (255, 100, 30, 240), border_color=(255, 100, 30, 180))
+    
+    # Canyon crevice rock silhouettes
+    cx, cy = SW // 2, SH // 2 + 10 * SCALE
+    draw.polygon([(pad + 10 * SCALE, cy + 80 * SCALE), (cx - 140 * SCALE, cy - 20 * SCALE), (pad + 10 * SCALE, cy - 60 * SCALE)], fill=(40, 22, 14, 220), outline=(220, 90, 40, 200), width=2 * SCALE)
+    draw.polygon([(SW - pad - 10 * SCALE, cy + 80 * SCALE), (cx + 140 * SCALE, cy - 20 * SCALE), (SW - pad - 10 * SCALE, cy - 60 * SCALE)], fill=(40, 22, 14, 220), outline=(220, 90, 40, 200), width=2 * SCALE)
+    
+    # Central low trench gate
+    draw_agility_gate_hud(draw, cx, cy + 15 * SCALE, 26 * SCALE, (255, 120, 40, 240))
+    
+    f_info = get_font(9)
+    draw.text((pad + 18 * SCALE, SH - pad - 26 * SCALE), "BENCHMARKS: GOLD 62.0s (500★) // ACE 55.0s (1000★) // CEILING: 20 METERS MAX", fill=(255, 130, 60, 240), font=f_info)
+    return img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+
+def create_card_t03():
+    img = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    pad = 20 * SCALE
+    draw_hud_frame(draw, "TRIAL 03: KNIFE-EDGE CORRIDOR [T-03]", "THEATER: ORBITAL VOID GIRDERS // 90° & 45° SLIT ORIENTATIONS", (160, 80, 255, 240), border_color=(160, 80, 255, 180))
+    
+    # Structural Aperture Slit (Vertical Gate)
+    cx, cy = SW // 2, SH // 2 + 10 * SCALE
+    draw.rectangle([cx - 14 * SCALE, cy - 65 * SCALE, cx + 14 * SCALE, cy + 65 * SCALE], outline=(180, 100, 255, 240), width=3 * SCALE)
+    draw.line([(cx, cy - 65 * SCALE), (cx, cy + 65 * SCALE)], fill=(255, 255, 255, 140), width=2 * SCALE)
+    # Wing roll indicators
+    draw.text((cx - 80 * SCALE, cy - 10 * SCALE), "ROLL 90° ➔", fill=(200, 150, 255, 220), font=get_font(10))
+    draw.text((cx + 25 * SCALE, cy - 10 * SCALE), "VERTICAL", fill=(200, 150, 255, 220), font=get_font(10))
+    
+    f_info = get_font(9)
+    draw.text((pad + 18 * SCALE, SH - pad - 26 * SCALE), "BENCHMARKS: GOLD 68.0s (500★) // ACE 60.0s (1000★) // REQUIRED: KNIFE-EDGE PASSES", fill=(190, 130, 255, 240), font=f_info)
+    return img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+
+def create_card_t04():
+    img = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    pad = 20 * SCALE
+    draw_hud_frame(draw, "TRIAL 04: STRATOSPHERE ROLLER [T-04]", "THEATER: TWILIGHT EXOSPHERE // 3D LOOPS & HELICAL BARREL ROLLS", (0, 229, 255, 240), border_color=(0, 229, 255, 180))
+    
+    # Helical Corkscrew trajectory
+    cx, cy = SW // 2, SH // 2 + 5 * SCALE
+    for deg in range(0, 720, 20):
+        rad = math.radians(deg)
+        r_helix = (35 + deg * 0.08) * SCALE
+        hx = cx + (deg * 0.35 - 130) * SCALE
+        hy = cy + math.sin(rad) * 35 * SCALE
+        draw.ellipse([hx - 3*SCALE, hy - 3*SCALE, hx + 3*SCALE, hy + 3*SCALE], fill=(0, 220, 255, 180))
+        
+    f_info = get_font(9)
+    draw.text((pad + 18 * SCALE, SH - pad - 26 * SCALE), "BENCHMARKS: GOLD 78.0s (500★) // ACE 69.5s (1000★) // REQUIRED: BARREL ROLLS", fill=(0, 220, 255, 240), font=f_info)
+    return img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+
+def create_card_t05():
+    img = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    pad = 20 * SCALE
+    draw_hud_frame(draw, "TRIAL 05: INDUSTRIAL DRIFT [T-05]", "THEATER: SMELTING REFINERY // 90° HAIRPINS // AIRBRAKE DRIFT", (255, 70, 70, 240), border_color=(255, 70, 70, 180))
+    
+    # Right-angle hairpin corridor
+    cx, cy = SW // 2, SH // 2 + 10 * SCALE
+    draw.line([(cx - 160 * SCALE, cy + 50 * SCALE), (cx, cy + 50 * SCALE)], fill=(255, 80, 80, 200), width=4 * SCALE)
+    draw.line([(cx, cy + 50 * SCALE), (cx, cy - 60 * SCALE)], fill=(255, 80, 80, 200), width=4 * SCALE)
+    draw.line([(cx, cy - 60 * SCALE), (cx + 160 * SCALE, cy - 60 * SCALE)], fill=(255, 80, 80, 200), width=4 * SCALE)
+    draw_agility_gate_hud(draw, cx, cy + 50 * SCALE, 20 * SCALE, (255, 80, 80, 240))
+    draw_agility_gate_hud(draw, cx, cy - 60 * SCALE, 20 * SCALE, (255, 80, 80, 240))
+    
+    f_info = get_font(9)
+    draw.text((pad + 18 * SCALE, SH - pad - 26 * SCALE), "BENCHMARKS: GOLD 66.0s (500★) // ACE 58.0s (1000★) // TECHNIQUE: AIRBRAKE + VECTOR BREAKOUT", fill=(255, 100, 100, 240), font=f_info)
+    return img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+
+def create_card_t06():
+    img = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    pad = 20 * SCALE
+    draw_hud_frame(draw, "TRIAL 06: SUPERSONIC GAUNTLET [T-06]", "THEATER: POLAR MACH TRENCH // CONTINUOUS AFTERBURNER SPRINT", (50, 230, 140, 240), border_color=(50, 230, 140, 180))
+    
+    # Supersonic tunnel perspective rings
+    cx, cy = SW // 2, SH // 2 + 10 * SCALE
+    for rad, alpha in [(25 * SCALE, 240), (50 * SCALE, 180), (80 * SCALE, 120), (120 * SCALE, 70)]:
+        draw.ellipse([cx - rad, cy - rad * 0.65, cx + rad, cy + rad * 0.65], outline=(50, 230, 140, alpha), width=2 * SCALE)
+    draw.line([(cx - 150 * SCALE, cy), (cx + 150 * SCALE, cy)], fill=(255, 255, 255, 180), width=2 * SCALE)
+    
+    f_info = get_font(9)
+    draw.text((pad + 18 * SCALE, SH - pad - 26 * SCALE), "BENCHMARKS: GOLD 50.0s (500★) // ACE 44.0s (1000★) // SPEED REQUIREMENT: 100+ M/S", fill=(70, 240, 150, 240), font=f_info)
+    return img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+
+def create_card_t07():
+    img = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    pad = 20 * SCALE
+    draw_hud_frame(draw, "TRIAL 07: BLIND APEX WEATHER [T-07]", "THEATER: ION CLOUD STORM // VOLUMETRIC FOG // SENSOR FLIGHT", (120, 160, 220, 240), border_color=(120, 160, 220, 180))
+    
+    # Radar sweep beam in dense fog
+    cx, cy = SW // 2, SH // 2 + 10 * SCALE
+    draw.ellipse([cx - 70 * SCALE, cy - 70 * SCALE, cx + 70 * SCALE, cy + 70 * SCALE], outline=(130, 170, 230, 150), width=2 * SCALE)
+    draw.line([(cx, cy), (cx + 65 * SCALE, cy - 40 * SCALE)], fill=(255, 255, 255, 220), width=3 * SCALE)
+    # Sensor ghost waypoint
+    draw_agility_gate_hud(draw, cx + 35 * SCALE, cy - 20 * SCALE, 18 * SCALE, (140, 180, 240, 220))
+    
+    f_info = get_font(9)
+    draw.text((pad + 18 * SCALE, SH - pad - 26 * SCALE), "BENCHMARKS: GOLD 75.0s (500★) // ACE 66.0s (1000★) // VISIBILITY: ZERO (FOLLOW HUD)", fill=(150, 190, 240, 240), font=f_info)
+    return img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+
+def create_card_t08():
+    img = Image.new("RGBA", (SW, SH), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    pad = 20 * SCALE
+    draw_hud_frame(draw, "TRIAL 08: THE CRUCIBLE [T-08]", "THEATER: SKUNK WORKS PROVING GROUND // MASTER FLIGHT TEST", (255, 215, 0, 240), border_color=(255, 215, 0, 200))
+    
+    # Master trial golden eagle / vector crest
+    cx, cy = SW // 2, SH // 2 + 5 * SCALE
+    draw.polygon([
+        (cx, cy - 50 * SCALE),
+        (cx + 80 * SCALE, cy + 20 * SCALE),
+        (cx + 40 * SCALE, cy + 45 * SCALE),
+        (cx, cy + 20 * SCALE),
+        (cx - 40 * SCALE, cy + 45 * SCALE),
+        (cx - 80 * SCALE, cy + 20 * SCALE)
+    ], fill=(35, 28, 8, 220), outline=(255, 215, 0, 240), width=3 * SCALE)
+    
+    # Golden apex star
+    draw.ellipse([cx - 20*SCALE, cy - 10*SCALE, cx + 20*SCALE, cy + 30*SCALE], outline=(255, 255, 255, 240), width=2*SCALE)
+    
+    f_info = get_font(9)
+    draw.text((pad + 18 * SCALE, SH - pad - 26 * SCALE), "BENCHMARKS: GOLD 92.0s (500★) // ACE 82.0s (1000★) // ALL COMBAT & AEROBATIC SYSTEMS", fill=(255, 225, 50, 240), font=f_info)
+    return img.resize((WIDTH, HEIGHT), Image.Resampling.LANCZOS)
+
 def main():
-    generators = [
-        ("mission_card_m01.png", create_card_m01),
-        ("mission_card_m02.png", create_card_m02),
-        ("mission_card_m03.png", create_card_m03),
-        ("mission_card_m04.png", create_card_m04),
-        ("mission_card_m05.png", create_card_m05),
-        ("mission_card_m06.png", create_card_m06),
-        ("mission_card_m07.png", create_card_m07),
-        ("mission_card_m08.png", create_card_m08)
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+
+    t0 = time.time()
+    PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+    mission_dirs = [
+        os.path.join(PROJECT_ROOT, "godot_project", "ui"),
+        os.path.join(PROJECT_ROOT, "docs", "lore", "images"),
+        os.path.join(PROJECT_ROOT, "website", "public", "images")
+    ]
+    trial_dirs = [
+        os.path.join(PROJECT_ROOT, "godot_project", "ui", "trials"),
+        os.path.join(PROJECT_ROOT, "website", "public", "images", "trials"),
+        os.path.join(PROJECT_ROOT, "docs", "lore", "images", "trials")
     ]
     
-    for filename, gen_func in generators:
-        card_img = gen_func()
-        for out_dir in OUT_DIRS:
-            os.makedirs(out_dir, exist_ok=True)
+    for d in mission_dirs + trial_dirs:
+        os.makedirs(d, exist_ok=True)
+        
+    tasks = [
+        # Campaign Mission Cards
+        ("mission_card_m01.png", create_card_m01, mission_dirs),
+        ("mission_card_m02.png", create_card_m02, mission_dirs),
+        ("mission_card_m03.png", create_card_m03, mission_dirs),
+        ("mission_card_m04.png", create_card_m04, mission_dirs),
+        ("mission_card_m05.png", create_card_m05, mission_dirs),
+        ("mission_card_m06.png", create_card_m06, mission_dirs),
+        ("mission_card_m07.png", create_card_m07, mission_dirs),
+        ("mission_card_m08.png", create_card_m08, mission_dirs),
+        # Agility Mode Trial Cards
+        ("trial_card_t01.png", create_card_t01, trial_dirs),
+        ("trial_card_t02.png", create_card_t02, trial_dirs),
+        ("trial_card_t03.png", create_card_t03, trial_dirs),
+        ("trial_card_t04.png", create_card_t04, trial_dirs),
+        ("trial_card_t05.png", create_card_t05, trial_dirs),
+        ("trial_card_t06.png", create_card_t06, trial_dirs),
+        ("trial_card_t07.png", create_card_t07, trial_dirs),
+        ("trial_card_t08.png", create_card_t08, trial_dirs),
+    ]
+
+    def process_task(task):
+        filename, gen_fn, target_dirs = task
+        card_img = gen_fn()
+        for out_dir in target_dirs:
             out_path = os.path.join(out_dir, filename)
-            card_img.save(out_path, "PNG")
-            print(f"Generated {filename} -> {out_path} ({card_img.size})")
+            card_img.save(out_path, "PNG", optimize=True)
+        return filename
+
+    print(f"Generating {len(tasks)} tactical HUD mission & trial cards in parallel...")
+    with ThreadPoolExecutor(max_workers=min(8, os.cpu_count() or 4)) as executor:
+        completed = list(executor.map(process_task, tasks))
+
+    elapsed = time.time() - t0
+    print(f"All {len(completed)} tactical cards generated and optimized in {elapsed:.2f}s!")
 
 if __name__ == "__main__":
     main()
+

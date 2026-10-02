@@ -103,7 +103,7 @@ func _run_rewards_tests() -> void:
 	
 	rw_dialog._switch_tab("badges")
 	assert(rw_dialog.current_tab == "badges", "Tab should switch to badges")
-	assert(rw_dialog.badges_grid.get_child_count() == 10, "Should have 10 badge cards rendered")
+	assert(rw_dialog.badges_grid.get_child_count() == rm.BADGES_DEF.size(), "Should have all %d badge cards rendered" % rm.BADGES_DEF.size())
 	
 	rw_dialog.hide_dialog()
 	assert(rw_dialog.visible == false, "RewardsDialog should be hidden")

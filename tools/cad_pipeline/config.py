@@ -27,7 +27,7 @@ ASSET_CONFIGS = {
     "player_fighter_v_hull": {
         "name": "player_fighter_v_hull",
         "category": "vehicles",
-        "target_polycount": (18000, 35000),
+        "target_polycount": (7500, 35000),
         "generate_lods": False,
         "dimensions": {
             "length": 10.30,
@@ -418,9 +418,107 @@ ASSET_CONFIGS = {
             "ue5_fbx": os.path.join(STAGING_UE5_DIR, "environment", "cavern_tunnel_straight.fbx"),
         },
     },
+
+    "agility_gate_pylon": {
+        "name": "agility_gate_pylon",
+        "category": "environment",
+        "target_polycount": (1500, 6000),
+        "dimensions": {
+            "length": 3.2,
+            "width": 16.2,
+            "height": 19.0,
+            "tolerance_percent": 15.0,
+        },
+        "materials": [
+            "MI_Gate_Structure",
+            "MI_Holo_Ring",
+            "MI_Emitter_Node",
+        ],
+        "sockets": {
+            "SOCKET_Gate_Center": (0.0, 0.0, 6.0),
+            "SOCKET_Pylon_Top_L": (-6.0, 0.0, 12.6),
+            "SOCKET_Pylon_Top_R": (6.0, 0.0, 12.6),
+        },
+        "collision_parts": [
+            ("Pylon_L", (-6.5, 0.0, 6.0), (1.5, 2.0, 13.0)),
+            ("Pylon_R", (6.5, 0.0, 6.0), (1.5, 2.0, 13.0)),
+        ],
+        "export_paths": {
+            "godot_glb": os.path.join(STAGING_GODOT_DIR, "environment", "agility_gate_pylon.glb"),
+            "ue5_fbx": os.path.join(STAGING_UE5_DIR, "environment", "agility_gate_pylon.fbx"),
+        },
+    },
+
+    "target_buoy_drone": {
+        "name": "target_buoy_drone",
+        "category": "vehicles",
+        "target_polycount": (1000, 4500),
+        "dimensions": {
+            "length": 3.8,
+            "width": 4.0,
+            "height": 3.8,
+            "tolerance_percent": 15.0,
+        },
+        "materials": [
+            "MI_Target_Core",
+            "MI_Buoy_Armor",
+            "MI_Pulse_Ring",
+        ],
+        "sockets": {
+            "SOCKET_Sensor_Core": (0.0, 0.0, 0.0),
+            "SOCKET_Fin_01": (1.95, 0.0, 0.0),
+            "SOCKET_Fin_02": (-0.97, 1.68, 0.0),
+            "SOCKET_Fin_03": (-0.97, -1.68, 0.0),
+        },
+        "collision_parts": [
+            ("Buoy_Core", (0.0, 0.0, 0.0), (3.6, 3.6, 3.0)),
+        ],
+        "export_paths": {
+            "godot_glb": os.path.join(STAGING_GODOT_DIR, "vehicles", "target_buoy_drone.glb"),
+            "ue5_fbx": os.path.join(STAGING_UE5_DIR, "vehicles", "target_buoy_drone.fbx"),
+        },
+    },
 }
 
 MATERIAL_PRESETS = {
+    "MI_Gate_Structure": {
+        "base_color": (0.10, 0.12, 0.15, 1.0),
+        "metallic": 0.85,
+        "roughness": 0.35,
+    },
+    "MI_Holo_Ring": {
+        "base_color": (0.96, 0.62, 0.04, 1.0),
+        "metallic": 0.10,
+        "roughness": 0.15,
+        "emission": (0.96, 0.62, 0.04, 1.0),
+        "emission_strength": 16.0,
+    },
+    "MI_Emitter_Node": {
+        "base_color": (0.10, 0.85, 1.0, 1.0),
+        "metallic": 0.10,
+        "roughness": 0.10,
+        "emission": (0.10, 0.85, 1.0, 1.0),
+        "emission_strength": 20.0,
+    },
+    "MI_Target_Core": {
+        "base_color": (1.0, 0.22, 0.15, 1.0),
+        "metallic": 0.10,
+        "roughness": 0.15,
+        "emission": (1.0, 0.20, 0.10, 1.0),
+        "emission_strength": 15.0,
+    },
+    "MI_Buoy_Armor": {
+        "base_color": (0.16, 0.18, 0.22, 1.0),
+        "metallic": 0.90,
+        "roughness": 0.30,
+    },
+    "MI_Pulse_Ring": {
+        "base_color": (1.0, 0.55, 0.10, 1.0),
+        "metallic": 0.10,
+        "roughness": 0.15,
+        "emission": (1.0, 0.50, 0.10, 1.0),
+        "emission_strength": 15.0,
+    },
     "MI_Spaceship_Hull": {
         "base_color": (0.12, 0.14, 0.18, 1.0),
         "metallic": 0.85,

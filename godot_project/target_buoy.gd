@@ -28,6 +28,11 @@ func _ready() -> void:
 	
 	if label_dist:
 		label_dist.text = "[ TARGET %02d ]" % (target_index + 1)
+		
+	if mesh_core and not mesh_core.material_override:
+		var base_mat = mesh_core.get_surface_override_material(0)
+		if base_mat:
+			mesh_core.material_override = base_mat.duplicate()
 
 func _physics_process(delta: float) -> void:
 	if is_destroyed:

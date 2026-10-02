@@ -28,8 +28,19 @@ func _ready() -> void:
 	if am:
 		if not am.ghost_toggled.is_connected(_update_ghost_button):
 			am.ghost_toggled.connect(_update_ghost_button)
-		if not am.avionics_score_updated.is_connected(func(_s, _c): _refresh_header()):
-			am.avionics_score_updated.connect(func(_s, _c): _refresh_header())
+		if not am.avionics_score_updated.is_connected(_on_avionics_score_updated):
+			am.avionics_score_updated.connect(_on_avionics_score_updated)
+
+func _exit_tree() -> void:
+	var am = get_node_or_null("/root/AgilityManager")
+	if am:
+		if am.ghost_toggled.is_connected(_update_ghost_button):
+			am.ghost_toggled.disconnect(_update_ghost_button)
+		if am.avionics_score_updated.is_connected(_on_avionics_score_updated):
+			am.avionics_score_updated.disconnect(_on_avionics_score_updated)
+
+func _on_avionics_score_updated(_score: int, _class_rank: String) -> void:
+	_refresh_header()
 
 func show_selector() -> void:
 	_refresh_header()
@@ -87,7 +98,7 @@ func _populate_trials() -> void:
 		var rec = am.trial_records.get(t_id, {})
 		
 		var card = PanelContainer.new()
-		card.custom_minimum_size = Vector2(260, 200)
+		card.custom_minimum_size = Vector2(260, 275)
 		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		
 		# Skunk Works Card Style
@@ -111,6 +122,16 @@ func _populate_trials() -> void:
 		var vbox = VBoxContainer.new()
 		vbox.add_theme_constant_override("separation", 6)
 		card.add_child(vbox)
+
+		# Trial Tactical Preview Thumbnail
+		var card_tex_path = "res://ui/trials/trial_card_%s.png" % t_id.to_lower()
+		if ResourceLoader.exists(card_tex_path):
+			var tex_rect = TextureRect.new()
+			tex_rect.custom_minimum_size = Vector2(0, 68)
+			tex_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			tex_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+			tex_rect.texture = load(card_tex_path)
+			vbox.add_child(tex_rect)
 		
 		# Header: Trial ID & Codename
 		var h_top = HBoxContainer.new()

@@ -638,8 +638,9 @@ func _update_pilot_dossier_ui() -> void:
 		pilot_stars_label.text = "⭐ %d" % stars_count
 	if pilot_streak_label:
 		pilot_streak_label.text = "🔥 %dD" % streak_days
+	var total_badges = reward_mgr.BADGES_DEF.size() if reward_mgr and "BADGES_DEF" in reward_mgr else 14
 	if pilot_badges_label:
-		pilot_badges_label.text = "🎖️ %d/10" % badges_count
+		pilot_badges_label.text = "🎖️ %d/%d" % [badges_count, total_badges]
 	
 	var agility_mgr = _get_autoload_node("AgilityManager")
 	var av_score = agility_mgr.avionics_score if agility_mgr else 0
@@ -669,7 +670,7 @@ func _update_pilot_dossier_ui() -> void:
 	if hud_streak_label:
 		hud_streak_label.text = "🔥 %d-DAY STREAK" % streak_days
 	if hud_badges_label:
-		hud_badges_label.text = "🎖️ %d/10 MEDALS" % badges_count
+		hud_badges_label.text = "🎖️ %d/%d MEDALS" % [badges_count, total_badges]
 	if hud_sorties_label:
 		hud_sorties_label.text = "🚀 SORTIES: %d" % sorties_count
 	if hud_kills_label:

@@ -556,6 +556,10 @@ document.addEventListener('DOMContentLoaded', () => {
     { id: "PVP_GLADIATOR", icon: "⚔️", name: "PVP Gladiator", desc: "Score victory against a rival pilot in local or online dogfight arena.", condition: "Win a PvP match." },
     { id: "ARSENAL_OVERLORD", icon: "🛠️", name: "Arsenal Overlord", desc: "Upgrade any weapon or kinetic defense system to Tier III.", condition: "Upgrade system to Tier 3." },
     { id: "SOLAR_FASHION", icon: "🎨", name: "Solar Fashion", desc: "Acquire and equip a custom aerospace livery from the Hangar.", condition: "Equip custom livery." },
+    { id: "KINETIC_ACE", icon: "⚡", name: "Kinetic Ace", desc: "Flight mastery qualification: Complete all 8 Agility Flight Trials.", condition: "Complete all 8 Trials." },
+    { id: "GOLDEN_VECTOR", icon: "👑", name: "Golden Vector", desc: "Apex flight excellence: Attain Gold or Ace grade across all 8 Agility Flight Trials.", condition: "Earn Gold/Ace in 8 Trials." },
+    { id: "AVIONICS_LEGEND", icon: "💎", name: "Avionics Legend", desc: "Master Aeronaut: Attain 2,500+ Avionics Expertise rating through precision bullseyes and flight maneuvers.", condition: "Avionics score >= 2,500." },
+    { id: "CHRONO_MASTER", icon: "⏱️", name: "Chrono Master", desc: "Sub-second reflex precision: Clock an Ace standard time on any Agility flight challenge.", condition: "Achieve Ace standard time." },
   ];
 
   const SKINS_CATALOG = {
@@ -792,16 +796,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (['M05', 'M06', 'M07', 'M08'].includes(stats.highest_mission_unlocked)) unlockedSet.add("CAMPAIGN_HERO");
     if ((stats.battles_won || 0) >= 1) unlockedSet.add("PVP_GLADIATOR");
     if ((rewards.streak || 0) >= 7) unlockedSet.add("FLEET_DEDICATION");
+    if (rewards.agility_completed_all || (rewards.trials_completed && Object.keys(rewards.trials_completed).length >= 8)) unlockedSet.add("KINETIC_ACE");
+    if (rewards.agility_all_gold) unlockedSet.add("GOLDEN_VECTOR");
+    if ((rewards.avionics_score || 0) >= 2500) unlockedSet.add("AVIONICS_LEGEND");
+    if (rewards.has_ace_time) unlockedSet.add("CHRONO_MASTER");
 
     const totalUnlocked = BADGES_CATALOG.filter(b => unlockedSet.has(b.id)).length;
     if (countBadge) countBadge.textContent = `${totalUnlocked}/${BADGES_CATALOG.length}`;
 
     container.innerHTML = BADGES_CATALOG.map(b => {
       const isUnlocked = unlockedSet.has(b.id);
+      const badgeImgPath = `/images/badges/badge_${b.id.toLowerCase()}.png`;
       return `
         <div class="p-3 rounded-xl border ${isUnlocked ? 'border-amber-500/40 bg-gradient-to-r from-vanguard-deep to-black/80 shadow-sm' : 'border-white/5 bg-black/40 opacity-60'} flex items-start gap-3 transition-all hover:scale-[1.01]">
-          <div class="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0 ${isUnlocked ? 'bg-vanguard-cyan/20 border border-vanguard-cyan/50 shadow-cyan-glow' : 'bg-slate-800/50 border border-slate-700/50 grayscale'}">
-            ${b.icon}
+          <div class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 overflow-hidden ${isUnlocked ? 'bg-vanguard-cyan/10 border border-vanguard-cyan/50 shadow-cyan-glow' : 'bg-slate-800/50 border border-slate-700/50 grayscale opacity-40'}">
+            <img src="${badgeImgPath}" alt="${b.name}" class="w-full h-full object-contain p-0.5" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+            <span style="display:none;" class="text-xl items-center justify-center">${b.icon}</span>
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between">
