@@ -1,63 +1,112 @@
-[gd_scene load_steps=6 format=3 uid="uid://rwdiag88vanguard"]
+[gd_scene load_steps=9 format=3 uid="uid://rwdiag88vanguard"]
 
 [ext_resource type="Script" path="res://rewards_dialog.gd" id="1_rwd"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
-bg_color = Color(0.02, 0.05, 0.09, 0.97)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0, 0.9, 1, 0.8)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-shadow_color = Color(0, 0.9, 1, 0.25)
-shadow_size = 25
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_banner"]
-content_margin_left = 14.0
-content_margin_top = 8.0
-content_margin_right = 14.0
-content_margin_bottom = 8.0
-bg_color = Color(0.04, 0.1, 0.16, 0.85)
-border_width_left = 2
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(1, 0.84, 0, 0.7)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
-content_margin_left = 14.0
-content_margin_top = 12.0
-content_margin_right = 14.0
-content_margin_bottom = 12.0
-bg_color = Color(0.02, 0.04, 0.08, 0.85)
+bg_color = Color(0.07, 0.08, 0.11, 0.98)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.15, 0.3, 0.45, 0.5)
+border_color = Color(0.96, 0.62, 0.04, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_banner"]
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+bg_color = Color(0.10, 0.12, 0.16, 0.9)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.96, 0.62, 0.04, 0.6)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+content_margin_left = 16.0
+content_margin_top = 14.0
+content_margin_right = 16.0
+content_margin_bottom = 14.0
+bg_color = Color(0.06, 0.07, 0.1, 0.75)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.18, 0.22, 0.28, 0.6)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_active"]
-content_margin_left = 10.0
-content_margin_top = 6.0
-content_margin_right = 10.0
-content_margin_bottom = 6.0
-bg_color = Color(0.08, 0.18, 0.28, 0.95)
-border_width_bottom = 2
-border_color = Color(0, 0.95, 1, 1)
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.12, 0.14, 0.19, 0.98)
+border_width_left = 1
+border_width_top = 2
+border_width_right = 1
+border_width_bottom = 0
+border_color = Color(0.96, 0.62, 0.04, 1.0)
 corner_radius_top_left = 4
 corner_radius_top_right = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tab_inactive"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.06, 0.07, 0.09, 0.75)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.18, 0.22, 0.28, 0.5)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary"]
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+bg_color = Color(0.85, 0.52, 0.02, 0.95)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.78, 0.15, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
+content_margin_left = 16.0
+content_margin_top = 6.0
+content_margin_right = 16.0
+content_margin_bottom = 6.0
+bg_color = Color(0.11, 0.13, 0.17, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.22, 0.26, 0.32, 0.6)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [node name="RewardsDialog" type="Control"]
 process_mode = 3
@@ -76,7 +125,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.8)
+color = Color(0.01, 0.02, 0.04, 0.85)
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -87,20 +136,20 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="MainPanel" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(880, 620)
+custom_minimum_size = Vector2(920, 640)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
 
 [node name="Margin" type="MarginContainer" parent="CenterContainer/MainPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 22
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 22
-theme_override_constants/margin_bottom = 18
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
 
 [node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
 [node name="HeaderHBox" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
 layout_mode = 2
@@ -109,14 +158,15 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 15
-text = "🎖️ VANGUARD ARMORY & REWARD SYSTEM // PILOT QUARTERS"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "VANGUARD ARMORY & REWARD SYSTEM // PILOT QUARTERS"
 
 [node name="CloseBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/HeaderHBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(30, 30)
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 text = "✕"
 
 [node name="DossierBanner" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
@@ -125,40 +175,41 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_banner")
 
 [node name="HBox" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/DossierBanner"]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 16
 
 [node name="CallsignLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/DossierBanner/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
 theme_override_font_sizes/font_size = 12
-text = "PILOT: VANGUARD-LEAD // 404TH VANGUARD"
+text = "PILOT: VANGUARD-LEAD // 404th Vanguard Strike Wing"
 
 [node name="StarsPillLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/DossierBanner/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_colors/font_color = Color(1, 0.84, 0.15, 1)
 theme_override_font_sizes/font_size = 13
 text = "⭐ 0 STARS"
 
 [node name="Sep" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/DossierBanner/HBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.5, 0.6, 1)
+theme_override_colors/font_color = Color(0.3, 0.35, 0.45, 1)
 text = "|"
 
 [node name="StreakPillLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/DossierBanner/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.1, 0.95, 0.4, 1)
+theme_override_colors/font_color = Color(0.2, 0.9, 0.5, 1)
 theme_override_font_sizes/font_size = 12
 text = "🔥 1-DAY STREAK"
 
 [node name="SyncBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/DossierBanner/HBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(75, 24)
+custom_minimum_size = Vector2(80, 26)
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 text = "↺ SYNC"
 
 [node name="TabBar" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
@@ -167,53 +218,53 @@ theme_override_constants/separation = 8
 
 [node name="TabWheelBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/TabBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 32)
+custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 11
 theme_override_styles/normal = SubResource("StyleBoxFlat_tab_active")
-text = "🎡 DAILY SPIN"
+text = "DAILY SPIN"
 
 [node name="TabStreakBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/TabBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 32)
+custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.65, 0.78, 0.9, 1)
+theme_override_colors/font_color = Color(0.65, 0.72, 0.82, 1)
 theme_override_font_sizes/font_size = 11
-theme_override_styles/normal = SubResource("StyleBoxFlat_tab_active")
-text = "🔥 LOGIN STREAK"
+theme_override_styles/normal = SubResource("StyleBoxFlat_tab_inactive")
+text = "LOGIN STREAK"
 
 [node name="TabSkinsBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/TabBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 32)
+custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.65, 0.78, 0.9, 1)
+theme_override_colors/font_color = Color(0.65, 0.72, 0.82, 1)
 theme_override_font_sizes/font_size = 11
-theme_override_styles/normal = SubResource("StyleBoxFlat_tab_active")
-text = "🎨 LIVERY SKINS"
+theme_override_styles/normal = SubResource("StyleBoxFlat_tab_inactive")
+text = "HANGAR LIVERIES"
 
 [node name="TabUpgradesBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/TabBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 32)
+custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.65, 0.78, 0.9, 1)
+theme_override_colors/font_color = Color(0.65, 0.72, 0.82, 1)
 theme_override_font_sizes/font_size = 11
-theme_override_styles/normal = SubResource("StyleBoxFlat_tab_active")
-text = "🛠️ COMBAT UPGRADES"
+theme_override_styles/normal = SubResource("StyleBoxFlat_tab_inactive")
+text = "COMBAT UPGRADES"
 
 [node name="TabBadgesBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/TabBar"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 32)
+custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.65, 0.78, 0.9, 1)
+theme_override_colors/font_color = Color(0.65, 0.72, 0.82, 1)
 theme_override_font_sizes/font_size = 11
-theme_override_styles/normal = SubResource("StyleBoxFlat_tab_active")
-text = "🎖️ BADGES"
+theme_override_styles/normal = SubResource("StyleBoxFlat_tab_inactive")
+text = "MILITARY BADGES"
 
 [node name="ContentContainer" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
 layout_mode = 2
@@ -223,15 +274,15 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 [node name="ViewWheel" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 24
+theme_override_constants/separation = 28
 
 [node name="WheelCenter" type="CenterContainer" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer/ViewWheel"]
-custom_minimum_size = Vector2(340, 0)
+custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
 
 [node name="WheelCanvas" type="Control" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer/ViewWheel/WheelCenter"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(300, 300)
+custom_minimum_size = Vector2(320, 320)
 layout_mode = 2
 
 [node name="WheelInfoVBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer/ViewWheel"]
@@ -242,45 +293,46 @@ alignment = 1
 
 [node name="WheelHeader" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer/ViewWheel/WheelInfoVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 16
-text = "DAILY TACTICAL SUPPLY WHEEL"
+text = "TACTICAL SUPPLY STATION // DAILY DROP"
 
 [node name="WheelDesc" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer/ViewWheel/WheelInfoVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.85, 0.95, 1)
+theme_override_colors/font_color = Color(0.72, 0.78, 0.86, 1)
 theme_override_font_sizes/font_size = 11
-text = "Each Vanguard pilot receives one complimentary deployment of the tactical reward wheel every 24 hours. Prizes include Star currency packets, the rare Solar Flare gold livery, and Tier combat upgrades."
+text = "Each Vanguard pilot receives one orbital supply requisition drop every 24 hours. Rewards include Star currency allocations, the exclusive Solar Flare gold livery, and combat subsystem overclock upgrades."
 autowrap_mode = 2
 
 [node name="PrizesSummary" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer/ViewWheel/WheelInfoVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.84, 0, 1)
-theme_override_font_sizes/font_size = 10
-text = "PRIZES: 50★ | 100★ | 250★ | 500★ | 1,000★ JACKPOT | SOLAR FLARE | CANNON & SHIELD UPGRADES"
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 11
+text = "AVAILABLE CACHES:  50★ | 100★ | 250★ | 500★ | 1,000★ JACKPOT | SOLAR FLARE | WEAPON UPGRADES"
 autowrap_mode = 2
 
 [node name="WheelPrizeLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer/ViewWheel/WheelInfoVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.1, 0.95, 0.4, 1)
+theme_override_colors/font_color = Color(0.2, 0.85, 0.55, 1)
 theme_override_font_sizes/font_size = 13
-text = "// READY TO DEPLOY WHEEL //"
+text = "// ORBITAL LINK READY // READY TO DEPLOY //"
 
 [node name="SpinBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer/ViewWheel/WheelInfoVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 13
-text = "🎡 [ DEPLOY DAILY WHEEL (FREE) ]"
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
+text = "DEPLOY DAILY REWARD WHEEL"
 
 [node name="WheelStatusLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer/ViewWheel/WheelInfoVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.7, 0.8, 1)
-theme_override_font_sizes/font_size = 10
-text = "// DAILY SORTIE REWARD READY // 1 FREE SPIN AVAILABLE //"
+theme_override_colors/font_color = Color(0.55, 0.62, 0.72, 1)
+theme_override_font_sizes/font_size = 11
+text = "// DAILY SORTIE REWARD READY // 1 COMPLIMENTARY SPIN AVAILABLE //"
 
 [node name="ViewStreak" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer"]
 unique_name_in_owner = true
@@ -291,16 +343,16 @@ alignment = 1
 
 [node name="StreakHeader" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer/ViewStreak"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 16
 text = "7-DAY SQUADRON DEDICATION STREAK"
 horizontal_alignment = 1
 
 [node name="StreakDesc" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer/ViewStreak"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.75, 0.88, 0.98, 1)
+theme_override_colors/font_color = Color(0.72, 0.78, 0.86, 1)
 theme_override_font_sizes/font_size = 11
-text = "Report for active duty every 24 hours to build your flight discipline streak. Reach Day 7 to secure +500 Stars and the exclusive 'Fleet Dedication' Military Badge!"
+text = "Report for active combat duty every 24 hours to reinforce your flight discipline streak. Reach Day 7 to secure +500 Stars and the prestigious 'Fleet Dedication' Military Badge!"
 horizontal_alignment = 1
 autowrap_mode = 2
 
@@ -315,15 +367,16 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(360, 44)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 13
-text = "🎁 [ CLAIM TODAY'S BONUS ]"
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
+text = "CLAIM TODAY'S REWARD BONUS"
 
 [node name="StreakStatusLabel" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer/ViewStreak"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.75, 0.85, 1)
-theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.55, 0.62, 0.72, 1)
+theme_override_font_sizes/font_size = 11
 text = "CURRENT STREAK: 1 CONSECUTIVE DAYS"
 horizontal_alignment = 1
 
@@ -336,8 +389,8 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 14
-theme_override_constants/v_separation = 12
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 14
 columns = 2
 
 [node name="ViewUpgrades" type="ScrollContainer" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer"]
@@ -349,8 +402,8 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 14
-theme_override_constants/v_separation = 12
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 14
 columns = 2
 
 [node name="ViewBadges" type="ScrollContainer" parent="CenterContainer/MainPanel/Margin/VBox/ContentContainer"]
@@ -362,8 +415,8 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/h_separation = 14
-theme_override_constants/v_separation = 10
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 12
 columns = 2
 
 [node name="FooterBar" type="HBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox"]
@@ -373,6 +426,6 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.65, 0.8, 0.9, 0.85)
+theme_override_colors/font_color = Color(0.55, 0.65, 0.75, 0.9)
 theme_override_font_sizes/font_size = 11
 text = "// ARMORY & WALLET SECURE // READY FOR OPERATIONS //"

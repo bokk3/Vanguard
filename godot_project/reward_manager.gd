@@ -11,16 +11,16 @@ signal upgrade_applied(upgrade_id: String, new_tier: int)
 signal rewards_updated()
 
 const BADGES_DEF: Dictionary = {
-	"FIRST_SORTIE": { "icon": "🎖️", "name": "First Sortie", "desc": "Complete initial flight qualification or combat sortie.", "condition": "Commissioned pilot." },
-	"ACE_INTERCEPTOR": { "icon": "⚡", "name": "Ace Interceptor", "desc": "Confirm 25 or more hostile targets destroyed in combat.", "condition": "Destroy 25 enemies." },
-	"WAR_GOD_OF_SOL": { "icon": "👑", "name": "War God of Sol", "desc": "Legendary combat standing: 100 confirmed career kills.", "condition": "Confirm 100 kills." },
-	"GHOST_PROTOCOL": { "icon": "🛡️", "name": "Ghost Protocol", "desc": "Flawless sortie execution: Survive an engagement taking zero hull damage.", "condition": "Flawless mission outcome." },
-	"CAMPAIGN_HERO": { "icon": "🌌", "name": "Campaign Hero", "desc": "Unlock and conquer Chapter / Mission 05: Silent Orbit.", "condition": "Complete Mission 05." },
-	"FLEET_DEDICATION": { "icon": "📅", "name": "Fleet Dedication", "desc": "Demonstrate relentless discipline: Maintain a 7-day login streak.", "condition": "Reach Day 7 streak." },
-	"LUCKY_STRIKE": { "icon": "🎯", "name": "Lucky Strike", "desc": "Hit the Grand Prize Jackpot (1,000★) on the Daily Tactical Wheel.", "condition": "Wheel Jackpot hit." },
-	"PVP_GLADIATOR": { "icon": "⚔️", "name": "PVP Gladiator", "desc": "Score victory against a rival pilot in local or online dogfight arena.", "condition": "Win a PvP match." },
-	"ARSENAL_OVERLORD": { "icon": "🛠️", "name": "Arsenal Overlord", "desc": "Upgrade any weapon or kinetic defense system to Tier III.", "condition": "Upgrade system to Tier 3." },
-	"SOLAR_FASHION": { "icon": "🎨", "name": "Solar Fashion", "desc": "Acquire and equip a custom aerospace livery from the Hangar.", "condition": "Equip custom livery." },
+	"FIRST_SORTIE": { "icon": "🎖️", "icon_texture": "res://ui/badges/badge_first_sortie.png", "name": "First Sortie", "desc": "Complete initial flight qualification or combat sortie.", "condition": "Commissioned pilot." },
+	"ACE_INTERCEPTOR": { "icon": "⚡", "icon_texture": "res://ui/badges/badge_ace_interceptor.png", "name": "Ace Interceptor", "desc": "Confirm 25 or more hostile targets destroyed in combat.", "condition": "Destroy 25 enemies." },
+	"WAR_GOD_OF_SOL": { "icon": "👑", "icon_texture": "res://ui/badges/badge_war_god_of_sol.png", "name": "War God of Sol", "desc": "Legendary combat standing: 100 confirmed career kills.", "condition": "Confirm 100 kills." },
+	"GHOST_PROTOCOL": { "icon": "🛡️", "icon_texture": "res://ui/badges/badge_ghost_protocol.png", "name": "Ghost Protocol", "desc": "Flawless sortie execution: Survive an engagement taking zero hull damage.", "condition": "Flawless mission outcome." },
+	"CAMPAIGN_HERO": { "icon": "🌌", "icon_texture": "res://ui/badges/badge_campaign_hero.png", "name": "Campaign Hero", "desc": "Unlock and conquer Chapter / Mission 05: Silent Orbit.", "condition": "Complete Mission 05." },
+	"FLEET_DEDICATION": { "icon": "📅", "icon_texture": "res://ui/badges/badge_fleet_dedication.png", "name": "Fleet Dedication", "desc": "Demonstrate relentless discipline: Maintain a 7-day login streak.", "condition": "Reach Day 7 streak." },
+	"LUCKY_STRIKE": { "icon": "🎯", "icon_texture": "res://ui/badges/badge_lucky_strike.png", "name": "Lucky Strike", "desc": "Hit the Grand Prize Jackpot (1,000★) on the Daily Tactical Wheel.", "condition": "Wheel Jackpot hit." },
+	"PVP_GLADIATOR": { "icon": "⚔️", "icon_texture": "res://ui/badges/badge_pvp_gladiator.png", "name": "PVP Gladiator", "desc": "Score victory against a rival pilot in local or online dogfight arena.", "condition": "Win a PvP match." },
+	"ARSENAL_OVERLORD": { "icon": "🛠️", "icon_texture": "res://ui/badges/badge_arsenal_overlord.png", "name": "Arsenal Overlord", "desc": "Upgrade any weapon or kinetic defense system to Tier III.", "condition": "Upgrade system to Tier 3." },
+	"SOLAR_FASHION": { "icon": "🎨", "icon_texture": "res://ui/badges/badge_solar_fashion.png", "name": "Solar Fashion", "desc": "Acquire and equip a custom aerospace livery from the Hangar.", "condition": "Equip custom livery." },
 }
 
 const SKINS_DEF: Dictionary = {

@@ -57,12 +57,30 @@ extends Node3D
 @onready var pilot_dossier_box: PanelContainer = %PilotDossierBox
 @onready var pilot_label: Label = %PilotLabel
 @onready var pilot_rank_label: Label = %PilotRankLabel
+@onready var pilot_stars_label: Label = %PilotStarsLabel
+@onready var pilot_streak_label: Label = %PilotStreakLabel
+@onready var pilot_badges_label: Label = %PilotBadgesLabel
+@onready var stats_quick_btn: Button = %StatsQuickBtn
 @onready var switch_pilot_btn: Button = %SwitchPilotBtn
 @onready var fleet_stats_label: Label = %FleetStatsLabel
 @onready var fade_overlay: ColorRect = %FadeOverlay
 @onready var warp_audio: AudioStreamPlayer = %WarpAudio
 @onready var menu_music_player: AudioStreamPlayer = %MenuMusicPlayer
 @onready var sidebar: PanelContainer = $UI/Sidebar
+
+@onready var pilot_hud_card: Control = %PilotHUDCard
+@onready var hud_pilot_callsign_label: Label = %HUDPilotCallsignLabel
+@onready var hud_pilot_rank_label: Label = %HUDPilotRankLabel
+@onready var hud_online_status_label: Label = %HUDOnlineStatusLabel
+@onready var hud_stars_label: Label = %HUDStarsLabel
+@onready var hud_streak_label: Label = %HUDStreakLabel
+@onready var hud_badges_label: Label = %HUDBadgesLabel
+@onready var hud_sorties_label: Label = %HUDSortiesLabel
+@onready var hud_kills_label: Label = %HUDKillsLabel
+@onready var hud_win_rate_label: Label = %HUDWinRateLabel
+@onready var hud_stats_btn: Button = %HUDStatsBtn
+@onready var hud_armory_btn: Button = %HUDArmoryBtn
+@onready var hud_profile_btn: Button = %HUDProfileBtn
 
 @onready var repair_progress_bar: ProgressBar = %RepairProgressBar
 @onready var repair_status_label: Label = %RepairStatusLabel
@@ -202,6 +220,15 @@ func _ready() -> void:
 	
 	if switch_pilot_btn and not switch_pilot_btn.pressed.is_connected(_on_switch_pilot_pressed):
 		switch_pilot_btn.pressed.connect(_on_switch_pilot_pressed)
+	if stats_quick_btn and not stats_quick_btn.pressed.is_connected(_show_stats_dialog):
+		stats_quick_btn.pressed.connect(_show_stats_dialog)
+
+	if hud_stats_btn and not hud_stats_btn.pressed.is_connected(_show_stats_dialog):
+		hud_stats_btn.pressed.connect(_show_stats_dialog)
+	if hud_armory_btn and not hud_armory_btn.pressed.is_connected(func(): _show_rewards_dialog("skins")):
+		hud_armory_btn.pressed.connect(func(): _show_rewards_dialog("skins"))
+	if hud_profile_btn and not hud_profile_btn.pressed.is_connected(_on_switch_pilot_pressed):
+		hud_profile_btn.pressed.connect(_on_switch_pilot_pressed)
 
 	if login_dialog and not login_dialog.login_completed.is_connected(_on_login_completed):
 		login_dialog.login_completed.connect(_on_login_completed)
@@ -225,6 +252,8 @@ func _ready() -> void:
 	if reward_mgr:
 		if not reward_mgr.rewards_updated.is_connected(_update_pilot_dossier_ui):
 			reward_mgr.rewards_updated.connect(_update_pilot_dossier_ui)
+		if reward_mgr.has_signal("stars_changed") and not reward_mgr.stars_changed.is_connected(func(_amt): _update_pilot_dossier_ui()):
+			reward_mgr.stars_changed.connect(func(_amt): _update_pilot_dossier_ui())
 		_apply_hangar_skin()
 
 	_setup_turntable_hardpoints()
@@ -387,18 +416,63 @@ func _update_pilot_dossier_ui() -> void:
 	if not auth_mgr:
 		return
 	var stars_count = reward_mgr.stars if reward_mgr else 0
+	var streak_days = reward_mgr.streak if (reward_mgr and "streak" in reward_mgr) else 0
 	var badges_count = reward_mgr.unlocked_badges.size() if reward_mgr else 0
+	var is_auth = auth_mgr.is_authenticated and not auth_mgr.callsign.is_empty()
+	var callsign_text = auth_mgr.callsign if is_auth else "RECRUIT-CALLSIGN"
+	var rank_text = auth_mgr.rank if is_auth else "FLIGHT CADET"
+	var squad_text = auth_mgr.squadron if is_auth else "404th Vanguard Strike Wing"
+
+	var stats_dict: Dictionary = auth_mgr.stats if ("stats" in auth_mgr and typeof(auth_mgr.stats) == TYPE_DICTIONARY) else {}
+	var sorties_count = int(stats_dict.get("total_sorties", 0))
+	var kills_count = int(stats_dict.get("total_kills", 0))
+	var wins_count = int(stats_dict.get("battles_won", 0))
+	var win_rate_val = (float(wins_count) / float(sorties_count) * 100.0) if sorties_count > 0 else 0.0
+
+	# 1. Update Sidebar Pilot Dossier
 	if pilot_label:
-		var pilot_name = auth_mgr.callsign if (auth_mgr.is_authenticated and not auth_mgr.callsign.is_empty()) else "UNAUTHENTICATED"
-		pilot_label.text = "PILOT: %s  |  ⭐ %d" % [pilot_name, stars_count]
+		pilot_label.text = "PILOT: %s  |  ⭐ %d" % [callsign_text, stars_count]
 	if pilot_rank_label:
-		if auth_mgr.is_authenticated:
-			pilot_rank_label.text = "RANK: %s // %s  |  🎖️ %d/10" % [auth_mgr.rank, auth_mgr.squadron, badges_count]
+		if is_auth:
+			pilot_rank_label.text = "RANK: %s // %s" % [rank_text, squad_text]
 		else:
-			pilot_rank_label.text = "CLEARANCE: RECRUIT  |  ⭐ %d STARS" % stars_count
+			pilot_rank_label.text = "CLEARANCE: RECRUIT // %s" % squad_text
+	if pilot_stars_label:
+		pilot_stars_label.text = "⭐ %d" % stars_count
+	if pilot_streak_label:
+		pilot_streak_label.text = "🔥 %dD" % streak_days
+	if pilot_badges_label:
+		pilot_badges_label.text = "🎖️ %d/10" % badges_count
 	if switch_pilot_btn:
-		switch_pilot_btn.text = "🧑‍✈️ [SWITCH PILOT / LOGOUT]" if auth_mgr.is_authenticated else "🧑‍✈️ [LOGIN / REGISTER PILOT]"
-	
+		switch_pilot_btn.text = "LOGOUT" if is_auth else "LOGIN"
+
+	# 2. Update Top-Right Tactical Pilot HUD Card
+	if hud_pilot_callsign_label:
+		hud_pilot_callsign_label.text = "CALLSIGN: %s" % callsign_text
+	if hud_pilot_rank_label:
+		hud_pilot_rank_label.text = "RANK: %s // %s" % [rank_text, squad_text]
+	if hud_online_status_label:
+		if is_auth:
+			hud_online_status_label.text = "● DOSSIER VERIFIED"
+			hud_online_status_label.add_theme_color_override("font_color", Color(0.2, 0.9, 0.5, 1.0))
+		else:
+			hud_online_status_label.text = "○ LOCAL RECRUIT"
+			hud_online_status_label.add_theme_color_override("font_color", Color(0.96, 0.62, 0.04, 0.85))
+	if hud_stars_label:
+		hud_stars_label.text = "⭐ %d STARS" % stars_count
+	if hud_streak_label:
+		hud_streak_label.text = "🔥 %d-DAY STREAK" % streak_days
+	if hud_badges_label:
+		hud_badges_label.text = "🎖️ %d/10 MEDALS" % badges_count
+	if hud_sorties_label:
+		hud_sorties_label.text = "🚀 SORTIES: %d" % sorties_count
+	if hud_kills_label:
+		hud_kills_label.text = "🎯 KILLS: %d" % kills_count
+	if hud_win_rate_label:
+		hud_win_rate_label.text = "⚡ WIN: %.1f%%" % win_rate_val
+	if hud_profile_btn:
+		hud_profile_btn.text = "🧑‍✈️ SWITCH ID" if is_auth else "🧑‍✈️ COMMISSION"
+
 	_apply_hangar_skin()
 
 func _apply_hangar_skin() -> void:
@@ -675,9 +749,11 @@ func _launch_game_animation(mission_id: String, is_resume: bool) -> void:
 		var music_tween = create_tween()
 		music_tween.tween_property(menu_music_player, "volume_db", -45.0, duration * 0.85).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	
-	# Slide sidebar off-screen to the left
+	# Slide sidebar off-screen to the left and fade HUD card
 	if sidebar:
 		tween_ui.tween_property(sidebar, "position:x", -460.0, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	if pilot_hud_card:
+		tween_ui.tween_property(pilot_hud_card, "modulate:a", 0.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	
 	# Camera rushes toward and through the right side of the hangar
 	var cam_tween = create_tween().set_parallel(true)

@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3]
+[gd_scene load_steps=33 format=3]
 
 [ext_resource type="Script" path="res://home_menu.gd" id="1_menu"]
 [ext_resource type="PackedScene" uid="uid://c21sm6f7vcpq4" path="res://Spaceship_Sculpted_V_Hull.glb" id="2_ship"]
@@ -161,6 +161,72 @@ corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_card"]
+content_margin_left = 14.0
+content_margin_top = 12.0
+content_margin_right = 14.0
+content_margin_bottom = 12.0
+bg_color = Color(0.06, 0.08, 0.11, 0.9)
+border_width_left = 3
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.96, 0.62, 0.04, 0.75)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_chip"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 8.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.12, 0.16, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.25, 0.3, 0.38, 0.5)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_btn"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(0.12, 0.15, 0.2, 0.85)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.36, 0.45, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_btn_hover"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(0.18, 0.22, 0.28, 0.95)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.96, 0.62, 0.04, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
 
 
 [node name="HomeMenu" type="Node3D"]
@@ -375,9 +441,37 @@ theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 0.9)
 theme_override_font_sizes/font_size = 10
 text = "RANK: LIEUTENANT // 404th Vanguard Strike Wing"
 
-[node name="BtnRow" type="HBoxContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox"]
+[node name="PilotQuickStatsRow" type="HBoxContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 6
+
+[node name="PilotStarsLabel" type="Label" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox/PilotQuickStatsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 10
+text = "⭐ 0"
+
+[node name="PilotStreakLabel" type="Label" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox/PilotQuickStatsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 10
+text = "🔥 0D"
+
+[node name="PilotBadgesLabel" type="Label" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox/PilotQuickStatsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.4, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "🎖️ 0/10"
+
+[node name="BtnRow" type="HBoxContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
 
 [node name="SwitchPilotBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox/BtnRow"]
 unique_name_in_owner = true
@@ -388,7 +482,18 @@ theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
 theme_override_font_sizes/font_size = 10
 theme_override_styles/normal = SubResource("StyleBoxFlat_badge")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "COMMISSION / LOGIN"
+text = "LOGIN"
+
+[node name="StatsQuickBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox/BtnRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 10
+theme_override_styles/normal = SubResource("StyleBoxFlat_badge")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+text = "DOSSIER"
 
 [node name="RewardsBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox/BtnRow"]
 unique_name_in_owner = true
@@ -399,7 +504,7 @@ theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
 theme_override_font_sizes/font_size = 10
 theme_override_styles/normal = SubResource("StyleBoxFlat_badge")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
-text = "DAILY REWARDS"
+text = "REWARDS"
 
 [node name="FleetRadarBox" type="PanelContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons"]
 unique_name_in_owner = true
@@ -750,6 +855,191 @@ theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 0.8)
 theme_override_font_sizes/font_size = 11
 text = "// FLEET COMMAND HANGAR BAY 04 // READY FOR DEPLOYMENT //"
 horizontal_alignment = 1
+
+[node name="PilotHUDCard" type="PanelContainer" parent="UI/TitleOverlay"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -660.0
+offset_top = 204.0
+offset_right = -40.0
+offset_bottom = 356.0
+grow_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_card")
+
+[node name="Margin" type="MarginContainer" parent="UI/TitleOverlay/PilotHUDCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="VBox" type="VBoxContainer" parent="UI/TitleOverlay/PilotHUDCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderRow" type="HBoxContainer" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PilotInfo" type="VBoxContainer" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="HUDPilotCallsignLabel" type="Label" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/HeaderRow/PilotInfo"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "CALLSIGN: MAVERICK"
+
+[node name="HUDPilotRankLabel" type="Label" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/HeaderRow/PilotInfo"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 0.9)
+theme_override_font_sizes/font_size = 10
+text = "RANK: LIEUTENANT // 404th Vanguard Strike Wing"
+
+[node name="HUDStatusChip" type="PanelContainer" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/HeaderRow"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_chip")
+
+[node name="HUDOnlineStatusLabel" type="Label" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/HeaderRow/HUDStatusChip"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.9, 0.5, 1)
+theme_override_font_sizes/font_size = 9
+text = "● DOSSIER VERIFIED"
+
+[node name="StatsGrid" type="VBoxContainer" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="MetricsRow1" type="HBoxContainer" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/StatsGrid"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HUDStarsChip" type="PanelContainer" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/StatsGrid/MetricsRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_chip")
+
+[node name="HUDStarsLabel" type="Label" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/StatsGrid/MetricsRow1/HUDStarsChip"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 10
+text = "⭐ 0 STARS"
+horizontal_alignment = 1
+
+[node name="HUDStreakChip" type="PanelContainer" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/StatsGrid/MetricsRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_chip")
+
+[node name="HUDStreakLabel" type="Label" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/StatsGrid/MetricsRow1/HUDStreakChip"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 10
+text = "🔥 0-DAY STREAK"
+horizontal_alignment = 1
+
+[node name="HUDBadgesChip" type="PanelContainer" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/StatsGrid/MetricsRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_chip")
+
+[node name="HUDBadgesLabel" type="Label" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/StatsGrid/MetricsRow1/HUDBadgesChip"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.8, 1, 1)
+theme_override_font_sizes/font_size = 10
+text = "🎖️ 0/10 MEDALS"
+horizontal_alignment = 1
+
+[node name="MetricsRow2" type="HBoxContainer" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/StatsGrid"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HUDSortiesChip" type="PanelContainer" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/StatsGrid/MetricsRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_chip")
+
+[node name="HUDSortiesLabel" type="Label" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/StatsGrid/MetricsRow2/HUDSortiesChip"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+theme_override_font_sizes/font_size = 10
+text = "🚀 SORTIES: 0"
+horizontal_alignment = 1
+
+[node name="HUDKillsChip" type="PanelContainer" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/StatsGrid/MetricsRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_chip")
+
+[node name="HUDKillsLabel" type="Label" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/StatsGrid/MetricsRow2/HUDKillsChip"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+theme_override_font_sizes/font_size = 10
+text = "🎯 KILLS: 0"
+horizontal_alignment = 1
+
+[node name="HUDWinRateChip" type="PanelContainer" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/StatsGrid/MetricsRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_chip")
+
+[node name="HUDWinRateLabel" type="Label" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/StatsGrid/MetricsRow2/HUDWinRateChip"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+theme_override_font_sizes/font_size = 10
+text = "⚡ WIN: 0%"
+horizontal_alignment = 1
+
+[node name="HUDActionRow" type="HBoxContainer" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HUDStatsBtn" type="Button" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/HUDActionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 10
+theme_override_styles/normal = SubResource("StyleBoxFlat_hud_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hud_btn_hover")
+text = "📊 COMBAT DOSSIER"
+
+[node name="HUDArmoryBtn" type="Button" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/HUDActionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 10
+theme_override_styles/normal = SubResource("StyleBoxFlat_hud_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hud_btn_hover")
+text = "⚙️ HANGAR ARMORY"
+
+[node name="HUDProfileBtn" type="Button" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/HUDActionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 10
+theme_override_styles/normal = SubResource("StyleBoxFlat_hud_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hud_btn_hover")
+text = "🧑‍✈️ PILOT ID"
 
 [node name="SpecsPanel" type="PanelContainer" parent="UI"]
 unique_name_in_owner = true

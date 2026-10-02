@@ -3,30 +3,30 @@
 [ext_resource type="Script" path="res://combat_stats_dialog.gd" id="1_csd"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
-bg_color = Color(0.03, 0.06, 0.1, 0.96)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0, 0.9, 1, 0.8)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-shadow_color = Color(0, 0.9, 1, 0.25)
-shadow_size = 25
+bg_color = Color(0.07, 0.08, 0.11, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.96, 0.62, 0.04, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 24
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_statcard"]
 content_margin_left = 12.0
 content_margin_top = 10.0
 content_margin_right = 12.0
 content_margin_bottom = 10.0
-bg_color = Color(0.05, 0.11, 0.18, 0.85)
+bg_color = Color(0.10, 0.12, 0.16, 0.85)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0, 0.75, 0.9, 0.4)
+border_color = Color(0.22, 0.26, 0.32, 0.6)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
@@ -37,12 +37,12 @@ content_margin_left = 14.0
 content_margin_top = 12.0
 content_margin_right = 14.0
 content_margin_bottom = 12.0
-bg_color = Color(0.02, 0.04, 0.08, 0.85)
+bg_color = Color(0.06, 0.07, 0.10, 0.75)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.15, 0.3, 0.45, 0.5)
+border_color = Color(0.18, 0.22, 0.28, 0.6)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
@@ -97,9 +97,9 @@ layout_mode = 2
 [node name="Title" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/HeaderHBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0, 0.95, 1, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 16
-text = "🎖️ COMBAT SERVICE RECORD // PILOT BATTLE TELEMETRY"
+text = "COMBAT SERVICE RECORD // PILOT BATTLE TELEMETRY"
 
 [node name="CloseBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/HeaderHBox"]
 unique_name_in_owner = true
