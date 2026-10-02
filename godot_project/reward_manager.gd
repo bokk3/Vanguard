@@ -90,10 +90,13 @@ func _load_local_cache() -> void:
 		rewards_updated.emit()
 
 ## Adds Stars currency to pilot wallet and persists
-func add_stars(amount: int) -> void:
+func add_stars(amount: int, reason: String = "") -> void:
 	if amount <= 0: return
 	stars += amount
-	print(">>> [RewardManager] Earned +%d ⭐ Stars! Balance: %d" % [amount, stars])
+	if not reason.is_empty():
+		print(">>> [RewardManager] Earned +%d ⭐ Stars (%s)! Balance: %d" % [amount, reason, stars])
+	else:
+		print(">>> [RewardManager] Earned +%d ⭐ Stars! Balance: %d" % [amount, stars])
 	stars_changed.emit(stars)
 	rewards_updated.emit()
 	_persist_and_sync()

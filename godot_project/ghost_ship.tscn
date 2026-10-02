@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8ghostship01"]
+
+[ext_resource type="Script" path="res://ghost_ship.gd" id="1_ghost"]
+[ext_resource type="PackedScene" uid="uid://c21sm6f7vcpq4" path="res://Spaceship_Sculpted_V_Hull.glb" id="2_mesh"]
+
+[node name="GhostShip" type="Node3D"]
+script = ExtResource("1_ghost")
+
+[node name="ModelContainer" type="Node3D" parent="."]
+
+[node name="SpaceshipModel" parent="ModelContainer" instance=ExtResource("2_mesh")]

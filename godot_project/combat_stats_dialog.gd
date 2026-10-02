@@ -19,6 +19,9 @@ signal open_rewards_requested()
 @onready var controls_badge: Label = %ControlsBadge
 @onready var battles_container: VBoxContainer = %BattlesContainer
 @onready var no_battles_label: Label = %NoBattlesLabel
+@onready var avionics_score_val: Label = %AvionicsScoreVal
+@onready var agility_medals_val: Label = %AgilityMedalsVal
+@onready var avionics_class_val: Label = %AvionicsClassVal
 @onready var close_btn: Button = %CloseBtn
 @onready var open_rewards_btn: Button = %OpenRewardsBtn
 @onready var sync_btn: Button = %SyncBtn
@@ -83,6 +86,21 @@ func _populate_stats() -> void:
 	if losses_val: losses_val.text = str(losses)
 	if win_ratio_val: win_ratio_val.text = "%.1f%%" % win_pct
 	if flight_time_val: flight_time_val.text = "%dh %02dm" % [hrs, mins]
+	
+	var agility_mgr = get_node_or_null("/root/AgilityManager")
+	if agility_mgr:
+		if avionics_score_val:
+			avionics_score_val.text = "%d PTS" % agility_mgr.avionics_score
+		if avionics_class_val:
+			avionics_class_val.text = agility_mgr.avionics_class
+		if agility_medals_val:
+			var tally: Dictionary = agility_mgr.get_medals_tally()
+			agility_medals_val.text = "🏆 %d  🥇 %d  🥈 %d  🥉 %d" % [
+				tally.get("ACE", 0),
+				tally.get("GOLD", 0),
+				tally.get("SILVER", 0),
+				tally.get("BRONZE", 0)
+			]
 	
 	# Determine preferred / active avionics input
 	var is_phone = net_ctrl and net_ctrl.connected_clients.size() > 0

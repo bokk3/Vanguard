@@ -1,0 +1,339 @@
+[gd_scene load_steps=8 format=3 uid="uid://c8agilityhud01"]
+
+[ext_resource type="Script" path="res://agility_hud.gd" id="1_hud"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_top"]
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+bg_color = Color(0.06, 0.08, 0.11, 0.85)
+border_width_bottom = 2
+border_color = Color(0.96, 0.62, 0.04, 0.85)
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_banner"]
+content_margin_left = 20.0
+content_margin_top = 8.0
+content_margin_right = 20.0
+content_margin_bottom = 8.0
+bg_color = Color(0.08, 0.1, 0.14, 0.92)
+border_width_left = 3
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.84, 0.2, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+content_margin_left = 32.0
+content_margin_top = 28.0
+content_margin_right = 32.0
+content_margin_bottom = 28.0
+bg_color = Color(0.06, 0.08, 0.11, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.96, 0.62, 0.04, 0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 28
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary"]
+content_margin_top = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.85, 0.52, 0.02, 0.95)
+border_width_left = 3
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.78, 0.15, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_sec"]
+content_margin_top = 10.0
+content_margin_bottom = 10.0
+bg_color = Color(0.12, 0.15, 0.2, 0.85)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.36, 0.45, 0.6)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="AgilityHUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_hud")
+
+[node name="TopBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -320.0
+offset_right = 320.0
+offset_bottom = 60.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_top")
+
+[node name="HBox" type="HBoxContainer" parent="TopBar"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="ChronoVBox" type="VBoxContainer" parent="TopBar/HBox"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 1
+alignment = 1
+
+[node name="ChronoLabel" type="Label" parent="TopBar/HBox/ChronoVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.25, 1)
+theme_override_font_sizes/font_size = 22
+text = "00:00.000"
+horizontal_alignment = 1
+
+[node name="DeltaLabel" type="Label" parent="TopBar/HBox/ChronoVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.85, 0.55, 1)
+theme_override_font_sizes/font_size = 11
+text = "▼ 0.00s [GOLD PACE]"
+horizontal_alignment = 1
+
+[node name="VSep1" type="VSeparator" parent="TopBar/HBox"]
+layout_mode = 2
+
+[node name="GateVBox" type="VBoxContainer" parent="TopBar/HBox"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="GateLabel" type="Label" parent="TopBar/HBox/GateVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.94, 0.98, 1)
+theme_override_font_sizes/font_size = 16
+text = "GATE 01 / 20"
+horizontal_alignment = 1
+
+[node name="ApexGradeLabel" type="Label" parent="TopBar/HBox/GateVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 11
+text = "[ PERFECT APEX ]"
+horizontal_alignment = 1
+
+[node name="BottomTelemetry" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = -140.0
+offset_right = 260.0
+offset_bottom = -28.0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="FlowHBox" type="HBoxContainer" parent="BottomTelemetry"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="FlowLabel" type="Label" parent="BottomTelemetry/FlowHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 12
+text = "FLOW: 1.0x"
+
+[node name="FlowBar" type="ProgressBar" parent="BottomTelemetry/FlowHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 10)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+max_value = 100.0
+step = 1.0
+show_percentage = false
+
+[node name="TargetsLabel" type="Label" parent="BottomTelemetry"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.45, 0.2, 1)
+theme_override_font_sizes/font_size = 12
+text = "🎯 TARGETS: 4/4"
+
+[node name="GhostStatusLabel" type="Label" parent="BottomTelemetry"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "👻 GHOST: ON [G]"
+
+[node name="CenterBanners" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = 90.0
+offset_right = 20.0
+offset_bottom = 130.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ManeuverBanner" type="PanelContainer" parent="CenterBanners"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -20.0
+offset_right = 220.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_banner")
+
+[node name="ManeuverLabel" type="Label" parent="CenterBanners/ManeuverBanner"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.2, 1)
+theme_override_font_sizes/font_size = 12
+text = "⚡ SPECIAL MANEUVER: HIGH-G DRIFT [ +600 PTS ]"
+horizontal_alignment = 1
+
+[node name="DebriefPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -270.0
+offset_top = -220.0
+offset_right = 270.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="VBox" type="VBoxContainer" parent="DebriefPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DebriefTitle" type="Label" parent="DebriefPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 18
+text = "TRIAL DEBRIEF: [T-01] SLALOM VECTOR"
+horizontal_alignment = 1
+
+[node name="DebriefMedal" type="Label" parent="DebriefPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 16
+text = "🥇 GOLD MEDAL AWARDED"
+horizontal_alignment = 1
+
+[node name="HSep" type="HSeparator" parent="DebriefPanel/VBox"]
+layout_mode = 2
+
+[node name="DebriefTime" type="Label" parent="DebriefPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.94, 0.98, 1)
+theme_override_font_sizes/font_size = 14
+text = "TIME: 00:52.340"
+
+[node name="DebriefPrecision" type="Label" parent="DebriefPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.85, 0.55, 1)
+theme_override_font_sizes/font_size = 13
+text = "APEX PRECISION: 92.4% (Perfect: 14, Clean: 6, Miss: 0)"
+
+[node name="DebriefManeuvers" type="Label" parent="DebriefPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.88, 0.92, 1)
+theme_override_font_sizes/font_size = 13
+text = "MANEUVERS: 3 Executed"
+
+[node name="DebriefScore" type="Label" parent="DebriefPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.2, 1)
+theme_override_font_sizes/font_size = 14
+text = "FLIGHT SCORE: 2,450 PTS"
+
+[node name="DebriefStars" type="Label" parent="DebriefPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 12
+text = "AVIONICS RATING: 3,420 PTS // CLASS-A ACE NAVIGATOR"
+
+[node name="BtnHBox" type="HBoxContainer" parent="DebriefPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="RetryBtn" type="Button" parent="DebriefPanel/VBox/BtnHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
+text = "🔄 RETRY TRIAL"
+
+[node name="ExitBtn" type="Button" parent="DebriefPanel/VBox/BtnHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.9, 0.92, 0.96, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_sec")
+text = "◀ RETURN TO TRIALS"

@@ -1,0 +1,56 @@
+[gd_scene load_steps=7 format=3 uid="uid://c8targetbuoy01"]
+
+[ext_resource type="Script" path="res://target_buoy.gd" id="1_buoy"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hitbox"]
+radius = 2.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_core"]
+radius = 0.9
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_core"]
+transparency = 1
+albedo_color = Color(1, 0.22, 0.15, 0.85)
+emission_enabled = true
+emission = Color(1, 0.2, 0.1, 1)
+emission_energy_multiplier = 2.5
+
+[sub_resource type="TorusMesh" id="TorusMesh_outer"]
+inner_radius = 1.6
+outer_radius = 1.9
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ring"]
+transparency = 1
+albedo_color = Color(1, 0.55, 0.1, 0.8)
+emission_enabled = true
+emission = Color(1, 0.45, 0.1, 1)
+emission_energy_multiplier = 2.0
+
+[node name="TargetBuoy" type="CharacterBody3D" groups=["enemies", "targets"]]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("1_buoy")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_hitbox")
+
+[node name="MeshCore" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_core")
+surface_material_override/0 = SubResource("StandardMaterial3D_core")
+
+[node name="MeshRing" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+mesh = SubResource("TorusMesh_outer")
+surface_material_override/0 = SubResource("StandardMaterial3D_ring")
+
+[node name="LabelDist" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4, 0)
+billboard = 1
+double_sided = false
+no_depth_test = true
+modulate = Color(1, 0.35, 0.2, 1)
+outline_modulate = Color(0, 0, 0, 1)
+text = "[ TARGET 01 ]"
+font_size = 22
+outline_size = 4

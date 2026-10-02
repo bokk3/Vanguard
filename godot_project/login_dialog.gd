@@ -118,24 +118,24 @@ func _update_mode_ui() -> void:
 			if auth_btn: auth_btn.text = "📝  CREATE ACCOUNT & PLAY"
 			if status_label:
 				status_label.text = "// CREATING NEW CLOUD ACCOUNT //"
-				status_label.modulate = Color(1.0, 0.85, 0.2)
+				status_label.modulate = Color(0.96, 0.62, 0.04)
 		else:
 			if email_container: email_container.hide()
 			if register_toggle_btn: register_toggle_btn.text = "📝 REGISTER"
 			if auth_btn: auth_btn.text = "🌐  CLOUD LOGIN & PLAY"
 			if status_label:
 				status_label.text = "// CLOUD SYNC — SAVES PROGRESS ACROSS DEVICES //"
-				status_label.modulate = Color(0.2, 0.85, 1.0)
+				status_label.modulate = Color(0.2, 0.85, 0.55)
 	else:
 		if email_container: email_container.hide()
 		if password_container: password_container.hide()
 		if cloud_help_label: cloud_help_label.hide()
 		if cloud_toggle_btn: cloud_toggle_btn.text = "🌐 CLOUD LOGIN"
 		if register_toggle_btn: register_toggle_btn.text = "📝 REGISTER"
-		if auth_btn: auth_btn.text = "🚀  PLAY"
+		if auth_btn: auth_btn.text = "🚀  CONFIRM PILOT COMMISSION"
 		if status_label:
 			status_label.text = "// LOCAL PLAY — NO ACCOUNT REQUIRED //"
-			status_label.modulate = Color(0.5, 0.7, 0.85)
+			status_label.modulate = Color(0.65, 0.72, 0.82)
 
 func _on_toggle_cloud_mode() -> void:
 	if not is_cloud_mode:

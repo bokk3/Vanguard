@@ -799,6 +799,12 @@ func _refresh_badges_view() -> void:
 		var tex_path = b_data.get("icon_texture", "res://ui/badges/badge_%s.png" % b_id.to_lower())
 		if ResourceLoader.exists(tex_path):
 			tex_rect.texture = load(tex_path)
+		if not tex_rect.texture:
+			var global_path = ProjectSettings.globalize_path(tex_path)
+			if FileAccess.file_exists(global_path):
+				var img = Image.load_from_file(global_path)
+				if img:
+					tex_rect.texture = ImageTexture.create_from_image(img)
 		
 		if is_unlocked:
 			tex_rect.modulate = Color(1.0, 1.0, 1.0, 1.0)

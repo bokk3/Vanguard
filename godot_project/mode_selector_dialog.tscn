@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://mdsel77vanguard"]
+[gd_scene load_steps=6 format=3 uid="uid://mdsel77vanguard"]
 
 [ext_resource type="Script" path="res://mode_selector_dialog.gd" id="1_mod"]
 
@@ -48,6 +48,22 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card_agility"]
+content_margin_left = 18.0
+content_margin_top = 18.0
+content_margin_right = 18.0
+content_margin_bottom = 18.0
+bg_color = Color(0.12, 0.14, 0.1, 0.95)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.85, 0.2, 0.85)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
 
 [node name="ModeSelectorDialog" type="Control"]
 process_mode = 3
@@ -77,7 +93,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="MainPanel" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(820, 520)
+custom_minimum_size = Vector2(1060, 520)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_bg")
 
@@ -188,6 +204,50 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 13
 text = "ENGAGE SOLO // VS AI"
+
+[node name="AgilityCard" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_card_agility")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/AgilityCard"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="CardIcon" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/AgilityCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 32
+text = "⚡"
+horizontal_alignment = 1
+
+[node name="CardTitle" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/AgilityCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 14
+text = "AGILITY TRIALS // TOP GUN"
+horizontal_alignment = 1
+
+[node name="CardDesc" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/AgilityCard/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.85, 0.88, 0.92, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "• 8 Standalone Aerobatic Trials
+• Precision Gate Radial Bullseyes
+• Stunt Recognition: Rolls & Drifts
+• Millisecond Split Chronometer
+• Target Practice Buoys & Ghost Ship
+• Earn Bronze, Silver, Gold & ACE"
+autowrap_mode = 2
+
+[node name="AgilityBtn" type="Button" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox/AgilityCard/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 13
+text = "COMMENCE AGILITY TRIALS"
 
 [node name="OnlineCard" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/CardsHBox"]
 layout_mode = 2

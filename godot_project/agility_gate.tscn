@@ -1,0 +1,57 @@
+[gd_scene load_steps=6 format=3 uid="uid://c8agilitygate01"]
+
+[ext_resource type="Script" path="res://agility_gate.gd" id="1_gate"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_gate"]
+height = 1.2
+radius = 6.0
+
+[sub_resource type="TorusMesh" id="TorusMesh_ring"]
+inner_radius = 5.6
+outer_radius = 6.0
+rings = 32
+ring_segments = 12
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ring"]
+transparency = 1
+cull_mode = 2
+albedo_color = Color(0.96, 0.62, 0.04, 0.85)
+emission_enabled = true
+emission = Color(0.96, 0.62, 0.04, 1)
+emission_energy_multiplier = 2.5
+
+[sub_resource type="AudioStreamPolyphonic" id="AudioStreamPolyphonic_chime"]
+
+[node name="AgilityGate" type="Area3D" groups=["agility_gate"]]
+collision_layer = 0
+collision_mask = 1
+script = ExtResource("1_gate")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+shape = SubResource("CylinderShape3D_gate")
+
+[node name="RingMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+mesh = SubResource("TorusMesh_ring")
+surface_material_override/0 = SubResource("StandardMaterial3D_ring")
+
+[node name="InnerReticle" type="MeshInstance3D" parent="."]
+
+[node name="GateLabel" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.8, 0)
+billboard = 1
+double_sided = false
+no_depth_test = true
+modulate = Color(0.96, 0.62, 0.04, 1)
+outline_modulate = Color(0, 0, 0, 1)
+text = "GATE 01"
+font_size = 28
+outline_size = 6
+
+[node name="PassAudio" type="AudioStreamPlayer3D" parent="."]
+stream = SubResource("AudioStreamPolyphonic_chime")
+volume_db = 0.0
+unit_size = 15.0
+max_distance = 250.0
+bus = &"SFX"

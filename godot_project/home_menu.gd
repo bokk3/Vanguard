@@ -25,6 +25,7 @@ extends Node3D
 @onready var submenu_settings: VBoxContainer = %SubmenuSettings
 
 @onready var category_campaign_btn: Button = %CategoryCampaignBtn
+@onready var category_agility_btn: Button = %CategoryAgilityBtn
 @onready var category_multiplayer_btn: Button = %CategoryMultiplayerBtn
 @onready var category_intel_btn: Button = %CategoryIntelBtn
 @onready var category_settings_btn: Button = %CategorySettingsBtn
@@ -39,6 +40,7 @@ extends Node3D
 @onready var rewards_btn: Button = %RewardsBtn
 @onready var sub_intel_rewards_btn: Button = %SubIntelRewardsBtn
 @onready var rewards_dialog: Control = %RewardsDialog
+@onready var agility_selector: Control = %AgilitySelectorDialog
 
 @onready var specs_panel: PanelContainer = %SpecsPanel
 @onready var close_specs_btn: Button = %CloseSpecsBtn
@@ -60,6 +62,7 @@ extends Node3D
 @onready var pilot_stars_label: Label = %PilotStarsLabel
 @onready var pilot_streak_label: Label = %PilotStreakLabel
 @onready var pilot_badges_label: Label = %PilotBadgesLabel
+@onready var pilot_avionics_label: Label = %PilotAvionicsLabel
 @onready var stats_quick_btn: Button = %StatsQuickBtn
 @onready var switch_pilot_btn: Button = %SwitchPilotBtn
 @onready var fleet_stats_label: Label = %FleetStatsLabel
@@ -71,6 +74,7 @@ extends Node3D
 @onready var pilot_hud_card: Control = %PilotHUDCard
 @onready var hud_pilot_callsign_label: Label = %HUDPilotCallsignLabel
 @onready var hud_pilot_rank_label: Label = %HUDPilotRankLabel
+@onready var hud_avionics_label: Label = %HUDAvionicsLabel
 @onready var hud_online_status_label: Label = %HUDOnlineStatusLabel
 @onready var hud_stars_label: Label = %HUDStarsLabel
 @onready var hud_streak_label: Label = %HUDStreakLabel
@@ -81,6 +85,7 @@ extends Node3D
 @onready var hud_stats_btn: Button = %HUDStatsBtn
 @onready var hud_armory_btn: Button = %HUDArmoryBtn
 @onready var hud_profile_btn: Button = %HUDProfileBtn
+@onready var hud_agility_btn: Button = %HUDAgilityBtn
 
 @onready var repair_progress_bar: ProgressBar = %RepairProgressBar
 @onready var repair_status_label: Label = %RepairStatusLabel
@@ -115,6 +120,8 @@ func _ready() -> void:
 	# Connect category navigation buttons
 	if category_campaign_btn and not category_campaign_btn.pressed.is_connected(func(): _open_submenu("campaign")):
 		category_campaign_btn.pressed.connect(func(): _open_submenu("campaign"))
+	if category_agility_btn and not category_agility_btn.pressed.is_connected(_show_agility_selector):
+		category_agility_btn.pressed.connect(_show_agility_selector)
 	if category_multiplayer_btn and not category_multiplayer_btn.pressed.is_connected(func(): _open_submenu("multiplayer")):
 		category_multiplayer_btn.pressed.connect(func(): _open_submenu("multiplayer"))
 	if category_intel_btn and not category_intel_btn.pressed.is_connected(func(): _open_submenu("intel")):
@@ -229,6 +236,11 @@ func _ready() -> void:
 		hud_armory_btn.pressed.connect(func(): _show_rewards_dialog("skins"))
 	if hud_profile_btn and not hud_profile_btn.pressed.is_connected(_on_switch_pilot_pressed):
 		hud_profile_btn.pressed.connect(_on_switch_pilot_pressed)
+	if hud_agility_btn and not hud_agility_btn.pressed.is_connected(_show_agility_selector):
+		hud_agility_btn.pressed.connect(_show_agility_selector)
+
+	if agility_selector:
+		agility_selector.hide()
 
 	if login_dialog and not login_dialog.login_completed.is_connected(_on_login_completed):
 		login_dialog.login_completed.connect(_on_login_completed)
@@ -256,6 +268,13 @@ func _ready() -> void:
 			reward_mgr.stars_changed.connect(func(_amt): _update_pilot_dossier_ui())
 		_apply_hangar_skin()
 
+	var agility_mgr = _get_autoload_node("AgilityManager")
+	if agility_mgr:
+		if agility_mgr.has_signal("avionics_score_updated") and not agility_mgr.avionics_score_updated.is_connected(func(_s, _c): _update_pilot_dossier_ui()):
+			agility_mgr.avionics_score_updated.connect(func(_s, _c): _update_pilot_dossier_ui())
+		if agility_mgr.has_signal("medal_earned") and not agility_mgr.medal_earned.is_connected(func(_t, _m, _st): _update_pilot_dossier_ui()):
+			agility_mgr.medal_earned.connect(func(_t, _m, _st): _update_pilot_dossier_ui())
+
 	_setup_turntable_hardpoints()
 	_check_save_game_state()
 	_setup_menu_music()
@@ -268,6 +287,7 @@ func _show_login_dialog() -> void:
 		if mission_selector: mission_selector.hide()
 		if mode_selector: mode_selector.hide_selector()
 		if combat_stats: combat_stats.hide_stats()
+		if agility_selector and agility_selector.has_method("hide_selector"): agility_selector.hide_selector()
 		if leaderboard_dialog and leaderboard_dialog.has_method("close_leaderboard"):
 			leaderboard_dialog.close_leaderboard()
 
@@ -278,6 +298,7 @@ func _show_mode_selector() -> void:
 		if specs_panel: specs_panel.hide()
 		if mission_selector: mission_selector.hide()
 		if combat_stats: combat_stats.hide_stats()
+		if agility_selector and agility_selector.has_method("hide_selector"): agility_selector.hide_selector()
 		if leaderboard_dialog and leaderboard_dialog.has_method("close_leaderboard"):
 			leaderboard_dialog.close_leaderboard()
 
@@ -288,6 +309,7 @@ func _show_stats_dialog() -> void:
 		if specs_panel: specs_panel.hide()
 		if mission_selector: mission_selector.hide()
 		if mode_selector: mode_selector.hide_selector()
+		if agility_selector and agility_selector.has_method("hide_selector"): agility_selector.hide_selector()
 		if leaderboard_dialog and leaderboard_dialog.has_method("close_leaderboard"):
 			leaderboard_dialog.close_leaderboard()
 
@@ -298,6 +320,7 @@ func _show_leaderboard_dialog() -> void:
 		if mission_selector: mission_selector.hide()
 		if mode_selector: mode_selector.hide_selector()
 		if combat_stats: combat_stats.hide_stats()
+		if agility_selector and agility_selector.has_method("hide_selector"): agility_selector.hide_selector()
 		if rewards_dialog: rewards_dialog.hide_dialog()
 		leaderboard_dialog.show_leaderboard("global")
 
@@ -308,8 +331,22 @@ func _show_rewards_dialog(default_tab: String = "wheel") -> void:
 		if mission_selector: mission_selector.hide()
 		if mode_selector: mode_selector.hide_selector()
 		if combat_stats: combat_stats.hide_stats()
+		if agility_selector and agility_selector.has_method("hide_selector"): agility_selector.hide_selector()
 		if leaderboard_dialog: leaderboard_dialog.hide()
 		rewards_dialog.show_dialog(default_tab)
+
+func _show_agility_selector() -> void:
+	if agility_selector and agility_selector.has_method("show_selector"):
+		if settings_modal: settings_modal.hide()
+		if specs_panel: specs_panel.hide()
+		if mission_selector: mission_selector.hide()
+		if mode_selector: mode_selector.hide_selector()
+		if combat_stats: combat_stats.hide_stats()
+		if leaderboard_dialog and leaderboard_dialog.has_method("close_leaderboard"):
+			leaderboard_dialog.close_leaderboard()
+		if rewards_dialog and rewards_dialog.has_method("hide_dialog"):
+			rewards_dialog.hide_dialog()
+		agility_selector.show_selector()
 
 func _open_submenu(submenu_name: String) -> void:
 	if root_menu:
@@ -383,6 +420,8 @@ func _on_theater_selected(mode: String) -> void:
 			net_ctrl.is_solo_mode = false
 			net_ctrl.default_player_id = 1
 		get_tree().change_scene_to_file("res://pvp_menu.tscn")
+	elif mode == "AGILITY":
+		_show_agility_selector()
 
 func _on_pair_controller1_requested() -> void:
 	_toggle_qr_dialog(1)
@@ -443,6 +482,13 @@ func _update_pilot_dossier_ui() -> void:
 		pilot_streak_label.text = "🔥 %dD" % streak_days
 	if pilot_badges_label:
 		pilot_badges_label.text = "🎖️ %d/10" % badges_count
+	
+	var agility_mgr = _get_autoload_node("AgilityManager")
+	var av_score = agility_mgr.avionics_score if agility_mgr else 0
+	var av_class = agility_mgr.avionics_class if agility_mgr else "CLASS-E ROOKIE"
+	if pilot_avionics_label:
+		pilot_avionics_label.text = "AVIONICS: %s // %s PTS" % [av_class, _format_number(av_score)]
+
 	if switch_pilot_btn:
 		switch_pilot_btn.text = "LOGOUT" if is_auth else "LOGIN"
 
@@ -451,6 +497,8 @@ func _update_pilot_dossier_ui() -> void:
 		hud_pilot_callsign_label.text = "CALLSIGN: %s" % callsign_text
 	if hud_pilot_rank_label:
 		hud_pilot_rank_label.text = "RANK: %s // %s" % [rank_text, squad_text]
+	if hud_avionics_label:
+		hud_avionics_label.text = "AVIONICS: %s (%s PTS)" % [av_class, _format_number(av_score)]
 	if hud_online_status_label:
 		if is_auth:
 			hud_online_status_label.text = "● DOSSIER VERIFIED"
@@ -705,6 +753,7 @@ func _launch_game_animation(mission_id: String, is_resume: bool) -> void:
 	
 	# Disable UI buttons to prevent double activation
 	if category_campaign_btn: category_campaign_btn.disabled = true
+	if category_agility_btn: category_agility_btn.disabled = true
 	if category_multiplayer_btn: category_multiplayer_btn.disabled = true
 	if category_intel_btn: category_intel_btn.disabled = true
 	if category_settings_btn: category_settings_btn.disabled = true
@@ -730,6 +779,8 @@ func _launch_game_animation(mission_id: String, is_resume: bool) -> void:
 		mission_selector.hide()
 	if specs_panel:
 		specs_panel.hide()
+	if agility_selector and agility_selector.has_method("hide_selector"):
+		agility_selector.hide_selector()
 	if leaderboard_dialog and leaderboard_dialog.has_method("close_leaderboard"):
 		leaderboard_dialog.close_leaderboard()
 	
@@ -845,6 +896,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.keycode == KEY_ESCAPE:
 			if leaderboard_dialog and leaderboard_dialog.visible:
 				leaderboard_dialog.close_leaderboard()
+				get_viewport().set_input_as_handled()
+				return
+			if agility_selector and agility_selector.visible:
+				if agility_selector.has_method("hide_selector"):
+					agility_selector.hide_selector()
+				else:
+					agility_selector.hide()
 				get_viewport().set_input_as_handled()
 				return
 			if specs_panel and specs_panel.visible:

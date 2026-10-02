@@ -1,0 +1,168 @@
+[gd_scene load_steps=5 format=3 uid="uid://c8agilityselector01"]
+
+[ext_resource type="Script" path="res://agility_selector_dialog.gd" id="1_sel"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+content_margin_left = 28.0
+content_margin_top = 22.0
+content_margin_right = 28.0
+content_margin_bottom = 22.0
+bg_color = Color(0.06, 0.08, 0.11, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.96, 0.62, 0.04, 0.85)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 32
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status_bar"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+bg_color = Color(0.1, 0.12, 0.16, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.25, 0.3, 0.38, 0.6)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_ghost"]
+content_margin_left = 10.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+bg_color = Color(0.12, 0.15, 0.2, 0.9)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2, 0.85, 1, 0.8)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[node name="AgilitySelectorDialog" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_sel")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.03, 0.04, 0.88)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(1040, 680)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="CenterContainer/Panel/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 20
+text = "⚡ AGILITY FLIGHT TRIALS // OPERATION KINETIC"
+
+[node name="CloseBtn" type="Button" parent="CenterContainer/Panel/VBox/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 0.85)
+theme_override_font_sizes/font_size = 14
+text = "✕"
+
+[node name="Subtitle" type="Label" parent="CenterContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.72, 0.82, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "// STANDALONE FLIGHT PROVING GROUNDS // ALL 8 TRIALS UNLOCKED FOR DEPLOYMENT //"
+horizontal_alignment = 1
+
+[node name="StatusPanel" type="PanelContainer" parent="CenterContainer/Panel/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_status_bar")
+
+[node name="StatusHBox" type="HBoxContainer" parent="CenterContainer/Panel/VBox/StatusPanel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="PilotTagLabel" type="Label" parent="CenterContainer/Panel/VBox/StatusPanel/StatusHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "PILOT: MAVERICK // LIEUTENANT"
+
+[node name="AvionicsScoreLabel" type="Label" parent="CenterContainer/Panel/VBox/StatusPanel/StatusHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.2, 0.85, 0.55, 1)
+theme_override_font_sizes/font_size = 12
+text = "AVIONICS RATING: 0 PTS // CLASS-E ROOKIE"
+horizontal_alignment = 1
+
+[node name="MedalsTallyLabel" type="Label" parent="CenterContainer/Panel/VBox/StatusPanel/StatusHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 12
+text = "MEDALS: 🏆 0  🥇 0  🥈 0  🥉 0"
+
+[node name="GhostToggleBtn" type="Button" parent="CenterContainer/Panel/VBox/StatusPanel/StatusHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 28)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 11
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_ghost")
+text = "👻 GHOST: ON"
+
+[node name="Scroll" type="ScrollContainer" parent="CenterContainer/Panel/VBox"]
+custom_minimum_size = Vector2(0, 480)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="TrialsGrid" type="GridContainer" parent="CenterContainer/Panel/VBox/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 4

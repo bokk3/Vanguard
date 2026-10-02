@@ -76,7 +76,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="MainPanel" type="PanelContainer" parent="CenterContainer"]
-custom_minimum_size = Vector2(800, 560)
+custom_minimum_size = Vector2(840, 620)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
 
@@ -282,6 +282,69 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.84, 0, 1)
 theme_override_font_sizes/font_size = 20
 text = "0.0%"
+
+[node name="CardAgilityScore" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_statcard")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardAgilityScore"]
+layout_mode = 2
+
+[node name="Lbl" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardAgilityScore/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.75, 0.9, 1)
+theme_override_font_sizes/font_size = 10
+text = "AVIONICS EXPERTISE"
+
+[node name="AvionicsScoreVal" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardAgilityScore/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "0 PTS"
+
+[node name="CardAgilityMedals" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_statcard")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardAgilityMedals"]
+layout_mode = 2
+
+[node name="Lbl" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardAgilityMedals/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.75, 0.9, 1)
+theme_override_font_sizes/font_size = 10
+text = "AGILITY MEDALS"
+
+[node name="AgilityMedalsVal" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardAgilityMedals/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_font_sizes/font_size = 18
+text = "🏆 0  🥇 0  🥈 0  🥉 0"
+
+[node name="CardAgilityClass" type="PanelContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_statcard")
+
+[node name="VBox" type="VBoxContainer" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardAgilityClass"]
+layout_mode = 2
+
+[node name="Lbl" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardAgilityClass/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.75, 0.9, 1)
+theme_override_font_sizes/font_size = 10
+text = "FLIGHT MASTERY CLASS"
+
+[node name="AvionicsClassVal" type="Label" parent="CenterContainer/MainPanel/Margin/VBox/Grid/CardAgilityClass/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 15
+text = "CLASS-E ROOKIE"
 
 [node name="HistoryHeader" type="Label" parent="CenterContainer/MainPanel/Margin/VBox"]
 layout_mode = 2

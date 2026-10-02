@@ -17,6 +17,7 @@
 [ext_resource type="PackedScene" path="res://combat_stats_dialog.tscn" id="15_stats"]
 [ext_resource type="PackedScene" path="res://leaderboard_dialog.tscn" id="16_lb"]
 [ext_resource type="PackedScene" path="res://rewards_dialog.tscn" id="17_rewards"]
+[ext_resource type="PackedScene" path="res://agility_selector_dialog.tscn" id="18_agility"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_eerie"]
 sky_top_color = Color(0.04, 0.05, 0.07, 1)
@@ -441,6 +442,13 @@ theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 0.9)
 theme_override_font_sizes/font_size = 10
 text = "RANK: LIEUTENANT // 404th Vanguard Strike Wing"
 
+[node name="PilotAvionicsLabel" type="Label" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.8, 1, 0.95)
+theme_override_font_sizes/font_size = 10
+text = "AVIONICS: CLASS-E // 0 PTS"
+
 [node name="PilotQuickStatsRow" type="HBoxContainer" parent="UI/Sidebar/Margin/VBox/MenuButtons/PilotDossierBox/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 6
@@ -569,6 +577,17 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
 text = "  01.  CAMPAIGN SORTIES  ▶"
 alignment = 0
 
+[node name="CategoryAgilityBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/RootMenu"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.94, 0.97, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "  02.  AGILITY FLIGHT TRIALS  ▶"
+alignment = 0
+
 [node name="CategoryMultiplayerBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/RootMenu"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 42)
@@ -577,7 +596,7 @@ theme_override_colors/font_color = Color(0.92, 0.94, 0.97, 1)
 theme_override_font_sizes/font_size = 14
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  02.  MULTIPLAYER & LAN  ▶"
+text = "  03.  MULTIPLAYER & LAN  ▶"
 alignment = 0
 
 [node name="CategoryIntelBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/RootMenu"]
@@ -588,7 +607,7 @@ theme_override_colors/font_color = Color(0.92, 0.94, 0.97, 1)
 theme_override_font_sizes/font_size = 14
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  03.  ARMORY & DOSSIER  ▶"
+text = "  04.  ARMORY & DOSSIER  ▶"
 alignment = 0
 
 [node name="CategorySettingsBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/RootMenu"]
@@ -599,7 +618,7 @@ theme_override_colors/font_color = Color(0.92, 0.94, 0.97, 1)
 theme_override_font_sizes/font_size = 14
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  04.  SYSTEM SETTINGS  ▶"
+text = "  05.  SYSTEM SETTINGS  ▶"
 alignment = 0
 
 [node name="QuitBtn" type="Button" parent="UI/Sidebar/Margin/VBox/MenuButtons/RootMenu"]
@@ -610,7 +629,7 @@ theme_override_colors/font_color = Color(0.85, 0.88, 0.92, 1)
 theme_override_font_sizes/font_size = 14
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  05.  QUIT TO DESKTOP"
+text = "  06.  QUIT TO DESKTOP"
 alignment = 0
 
 
@@ -903,6 +922,13 @@ theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 0.9)
 theme_override_font_sizes/font_size = 10
 text = "RANK: LIEUTENANT // 404th Vanguard Strike Wing"
 
+[node name="HUDAvionicsLabel" type="Label" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/HeaderRow/PilotInfo"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.8, 1, 0.95)
+theme_override_font_sizes/font_size = 10
+text = "AVIONICS: CLASS-E (0 PTS)"
+
 [node name="HUDStatusChip" type="PanelContainer" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/HeaderRow"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_hud_chip")
@@ -1041,6 +1067,17 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_hud_btn")
 theme_override_styles/hover = SubResource("StyleBoxFlat_hud_btn_hover")
 text = "🧑‍✈️ PILOT ID"
 
+[node name="HUDAgilityBtn" type="Button" parent="UI/TitleOverlay/PilotHUDCard/Margin/VBox/HUDActionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 10
+theme_override_styles/normal = SubResource("StyleBoxFlat_hud_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hud_btn_hover")
+text = "⚡ AGILITY"
+
 [node name="SpecsPanel" type="PanelContainer" parent="UI"]
 unique_name_in_owner = true
 visible = false
@@ -1134,6 +1171,10 @@ unique_name_in_owner = true
 visible = false
 
 [node name="RewardsDialog" parent="UI" instance=ExtResource("17_rewards")]
+unique_name_in_owner = true
+visible = false
+
+[node name="AgilitySelectorDialog" parent="UI" instance=ExtResource("18_agility")]
 unique_name_in_owner = true
 visible = false
 

@@ -11,6 +11,7 @@ signal layout_toggled(is_azerty: bool)
 signal switch_pilot_requested()
 
 @onready var solo_btn: Button = %SoloBtn
+@onready var agility_btn: Button = %AgilityBtn
 @onready var online_btn: Button = %OnlineBtn
 @onready var pair_phone_btn: Button = %PairPhoneBtn
 @onready var layout_toggle_btn: Button = %LayoutToggleBtn
@@ -24,6 +25,8 @@ func _ready() -> void:
 	
 	if solo_btn:
 		solo_btn.pressed.connect(_on_solo_pressed)
+	if agility_btn:
+		agility_btn.pressed.connect(_on_agility_pressed)
 	if online_btn:
 		online_btn.pressed.connect(_on_online_pressed)
 	if pair_phone_btn:
@@ -72,6 +75,10 @@ func hide_selector() -> void:
 func _on_solo_pressed() -> void:
 	hide_selector()
 	theater_selected.emit("SOLO")
+
+func _on_agility_pressed() -> void:
+	hide_selector()
+	theater_selected.emit("AGILITY")
 
 func _on_online_pressed() -> void:
 	hide_selector()

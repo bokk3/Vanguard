@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://c7auth9vanguard"]
+[gd_scene load_steps=9 format=3 uid="uid://c7auth9vanguard"]
 
 [ext_resource type="Script" path="res://login_dialog.gd" id="1_login"]
 
@@ -7,18 +7,106 @@ content_margin_left = 32.0
 content_margin_top = 28.0
 content_margin_right = 32.0
 content_margin_bottom = 28.0
-bg_color = Color(0.02, 0.05, 0.09, 0.97)
+bg_color = Color(0.06, 0.08, 0.11, 0.98)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0, 0.9, 1, 0.85)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
-shadow_color = Color(0, 0.9, 1, 0.3)
-shadow_size = 30
+border_color = Color(0.96, 0.62, 0.04, 0.85)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.65)
+shadow_size = 24
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.1, 0.12, 0.16, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.25, 0.3, 0.38, 0.5)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_input_focus"]
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+bg_color = Color(0.13, 0.16, 0.22, 0.95)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.96, 0.62, 0.04, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary"]
+content_margin_top = 12.0
+content_margin_bottom = 12.0
+bg_color = Color(0.85, 0.52, 0.02, 0.95)
+border_width_left = 3
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.78, 0.15, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_primary_hover"]
+content_margin_top = 12.0
+content_margin_bottom = 12.0
+bg_color = Color(0.96, 0.62, 0.04, 1)
+border_width_left = 3
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.88, 0.3, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_sec"]
+content_margin_top = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.12, 0.15, 0.2, 0.85)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.36, 0.45, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_sec_hover"]
+content_margin_top = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.18, 0.22, 0.28, 0.95)
+border_width_left = 2
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.96, 0.62, 0.04, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
 
 [node name="LoginDialog" type="Control"]
 process_mode = 3
@@ -37,7 +125,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.88)
+color = Color(0.02, 0.03, 0.04, 0.85)
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -54,7 +142,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
 
 [node name="VBox" type="VBoxContainer" parent="CenterContainer/Panel"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 14
 
 [node name="Header" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
@@ -62,23 +150,25 @@ layout_mode = 2
 [node name="Title" type="Label" parent="CenterContainer/Panel/VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 20
-text = "🛡️ PILOT IDENTIFICATION"
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 18
+text = "🛡️ PILOT IDENTIFICATION & COMMISSION"
 
 [node name="CloseBtn" type="Button" parent="CenterContainer/Panel/VBox/Header"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(32, 32)
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 0.8)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_sec")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_sec_hover")
 text = "✕"
 
 [node name="Subtitle" type="Label" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.75, 0.88, 0.9)
-theme_override_font_sizes/font_size = 12
-text = "Enter your callsign to begin. Your progress is saved locally."
+theme_override_colors/font_color = Color(0.65, 0.72, 0.82, 0.9)
+theme_override_font_sizes/font_size = 11
+text = "// ENTER CALLSIGN TO REGISTER SERVICE RECORD // LOCAL OR CLOUD //"
 horizontal_alignment = 1
 
 [node name="HSeparator1" type="HSeparator" parent="CenterContainer/Panel/VBox"]
@@ -86,74 +176,81 @@ layout_mode = 2
 
 [node name="CallsignBox" type="VBoxContainer" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 5
 
 [node name="Label" type="Label" parent="CenterContainer/Panel/VBox/CallsignBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 13
-text = "CALLSIGN"
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 12
+text = "PILOT CALLSIGN"
 
 [node name="CallsignInput" type="LineEdit" parent="CenterContainer/Panel/VBox/CallsignBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 42)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+theme_override_styles/focus = SubResource("StyleBoxFlat_input_focus")
 placeholder_text = "e.g. MAVERICK, VIPER, GHOST"
 max_length = 20
 
 [node name="SquadronBox" type="VBoxContainer" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 5
 
 [node name="Label" type="Label" parent="CenterContainer/Panel/VBox/SquadronBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.85, 1, 1)
-theme_override_font_sizes/font_size = 13
-text = "SQUADRON"
+theme_override_colors/font_color = Color(0.85, 0.88, 0.92, 1)
+theme_override_font_sizes/font_size = 12
+text = "TACTICAL SQUADRON"
 
 [node name="SquadronOption" type="OptionButton" parent="CenterContainer/Panel/VBox/SquadronBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
 
 [node name="EmailContainer" type="VBoxContainer" parent="CenterContainer/Panel/VBox"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 5
 
 [node name="Label" type="Label" parent="CenterContainer/Panel/VBox/EmailContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.2, 0.9, 0.6, 1)
-theme_override_font_sizes/font_size = 13
-text = "EMAIL (FOR VERIFICATION & RECOVERY)"
+theme_override_colors/font_color = Color(0.2, 0.85, 0.55, 1)
+theme_override_font_sizes/font_size = 12
+text = "EMAIL (FOR VERIFICATION & CLOUD RECOVERY)"
 
 [node name="EmailInput" type="LineEdit" parent="CenterContainer/Panel/VBox/EmailContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+theme_override_styles/focus = SubResource("StyleBoxFlat_input_focus")
 placeholder_text = "e.g. pilot@domain.com"
 
 [node name="PasswordContainer" type="VBoxContainer" parent="CenterContainer/Panel/VBox"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 5
 
 [node name="Label" type="Label" parent="CenterContainer/Panel/VBox/PasswordContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.75, 0.2, 1)
-theme_override_font_sizes/font_size = 13
-text = "PASSWORD"
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
+theme_override_font_sizes/font_size = 12
+text = "SECURITY ACCESS KEY / PASSWORD"
 
 [node name="PasswordInput" type="LineEdit" parent="CenterContainer/Panel/VBox/PasswordContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+theme_override_styles/focus = SubResource("StyleBoxFlat_input_focus")
 secret = true
 placeholder_text = "Cloud access password"
 
@@ -180,6 +277,8 @@ custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_input")
+theme_override_styles/focus = SubResource("StyleBoxFlat_input_focus")
 placeholder_text = "6-DIGIT CODE"
 alignment = 1
 max_length = 6
@@ -189,6 +288,8 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(90, 38)
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_sec")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_sec_hover")
 text = "CONFIRM"
 
 [node name="VerifyResendBtn" type="Button" parent="CenterContainer/Panel/VBox/VerifyContainer/VerifyHBox"]
@@ -196,6 +297,8 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(80, 38)
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_sec")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_sec_hover")
 text = "RESEND"
 
 [node name="VerifySkipBtn" type="Button" parent="CenterContainer/Panel/VBox/VerifyContainer"]
@@ -228,44 +331,55 @@ layout_mode = 2
 
 [node name="AuthBtn" type="Button" parent="CenterContainer/Panel/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.0, 0.06, 0.12, 1)
-theme_override_font_sizes/font_size = 16
-text = "🚀  PLAY"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_primary")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_primary_hover")
+text = "🚀  CONFIRM PILOT COMMISSION"
 
 [node name="SecondaryBtns" type="HBoxContainer" parent="CenterContainer/Panel/VBox"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
 [node name="QuickBtn" type="Button" parent="CenterContainer/Panel/VBox/SecondaryBtns"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 36)
+custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.9, 0.92, 0.96, 1)
 theme_override_font_sizes/font_size = 11
-text = "⚡ QUICK PLAY (GUEST)"
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_sec")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_sec_hover")
+text = "⚡ GUEST SORTIE"
 
 [node name="CloudToggleBtn" type="Button" parent="CenterContainer/Panel/VBox/SecondaryBtns"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 36)
+custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.96, 0.62, 0.04, 1)
 theme_override_font_sizes/font_size = 11
-text = "🌐 CLOUD LOGIN"
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_sec")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_sec_hover")
+text = "🌐 CLOUD SYNC"
 
 [node name="RegisterToggleBtn" type="Button" parent="CenterContainer/Panel/VBox/SecondaryBtns"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 36)
+custom_minimum_size = Vector2(0, 34)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.2, 0.85, 0.55, 1)
 theme_override_font_sizes/font_size = 11
-text = "📝 REGISTER"
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_sec")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_sec_hover")
+text = "📝 NEW ACCOUNT"
 
 [node name="StatusLabel" type="Label" parent="CenterContainer/Panel/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.5, 0.7, 0.85, 0.8)
+theme_override_colors/font_color = Color(0.65, 0.72, 0.82, 0.8)
 theme_override_font_sizes/font_size = 11
 text = "// LOCAL PLAY — NO ACCOUNT REQUIRED //"
 horizontal_alignment = 1
