@@ -39,6 +39,13 @@ var stats: Dictionary = {
 var http_request: HTTPRequest = null
 var pending_action: String = "" # "login", "register", "verify_code", "resend_code"
 
+func _get_autoload_node(node_name: String) -> Node:
+	if is_inside_tree():
+		return get_node_or_null("/root/" + node_name)
+	elif Engine.get_main_loop() and "root" in Engine.get_main_loop() and Engine.get_main_loop().root:
+		return Engine.get_main_loop().root.get_node_or_null(node_name)
+	return null
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
@@ -95,7 +102,7 @@ func _load_saved_profile() -> void:
 		stats = data["stats"]
 		
 	if data.has("rewards") and typeof(data["rewards"]) == TYPE_DICTIONARY:
-		var rm = get_node_or_null("/root/RewardManager")
+		var rm = _get_autoload_node("RewardManager")
 		if rm and rm.has_method("load_save_data"):
 			rm.load_save_data(data["rewards"])
 		
@@ -220,7 +227,7 @@ func _on_http_request_completed(result: int, response_code: int, headers: Packed
 		if pilot_data.has("stats") and typeof(pilot_data["stats"]) == TYPE_DICTIONARY:
 			stats = pilot_data["stats"]
 			
-		var rm = get_node_or_null("/root/RewardManager")
+		var rm = _get_autoload_node("RewardManager")
 		if rm and rm.has_method("merge_cloud_rewards"):
 			if data.has("rewards") and typeof(data["rewards"]) == TYPE_DICTIONARY:
 				rm.merge_cloud_rewards(data["rewards"])
@@ -313,7 +320,7 @@ func logout() -> void:
 	logged_out.emit()
 
 func _save_profile() -> void:
-	var rm = get_node_or_null("/root/RewardManager")
+	var rm = _get_autoload_node("RewardManager")
 	var rm_data = rm.get_save_data() if rm and rm.has_method("get_save_data") else {}
 	var rm_stars = rm.stars if rm and "stars" in rm else 0
 	var data = {
@@ -344,18 +351,18 @@ func _sync_pilot_to_systems() -> void:
 		return
 
 	# 1. Sync to NetworkManager (for PvP Arena multiplayer)
-	var net_mgr = get_node_or_null("/root/NetworkManager")
+	var net_mgr = _get_autoload_node("NetworkManager")
 	if net_mgr and "player_callsign" in net_mgr:
 		net_mgr.player_callsign = callsign
 		
 	# 2. Sync to SaveManager (campaign profile)
-	var save_mgr = get_node_or_null("/root/SaveManager")
+	var save_mgr = _get_autoload_node("SaveManager")
 	if save_mgr and save_mgr.has_method("set"):
 		# Update profile metadata for save games
 		pass
 		
 	# 3. Sync to NetworkControllerServer (Mobile HOTAS pairing)
-	var controller_server = get_node_or_null("/root/NetworkControllerServer")
+	var controller_server = _get_autoload_node("NetworkControllerServer")
 	if controller_server:
 		# If mobile pilot connects, default host pilot callsign is updated
 		pass
@@ -379,8 +386,8 @@ func record_battle_result(theater: String, outcome: String, kills: int, duration
 	else:
 		stats["battles_lost"] = int(stats["battles_lost"]) + 1
 		
-	var cfg = get_node_or_null("/root/ConfigManager") if is_inside_tree() else null
-	var net_ctrl = get_node_or_null("/root/NetworkControllerServer") if is_inside_tree() else null
+	var cfg = _get_autoload_node("ConfigManager")
+	var net_ctrl = _get_autoload_node("NetworkControllerServer")
 	var is_phone = net_ctrl and net_ctrl.connected_clients.size() > 0
 	var is_az = cfg.is_azerty if cfg else true
 	var controls_str = "PHONE GYRO" if is_phone else ("AZERTY" if is_az else "QWERTY")
@@ -429,7 +436,7 @@ func sync_cloud_save() -> bool:
 	add_child(sync_request)
 	sync_request.timeout = 6.0
 	
-	var rm = get_node_or_null("/root/RewardManager")
+	var rm = _get_autoload_node("RewardManager")
 	var r_data = rm.get_save_data() if rm and rm.has_method("get_save_data") else {}
 	var r_stars = rm.stars if rm and "stars" in rm else 0
 	
@@ -459,7 +466,7 @@ func sync_cloud_save() -> bool:
 			var text = body.get_string_from_utf8()
 			var parsed = JSON.parse_string(text)
 			if typeof(parsed) == TYPE_DICTIONARY:
-				var r_node = get_node_or_null("/root/RewardManager")
+				var r_node = _get_autoload_node("RewardManager")
 				if r_node and r_node.has_method("merge_cloud_rewards"):
 					if parsed.has("rewards") and typeof(parsed["rewards"]) == TYPE_DICTIONARY:
 						r_node.merge_cloud_rewards(parsed["rewards"])
@@ -490,7 +497,7 @@ func fetch_cloud_save() -> void:
 			var text = body.get_string_from_utf8()
 			var parsed = JSON.parse_string(text)
 			if typeof(parsed) == TYPE_DICTIONARY:
-				var r_node = get_node_or_null("/root/RewardManager")
+				var r_node = _get_autoload_node("RewardManager")
 				if r_node and r_node.has_method("merge_cloud_rewards"):
 					if parsed.has("rewards") and typeof(parsed["rewards"]) == TYPE_DICTIONARY:
 						r_node.merge_cloud_rewards(parsed["rewards"])

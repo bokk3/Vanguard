@@ -19,6 +19,7 @@ static var _cached_hull_mat: StandardMaterial3D = null
 static var _cached_shield_mat: StandardMaterial3D = null
 static var _cached_hostile_mat: StandardMaterial3D = null
 static var _proxy_sphere: SphereShape3D = null
+static var _cached_shape_query: PhysicsShapeQueryParameters3D = null
 
 var shooter_exclude_rids: Array[RID] = []
 
@@ -26,6 +27,11 @@ static func _init_cached_resources() -> void:
 	if _proxy_sphere == null:
 		_proxy_sphere = SphereShape3D.new()
 		_proxy_sphere.radius = 0.85
+	if _cached_shape_query == null:
+		_cached_shape_query = PhysicsShapeQueryParameters3D.new()
+		_cached_shape_query.shape = _proxy_sphere
+		_cached_shape_query.collide_with_areas = true
+		_cached_shape_query.collide_with_bodies = true
 	if _cached_mesh == null:
 		_cached_mesh = SphereMesh.new()
 		_cached_mesh.radius = 0.08
@@ -109,15 +115,9 @@ func _physics_process(delta: float) -> void:
 		_handle_hit(hit.collider, hit.position, hit.normal)
 	else:
 		# Kinetic proxy sphere sweep (0.85m margin) to prevent tunneling through thin meshes at 650+ m/s
-		var shape_query = PhysicsShapeQueryParameters3D.new()
-		shape_query.shape = _proxy_sphere
-		shape_query.transform = Transform3D(Basis(), next_pos)
-		shape_query.collide_with_areas = true
-		shape_query.collide_with_bodies = true
-		if not shooter_exclude_rids.is_empty():
-			shape_query.exclude = shooter_exclude_rids
-
-		var shape_hits = space_state.intersect_shape(shape_query, 1)
+		_cached_shape_query.transform = Transform3D(Basis(), next_pos)
+		_cached_shape_query.exclude = shooter_exclude_rids
+		var shape_hits = space_state.intersect_shape(_cached_shape_query, 1)
 		if not shape_hits.is_empty():
 			_handle_hit(shape_hits[0].collider, next_pos, -velocity.normalized())
 		else:

@@ -117,6 +117,7 @@ func _process(delta: float) -> bool:
 		print("[PASS] ESC key handled successfully to collapse submenu.")
 		
 		print(">>> ALL SUBMENU & LEADERBOARD TESTS PASSED (100%) <<<")
+		home_menu.free()
 		quit(0)
 		return true
 

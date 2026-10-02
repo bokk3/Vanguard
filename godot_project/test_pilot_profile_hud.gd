@@ -119,7 +119,7 @@ func _run_hud_tests() -> void:
 	menu.rewards_dialog.hide_dialog()
 	print("[PASS] Quick action buttons (Combat Dossier & Armory) functional.")
 
-	menu.queue_free()
+	menu.free()
 	print("=================================================================")
 	print(">>> ALL PILOT PROFILE HUD TESTS PASSED (100%)                <<<")
 	print("=================================================================")

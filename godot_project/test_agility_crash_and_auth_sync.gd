@@ -118,7 +118,7 @@ func _run_all_tests() -> void:
 
 	print("[PASS] Agility PauseMenu displays trial curriculum and disables save/load.")
 
-	course.queue_free()
+	course.free()
 
 	# -------------------------------------------------------------
 	# TEST 3: Guest vs. Cloud Auth & Visible Login Button
@@ -183,7 +183,7 @@ func _run_all_tests() -> void:
 	assert(rewards_dialog.status_banner_label.modulate.r > 0.8, "Sync error banner must be displayed in red")
 	print("[PASS] RewardsDialog sync error: '%s'" % rewards_dialog.status_banner_label.text)
 
-	home.queue_free()
+	home.free()
 
 	print("\n=======================================================")
 	print(">>> ALL AGILITY CRASH & AUTH SYNC TESTS PASSED! <<<")

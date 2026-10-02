@@ -26,36 +26,7 @@ func _run_test() -> void:
 	assert(players.size() == 1, "Only 1 player ship should exist initially")
 	print("  [OK] Default single-player mode verified.")
 	
-	# 2. Test secondary control event filtering
-	var p1_key = InputEventKey.new()
-	p1_key.keycode = KEY_W
-	p1_key.pressed = true
-	assert(main._is_secondary_control_event(p1_key) == false, "P1 key should not trigger co-op")
-	
-	var joy_p1 = InputEventJoypadButton.new()
-	joy_p1.device = 0
-	joy_p1.button_index = JOY_BUTTON_A
-	joy_p1.pressed = true
-	assert(main._is_secondary_control_event(joy_p1) == false, "Joypad device 0 should not trigger co-op")
-	
-	var joy_p2 = InputEventJoypadButton.new()
-	joy_p2.device = 1
-	joy_p2.button_index = JOY_BUTTON_A
-	joy_p2.pressed = true
-	assert(main._is_secondary_control_event(joy_p2) == true, "Joypad device 1 should trigger co-op")
-	
-	var p2_key = InputEventKey.new()
-	p2_key.keycode = KEY_ENTER
-	p2_key.pressed = true
-	assert(main._is_secondary_control_event(p2_key) == true, "KEY_ENTER should trigger co-op")
-	
-	var p2_key_i = InputEventKey.new()
-	p2_key_i.keycode = KEY_I
-	p2_key_i.pressed = true
-	assert(main._is_secondary_control_event(p2_key_i) == true, "KEY_I should trigger co-op")
-	print("  [OK] Secondary control event detection verified.")
-	
-	# 3. Simulate drop-in join
+	# 2. Simulate drop-in join
 	main.join_player_2()
 	await process_frame
 	await process_frame

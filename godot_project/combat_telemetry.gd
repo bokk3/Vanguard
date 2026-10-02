@@ -247,13 +247,20 @@ func fire_cannon() -> bool:
 # Radar & Target Lock-On System
 # --------------------------------------------------------
 func _scan_radar_targets() -> void:
-	if not ship:
+	if not ship or not is_inside_tree() or not get_tree():
 		return
 	
 	detected_targets.clear()
 	var targets = get_tree().get_nodes_in_group("radar_targets")
+	if targets.is_empty():
+		current_target = null
+		return
+
 	var ship_pos = ship.global_position
 	var forward = -ship.global_transform.basis.z.normalized()
+	# Pre-compute transposed basis once outside loop for fast local coordinate projection
+	var inv_basis = ship.global_transform.basis.transposed()
+	var max_range_sq = max_radar_range_m * max_radar_range_m
 	
 	var best_candidate: Node3D = null
 	var min_angle = deg_to_rad(seeker_cone_deg)
@@ -264,16 +271,17 @@ func _scan_radar_targets() -> void:
 		
 		var t_pos = t.global_position
 		var to_target = t_pos - ship_pos
-		var dist = to_target.length()
+		var d_sq = to_target.length_squared()
 		
-		if dist > max_radar_range_m:
+		if d_sq > max_range_sq:
 			continue
 		
-		var dir_to_target = to_target.normalized()
+		var dist = sqrt(d_sq)
+		var dir_to_target = to_target / max(dist, 0.0001)
 		var angle_to_forward = forward.angle_to(dir_to_target)
 		
 		# Compute horizontal azimuth in ship local coordinates (-180 to +180 deg)
-		var local_dir = ship.global_transform.basis.inverse() * dir_to_target
+		var local_dir = inv_basis * dir_to_target
 		var azimuth_rad = atan2(local_dir.x, -local_dir.z) # 0 = forward, + = right, - = left
 		
 		var is_hostile = t.is_in_group("enemies")

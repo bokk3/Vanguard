@@ -42,6 +42,16 @@ var cooldowns: Dictionary = {
 	"DECK_SKIM": 0.0
 }
 
+var _cached_am: Node = null
+
+func _get_am() -> Node:
+	if not is_instance_valid(_cached_am):
+		if is_inside_tree() and get_tree() and get_tree().root:
+			_cached_am = get_tree().root.get_node_or_null("AgilityManager")
+		else:
+			_cached_am = null
+	return _cached_am
+
 func _ready() -> void:
 	if not ship:
 		ship = get_parent() as CharacterBody3D
@@ -51,7 +61,7 @@ func _physics_process(delta: float) -> void:
 		return
 		
 	# Tick cooldowns
-	for k in cooldowns.keys():
+	for k in cooldowns:
 		if cooldowns[k] > 0.0:
 			cooldowns[k] = max(0.0, cooldowns[k] - delta)
 			
@@ -185,7 +195,7 @@ func _process_deck_skim(delta: float, speed: float) -> void:
 func _trigger_maneuver(type: String, score_bonus: int, time_bonus: float) -> void:
 	maneuver_executed.emit(type, score_bonus, time_bonus)
 	
-	var am = get_tree().root.get_node_or_null("AgilityManager") if is_inside_tree() else null
+	var am = _get_am()
 	if am and am.has_method("register_maneuver"):
 		am.register_maneuver(type, score_bonus, time_bonus)
 

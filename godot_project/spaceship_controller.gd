@@ -115,6 +115,33 @@ const GUN_MUZZLE_OFFSETS: Array[Vector3] = [
 @onready var camera: Camera3D = get_node_or_null("../Camera3D")
 @onready var telemetry: Node = get_node_or_null("CombatTelemetry")
 
+# Cached Autoload & Node References (Physics/Process Performance Optimization)
+var _cached_config_mgr: Node = null
+var _cached_nav_beacon: Node3D = null
+var _nav_beacon_searched: bool = false
+var _cached_hud: Node = null
+
+func _get_nav_beacon() -> Node3D:
+	if not _nav_beacon_searched:
+		_nav_beacon_searched = true
+		if is_inside_tree() and get_tree() and get_tree().current_scene:
+			_cached_nav_beacon = get_tree().current_scene.find_child("NavBeaconAlpha", true, false) as Node3D
+	elif not is_instance_valid(_cached_nav_beacon):
+		_cached_nav_beacon = null
+	return _cached_nav_beacon
+
+func _get_tactical_hud() -> Node:
+	if custom_hud and is_instance_valid(custom_hud):
+		return custom_hud
+	if not is_instance_valid(_cached_hud):
+		if is_inside_tree() and get_tree() and get_tree().current_scene:
+			_cached_hud = get_tree().current_scene.find_child("TacticalOverlay", true, false)
+		elif is_inside_tree() and get_tree() and get_tree().root:
+			_cached_hud = get_tree().root.find_child("TacticalOverlay", true, false)
+		else:
+			_cached_hud = null
+	return _cached_hud
+
 func _get_action(base_action: String) -> String:
 	if is_split_screen and player_id == 2:
 		var p2_act = "p2_" + base_action
@@ -231,7 +258,7 @@ func set_power_divert(mode: String) -> void:
 	print(">>> [Pilot %d] POWER DIVERT ENGAGED: %s" % [player_id, power_divert_mode])
 	
 	# Notify HUD
-	var hud = custom_hud if custom_hud else (get_tree().current_scene.find_child("TacticalOverlay", true, false) if (is_inside_tree() and get_tree() and get_tree().current_scene) else null)
+	var hud = _get_tactical_hud()
 	if hud and hud.has_method("notify_combat_event"):
 		var col = Color(0.0, 0.9, 1.0)
 		if power_divert_mode == "SHIELDS": col = Color(0.0, 0.9, 0.4)
@@ -272,7 +299,7 @@ func apply_mobile_inputs(data: Dictionary) -> void:
 		set_power_divert(str(data["power"]))
 		
 	if data.has("tare") and bool(data["tare"]):
-		var hud = custom_hud if custom_hud else (get_tree().current_scene.find_child("TacticalOverlay", true, false) if (is_inside_tree() and get_tree() and get_tree().current_scene) else null)
+		var hud = _get_tactical_hud()
 		if hud and hud.has_method("notify_combat_event"):
 			hud.notify_combat_event("// HORIZON ZEROED //", Color(0.1, 1.0, 0.45))
 
@@ -343,22 +370,38 @@ func _exit_tree() -> void:
 
 var mission_manager_override: Node = null
 var config_manager_override: Node = null
+var _cached_mission_mgr: Node = null
+
+func _get_autoload_node(node_name: String) -> Node:
+	if is_inside_tree():
+		return get_node_or_null("/root/" + node_name)
+	elif Engine.get_main_loop() and "root" in Engine.get_main_loop() and Engine.get_main_loop().root:
+		return Engine.get_main_loop().root.get_node_or_null(node_name)
+	return null
+
+var _cached_agility_mgr: Node = null
+
+func _get_agility_manager() -> Node:
+	if is_instance_valid(_cached_agility_mgr):
+		return _cached_agility_mgr
+	_cached_agility_mgr = _get_autoload_node("AgilityManager")
+	return _cached_agility_mgr
 
 func _get_config_manager() -> Node:
 	if config_manager_override:
 		return config_manager_override
-	var tree = get_tree() if is_inside_tree() else Engine.get_main_loop() as SceneTree
-	if tree and tree.root:
-		return tree.root.get_node_or_null("ConfigManager")
-	return null
+	if is_instance_valid(_cached_config_mgr):
+		return _cached_config_mgr
+	_cached_config_mgr = _get_autoload_node("ConfigManager")
+	return _cached_config_mgr
 
 func _get_mission_manager() -> Node:
 	if mission_manager_override:
 		return mission_manager_override
-	var tree = get_tree() if is_inside_tree() else Engine.get_main_loop() as SceneTree
-	if tree and tree.root:
-		return tree.root.get_node_or_null("MissionManager")
-	return null
+	if is_instance_valid(_cached_mission_mgr):
+		return _cached_mission_mgr
+	_cached_mission_mgr = _get_autoload_node("MissionManager")
+	return _cached_mission_mgr
 
 func _on_settings_changed() -> void:
 	var cfg = _get_config_manager()
@@ -541,7 +584,7 @@ func _physics_process(delta: float) -> void:
 		y_input += -mobile_yaw
 
 	if player_id == 1 and not is_network_remote:
-		var cfg = get_tree().root.get_node_or_null("ConfigManager") if (is_inside_tree() and get_tree() and get_tree().root) else null
+		var cfg = _get_config_manager()
 		var pitch_invert = -1.0 if (cfg and cfg.invert_pitch) else 1.0
 		p_input += mouse_input.y * mouse_sensitivity * 25.0 * pitch_invert
 		y_input += -mouse_input.x * mouse_sensitivity * 18.0
@@ -592,10 +635,10 @@ func _physics_process(delta: float) -> void:
 	# 6. Beacon Proximity Resupply
 	# ----------------------------------------------------
 	if telemetry and telemetry.missiles_remaining < telemetry.max_missiles:
-		var beacon = get_tree().current_scene.find_child("NavBeaconAlpha", true, false) if get_tree().current_scene else null
+		var beacon = _get_nav_beacon()
 		if beacon and global_position.distance_to(beacon.global_position) < 75.0:
 			telemetry.refill_all_missiles()
-			var hud = custom_hud if custom_hud else get_node_or_null("../HUD/TacticalOverlay")
+			var hud = _get_tactical_hud()
 			if hud and hud.has_method("notify_combat_event"):
 				hud.notify_combat_event("// NAV BEACON RESUPPLY // ALL ORDNANCE RESTOCKED //", Color(1.0, 0.84, 0.0))
 
@@ -927,6 +970,7 @@ func _calculate_aim_assist_dir(muzzle_pos: Vector3, base_dir: Vector3) -> Vector
 	var best_desired_dir: Vector3 = base_dir
 	var min_angular_error: float = deg_to_rad(gun_aim_assist_cone_deg)
 	var max_range_sq: float = gun_aim_assist_max_dist * gun_aim_assist_max_dist
+	var bullet_closing_speed: float = gun_bullet_speed + max(current_speed, 0.0)
 
 	# 1. First priority: telemetry current_target if valid and roughly in front
 	if telemetry and is_instance_valid(telemetry.current_target):
@@ -940,11 +984,13 @@ func _calculate_aim_assist_dir(muzzle_pos: Vector3, base_dir: Vector3) -> Vector
 				elif "linear_velocity" in t:
 					t_vel = t.linear_velocity
 				var dist = sqrt(d_sq)
-				var lead_time = dist / (gun_bullet_speed + max(current_speed, 0.0))
+				var lead_time = dist / bullet_closing_speed
 				var lead_pos = t.global_position + (t_vel * lead_time)
 				var desired = (lead_pos - muzzle_pos).normalized()
-				var angle = base_dir.angle_to(desired)
-				if angle <= deg_to_rad(gun_aim_assist_cone_deg * 1.5): # Generous 24-degree cone for locked target
+				var dot = base_dir.dot(desired)
+				var max_locked_cone_rad = deg_to_rad(gun_aim_assist_cone_deg * 1.5)
+				if dot >= cos(max_locked_cone_rad):
+					var angle = acos(clamp(dot, -1.0, 1.0))
 					best_candidate = t
 					best_desired_dir = desired
 					min_angular_error = angle
@@ -955,6 +1001,7 @@ func _calculate_aim_assist_dir(muzzle_pos: Vector3, base_dir: Vector3) -> Vector
 		if targets.is_empty():
 			targets = get_tree().get_nodes_in_group("radar_targets")
 		
+		var cos_min_cone = cos(min_angular_error)
 		for t in targets:
 			if not is_instance_valid(t) or t == self:
 				continue
@@ -969,14 +1016,17 @@ func _calculate_aim_assist_dir(muzzle_pos: Vector3, base_dir: Vector3) -> Vector
 			elif "linear_velocity" in t:
 				t_vel = t.linear_velocity
 			var dist = sqrt(d_sq)
-			var lead_time = dist / (gun_bullet_speed + max(current_speed, 0.0))
+			var lead_time = dist / bullet_closing_speed
 			var lead_pos = t.global_position + (t_vel * lead_time)
 			var desired = (lead_pos - muzzle_pos).normalized()
-			var angle = base_dir.angle_to(desired)
-			if angle < min_angular_error:
-				min_angular_error = angle
-				best_candidate = t
-				best_desired_dir = desired
+			var dot = base_dir.dot(desired)
+			if dot > cos_min_cone:
+				var angle = acos(clamp(dot, -1.0, 1.0))
+				if angle < min_angular_error:
+					min_angular_error = angle
+					cos_min_cone = dot
+					best_candidate = t
+					best_desired_dir = desired
 
 	if best_candidate:
 		# Magnetism blend factor: 85% snap towards lead intercept when aligned, tapering to 40% near cone edge
@@ -1031,12 +1081,9 @@ func _fire_machine_gun_round() -> void:
 		telemetry.fire_cannon_round()
 
 func trigger_hitmarker() -> void:
-	if custom_hud and custom_hud.has_method("trigger_hitmarker"):
-		custom_hud.trigger_hitmarker()
-	elif is_inside_tree() and get_tree() and get_tree().current_scene:
-		var hud = get_tree().current_scene.find_child("TacticalOverlay", true, false)
-		if hud and hud.has_method("trigger_hitmarker"):
-			hud.trigger_hitmarker()
+	var hud = _get_tactical_hud()
+	if hud and hud.has_method("trigger_hitmarker"):
+		hud.trigger_hitmarker()
 	var net_server = get_node_or_null("/root/NetworkControllerServer")
 	if net_server and net_server.has_method("notify_combat_event"):
 		net_server.notify_combat_event(player_id, "HIT_CONFIRMED")
@@ -1073,12 +1120,9 @@ func take_damage(amount: float, attacker: Node = null) -> void:
 		cfg.play_rumble(0.35, 0.55, 0.18, pad_idx)
 		
 	# Notify Tactical HUD
-	if custom_hud and custom_hud.has_method("notify_combat_event"):
-		custom_hud.notify_combat_event("// WARNING: HIT -%d HP //" % int(final_damage), Color(1.0, 0.35, 0.35))
-	elif is_inside_tree() and get_tree() and get_tree().current_scene:
-		var hud = get_tree().current_scene.find_child("TacticalOverlay", true, false)
-		if hud and hud.has_method("notify_combat_event"):
-			hud.notify_combat_event("// WARNING: HOSTILE HIT -%d HP //" % int(final_damage), Color(1.0, 0.35, 0.35))
+	var hud = _get_tactical_hud()
+	if hud and hud.has_method("notify_combat_event"):
+		hud.notify_combat_event("// WARNING: HIT -%d HP //" % int(final_damage), Color(1.0, 0.35, 0.35))
 		
 	print("[Spaceship P%d] Hit received! -%d HP (Shield: %.1f | Hull: %.1f)" % [
 		player_id,
@@ -1289,7 +1333,7 @@ func _trigger_catastrophic_crash(impact_pos: Vector3, normal: Vector3, reason_co
 		mm.fail_mission(reason_code, reason_text)
 		
 	# 7. Notify AgilityManager if in Agility Trial
-	var am = get_node_or_null("/root/AgilityManager")
+	var am = _get_agility_manager()
 	if am and am.get("is_trial_active") == true and am.has_method("fail_trial"):
 		am.fail_trial(reason_text)
 

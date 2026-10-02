@@ -104,12 +104,15 @@ func bind_to_ship(ship_node: CharacterBody3D, camera_node: Camera3D, p_id: int =
 func _ready() -> void:
 	var cfg: Node = null
 	var mm_node: Node = null
+	var rm: Node = null
 	if is_inside_tree():
 		cfg = get_node_or_null("/root/ConfigManager")
 		mm_node = get_node_or_null("/root/MissionManager")
+		rm = get_node_or_null("/root/RewardManager")
 	elif Engine.get_main_loop() and "root" in Engine.get_main_loop() and Engine.get_main_loop().root:
 		cfg = Engine.get_main_loop().root.get_node_or_null("ConfigManager")
 		mm_node = Engine.get_main_loop().root.get_node_or_null("MissionManager")
+		rm = Engine.get_main_loop().root.get_node_or_null("RewardManager")
 	
 	if cfg:
 		show_circular_radar = cfg.radar_circular_default
@@ -124,7 +127,6 @@ func _ready() -> void:
 		ship.set("custom_hud", self)
 		telemetry = ship.get_node_or_null("CombatTelemetry")
 	
-	var rm = get_node_or_null("/root/RewardManager")
 	if rm and not rm.badge_unlocked.is_connected(_on_reward_badge_unlocked):
 		rm.badge_unlocked.connect(_on_reward_badge_unlocked)
 	

@@ -30,6 +30,17 @@ var bullet_scene = preload("res://bullet.tscn")
 
 var gun_cooldown: float = 2.0
 var target_player: Node3D = null
+var _cached_hud: Node = null
+
+func _get_hud() -> Node:
+	if not is_instance_valid(_cached_hud):
+		if is_inside_tree() and get_tree() and get_tree().current_scene:
+			_cached_hud = get_tree().current_scene.find_child("TacticalOverlay", true, false)
+		elif is_inside_tree() and get_tree() and get_tree().root:
+			_cached_hud = get_tree().root.find_child("TacticalOverlay", true, false)
+		else:
+			_cached_hud = null
+	return _cached_hud
 
 func _ready() -> void:
 	add_to_group("radar_targets")
@@ -147,8 +158,11 @@ func _acquire_player() -> void:
 			return
 	if not target_player and get_parent():
 		target_player = get_parent().get_node_or_null("Spaceship")
-	if not target_player and is_inside_tree() and get_tree() and get_tree().root:
-		target_player = get_tree().root.find_child("Spaceship", true, false)
+	if not target_player and is_inside_tree() and get_tree():
+		if get_tree().current_scene:
+			target_player = get_tree().current_scene.get_node_or_null("Spaceship")
+		if not target_player and get_tree().root:
+			target_player = get_tree().root.find_child("Spaceship", true, false)
 
 func _get_mission_base_damage(mid: String) -> float:
 	match mid.to_upper():
@@ -273,9 +287,7 @@ func take_damage(amount: float) -> void:
 	_flash_hit_reaction()
 	
 	# Notify Tactical HUD
-	var hud = null
-	if is_inside_tree() and get_tree() and get_tree().root:
-		hud = get_tree().root.find_child("TacticalOverlay", true, false)
+	var hud = _get_hud()
 	if hud:
 		if hud.has_method("trigger_hitmarker"):
 			hud.trigger_hitmarker()
@@ -345,14 +357,13 @@ func _on_destroyed() -> void:
 			rm.unlock_badge("WAR_GOD_OF_SOL")
 
 	# Notify HUD safely
-	if is_inside_tree() and get_tree() and get_tree().root:
-		var hud = get_tree().root.find_child("TacticalOverlay", true, false)
-		if hud and hud.has_method("notify_combat_event"):
-			hud.notify_combat_event("// TARGET DESTROYED // +%d ⭐ STARS //" % stars_earned, Color(1.0, 0.85, 0.0))
-		var net_server = get_tree().root.get_node_or_null("NetworkControllerServer")
-		if net_server and net_server.has_method("notify_combat_event"):
-			net_server.notify_combat_event(1, "KILL_CONFIRMED")
-			net_server.notify_combat_event(2, "KILL_CONFIRMED")
+	var hud = _get_hud()
+	if hud and hud.has_method("notify_combat_event"):
+		hud.notify_combat_event("// TARGET DESTROYED // +%d ⭐ STARS //" % stars_earned, Color(1.0, 0.85, 0.0))
+	var net_server = get_tree().root.get_node_or_null("NetworkControllerServer") if (is_inside_tree() and get_tree() and get_tree().root) else null
+	if net_server and net_server.has_method("notify_combat_event"):
+		net_server.notify_combat_event(1, "KILL_CONFIRMED")
+		net_server.notify_combat_event(2, "KILL_CONFIRMED")
 	
 	# Hide mesh, disable hitbox, remove from radar group
 	if mesh_instance:
@@ -387,7 +398,7 @@ func _respawn() -> void:
 	if not is_in_group("radar_targets"):
 		add_to_group("radar_targets")
 	
-	var hud = get_tree().root.find_child("TacticalOverlay", true, false)
+	var hud = _get_hud()
 	if hud and hud.has_method("notify_combat_event"):
 		hud.notify_combat_event("// NEW CONTACT DETECTED // DRONE RE-ENGAGED //", Color(0.0, 0.95, 1.0))
 	

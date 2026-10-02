@@ -264,3 +264,7 @@ func _on_rematch_pressed() -> void:
 func _on_exit_hangar_pressed() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	get_tree().change_scene_to_file("res://home_menu.tscn")
+
+func _exit_tree() -> void:
+	if viewport_p2:
+		viewport_p2.world_3d = null

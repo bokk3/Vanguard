@@ -36,6 +36,12 @@ signal selector_requested()
 
 var banner_hide_timer: float = 0.0
 var apex_hide_timer: float = 0.0
+var _cached_am: Node = null
+
+func _get_am() -> Node:
+	if not is_instance_valid(_cached_am):
+		_cached_am = get_node_or_null("/root/AgilityManager")
+	return _cached_am
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -46,7 +52,7 @@ func _ready() -> void:
 	if retry_btn: retry_btn.pressed.connect(func(): retry_requested.emit())
 	if exit_btn: exit_btn.pressed.connect(func(): selector_requested.emit())
 	
-	var am = get_node_or_null("/root/AgilityManager")
+	var am = _get_am()
 	if am:
 		if not am.gate_passed.is_connected(_on_gate_passed):
 			am.gate_passed.connect(_on_gate_passed)
@@ -62,16 +68,32 @@ func _ready() -> void:
 			am.ghost_toggled.connect(_on_ghost_toggled)
 		_update_ghost_ui(am.ghost_enabled)
 
+func _exit_tree() -> void:
+	var am = _get_am()
+	if am:
+		if am.gate_passed.is_connected(_on_gate_passed):
+			am.gate_passed.disconnect(_on_gate_passed)
+		if am.maneuver_detected.is_connected(_on_maneuver_detected):
+			am.maneuver_detected.disconnect(_on_maneuver_detected)
+		if am.target_destroyed.is_connected(_on_target_destroyed):
+			am.target_destroyed.disconnect(_on_target_destroyed)
+		if am.trial_completed.is_connected(_on_trial_completed):
+			am.trial_completed.disconnect(_on_trial_completed)
+		if am.trial_failed.is_connected(_on_trial_failed):
+			am.trial_failed.disconnect(_on_trial_failed)
+		if am.ghost_toggled.is_connected(_on_ghost_toggled):
+			am.ghost_toggled.disconnect(_on_ghost_toggled)
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_G:
-			var am = get_node_or_null("/root/AgilityManager")
+			var am = _get_am()
 			if am and am.has_method("toggle_ghost"):
 				am.toggle_ghost()
 				get_viewport().set_input_as_handled()
 
 func _process(delta: float) -> void:
-	var am = get_node_or_null("/root/AgilityManager")
+	var am = _get_am()
 	if am and am.is_trial_active:
 		# Format Chronometer: MM:SS.mmm
 		var total_s = am.elapsed_time + am.penalty_time

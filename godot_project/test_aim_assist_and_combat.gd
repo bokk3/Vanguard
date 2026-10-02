@@ -41,7 +41,7 @@ func _run_tests() -> void:
 	assert(assisted_angle < unassisted_angle, "Assisted angle to target should be smaller than straight forward")
 	print("  [PASS] Aim assist verified: straight angle = %.2f deg -> assisted angle = %.2f deg" % [unassisted_angle, assisted_angle])
 
-	dummy_target.queue_free()
+	dummy_target.free()
 
 	# -------------------------------------------------------------------------
 	# TEST 2: Bullet Proximity Proxy Hit Detection
@@ -69,7 +69,9 @@ func _run_tests() -> void:
 	assert(drone.health < initial_hp, "Proximity proxy sweep should have scored a hit on the target drone")
 	print("  [PASS] Proximity hit detection verified: Drone HP reduced from %.1f to %.1f" % [initial_hp, drone.health])
 
-	drone.queue_free()
+	drone.free()
+	if is_instance_valid(bullet):
+		bullet.free()
 
 	# -------------------------------------------------------------------------
 	# TEST 3: Mobile HOTAS Scene Persistence Across Sorties
@@ -86,8 +88,8 @@ func _run_tests() -> void:
 	var frame1 = {
 		"pitch": 0.45,
 		"roll": -0.30,
-		"yaw": 0.15,
-		"throttle": 0.80,
+		"yaw": 0.10,
+		"throttle": 0.8,
 		"boost": false,
 		"fire_primary": false
 	}
@@ -97,7 +99,7 @@ func _run_tests() -> void:
 	print("  [PASS] Sortie 1 mobile inputs applied successfully.")
 
 	# Simulate Sortie 1 ending / scene change: Ship 1 leaves tree
-	ship.queue_free()
+	ship.free()
 	# Wait for exit_tree to process
 	await create_timer(0.05).timeout
 
@@ -130,7 +132,8 @@ func _run_tests() -> void:
 	assert(ship2.mobile_boost == true, "Ship 2 in Sortie 2 must receive mobile boost")
 	print("  [PASS] Sortie 2 mobile inputs seamlessly routed to new airframe!")
 
-	ship2.queue_free()
+	ship2.free()
+	await process_frame
 
 	print("\n==================================================================")
 	print(">>> ALL AIM ASSIST, PROXIMITY HIT & HOTAS TESTS PASSED (100%) <<<")

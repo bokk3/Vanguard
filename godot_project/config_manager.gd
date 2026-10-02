@@ -86,20 +86,25 @@ func _setup_app_icon() -> void:
 		return
 	var icon_path = "res://icon.png"
 	var img: Image = null
-	if FileAccess.file_exists(icon_path):
-		img = Image.load_from_file(icon_path)
-	if not img and ResourceLoader.exists(icon_path):
+	if ResourceLoader.exists(icon_path):
 		var res = load(icon_path)
 		if res is Texture2D:
 			img = res.get_image()
+	elif FileAccess.file_exists(icon_path):
+		img = Image.load_from_file(icon_path)
 	if img and not img.is_empty():
 		DisplayServer.set_icon(img)
 
 func _setup_custom_cursors() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+
 	var arrow_tex: Texture2D = null
-	if ResourceLoader.has_cached("res://ui/cursor_tactical.png"):
-		arrow_tex = load("res://ui/cursor_tactical.png")
-	else:
+	if ResourceLoader.exists("res://ui/cursor_tactical.png"):
+		var res = load("res://ui/cursor_tactical.png")
+		if res is Texture2D:
+			arrow_tex = res
+	elif FileAccess.file_exists("res://ui/cursor_tactical.png"):
 		var img = Image.load_from_file("res://ui/cursor_tactical.png")
 		if img and not img.is_empty():
 			arrow_tex = ImageTexture.create_from_image(img)
@@ -107,9 +112,11 @@ func _setup_custom_cursors() -> void:
 		Input.set_custom_mouse_cursor(arrow_tex, Input.CURSOR_ARROW, Vector2(1, 1))
 
 	var hand_tex: Texture2D = null
-	if ResourceLoader.has_cached("res://ui/cursor_pointer.png"):
-		hand_tex = load("res://ui/cursor_pointer.png")
-	else:
+	if ResourceLoader.exists("res://ui/cursor_pointer.png"):
+		var res = load("res://ui/cursor_pointer.png")
+		if res is Texture2D:
+			hand_tex = res
+	elif FileAccess.file_exists("res://ui/cursor_pointer.png"):
 		var img = Image.load_from_file("res://ui/cursor_pointer.png")
 		if img and not img.is_empty():
 			hand_tex = ImageTexture.create_from_image(img)

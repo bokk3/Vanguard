@@ -273,16 +273,16 @@ func _ready() -> void:
 	if reward_mgr:
 		if not reward_mgr.rewards_updated.is_connected(_update_pilot_dossier_ui):
 			reward_mgr.rewards_updated.connect(_update_pilot_dossier_ui)
-		if reward_mgr.has_signal("stars_changed") and not reward_mgr.stars_changed.is_connected(func(_amt): _update_pilot_dossier_ui()):
-			reward_mgr.stars_changed.connect(func(_amt): _update_pilot_dossier_ui())
+		if reward_mgr.has_signal("stars_changed") and not reward_mgr.stars_changed.is_connected(_on_stars_changed):
+			reward_mgr.stars_changed.connect(_on_stars_changed)
 		_apply_hangar_skin()
 
 	var agility_mgr = _get_autoload_node("AgilityManager")
 	if agility_mgr:
-		if agility_mgr.has_signal("avionics_score_updated") and not agility_mgr.avionics_score_updated.is_connected(func(_s, _c): _update_pilot_dossier_ui()):
-			agility_mgr.avionics_score_updated.connect(func(_s, _c): _update_pilot_dossier_ui())
-		if agility_mgr.has_signal("medal_earned") and not agility_mgr.medal_earned.is_connected(func(_t, _m, _st): _update_pilot_dossier_ui()):
-			agility_mgr.medal_earned.connect(func(_t, _m, _st): _update_pilot_dossier_ui())
+		if agility_mgr.has_signal("avionics_score_updated") and not agility_mgr.avionics_score_updated.is_connected(_on_avionics_updated):
+			agility_mgr.avionics_score_updated.connect(_on_avionics_updated)
+		if agility_mgr.has_signal("medal_earned") and not agility_mgr.medal_earned.is_connected(_on_agility_medal_earned):
+			agility_mgr.medal_earned.connect(_on_agility_medal_earned)
 
 	_setup_turntable_hardpoints()
 	_check_save_game_state()
@@ -292,6 +292,52 @@ func _ready() -> void:
 		if not get_viewport().size_changed.is_connected(_on_viewport_size_changed):
 			get_viewport().size_changed.connect(_on_viewport_size_changed)
 	_update_responsive_layout()
+
+func _on_stars_changed(_amt: int) -> void:
+	_update_pilot_dossier_ui()
+
+func _on_avionics_updated(_s: int, _c: String) -> void:
+	_update_pilot_dossier_ui()
+
+func _on_agility_medal_earned(_t: String, _m: String, _st: int) -> void:
+	_update_pilot_dossier_ui()
+
+func _exit_tree() -> void:
+	if get_viewport() and get_viewport().size_changed.is_connected(_on_viewport_size_changed):
+		get_viewport().size_changed.disconnect(_on_viewport_size_changed)
+
+	var auth_mgr = _get_autoload_node("AuthManager")
+	if auth_mgr:
+		if auth_mgr.auth_success.is_connected(_on_auth_success):
+			auth_mgr.auth_success.disconnect(_on_auth_success)
+		if auth_mgr.logged_out.is_connected(_on_logged_out):
+			auth_mgr.logged_out.disconnect(_on_logged_out)
+
+	var reward_mgr = _get_autoload_node("RewardManager")
+	if reward_mgr:
+		if reward_mgr.rewards_updated.is_connected(_update_pilot_dossier_ui):
+			reward_mgr.rewards_updated.disconnect(_update_pilot_dossier_ui)
+		if reward_mgr.has_signal("stars_changed") and reward_mgr.stars_changed.is_connected(_on_stars_changed):
+			reward_mgr.stars_changed.disconnect(_on_stars_changed)
+
+	var agility_mgr = _get_autoload_node("AgilityManager")
+	if agility_mgr:
+		if agility_mgr.has_signal("avionics_score_updated") and agility_mgr.avionics_score_updated.is_connected(_on_avionics_updated):
+			agility_mgr.avionics_score_updated.disconnect(_on_avionics_updated)
+		if agility_mgr.has_signal("medal_earned") and agility_mgr.medal_earned.is_connected(_on_agility_medal_earned):
+			agility_mgr.medal_earned.disconnect(_on_agility_medal_earned)
+
+	var net_ctrl = _get_autoload_node("NetworkControllerServer")
+	if net_ctrl and net_ctrl.has_signal("pilot_connected") and net_ctrl.pilot_connected.is_connected(_on_mobile_pilot_joined):
+		net_ctrl.pilot_connected.disconnect(_on_mobile_pilot_joined)
+
+	var net_mgr = _get_autoload_node("NetworkManager")
+	if net_mgr and net_mgr.has_signal("network_stats_updated") and net_mgr.network_stats_updated.is_connected(_on_network_stats_updated):
+		net_mgr.network_stats_updated.disconnect(_on_network_stats_updated)
+
+	var updater = _get_autoload_node("Updater")
+	if updater and updater.has_signal("update_available") and updater.update_available.is_connected(_on_update_available):
+		updater.update_available.disconnect(_on_update_available)
 
 func _on_viewport_size_changed() -> void:
 	_update_responsive_layout()

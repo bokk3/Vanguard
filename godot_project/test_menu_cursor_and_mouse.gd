@@ -17,14 +17,14 @@ func _process(delta: float) -> bool:
 
 	# Step 0: Test Custom Cursor Texture Assets
 	if step == 0:
-		var img_tactical = Image.load_from_file("res://ui/cursor_tactical.png")
-		assert(img_tactical != null and not img_tactical.is_empty(), "cursor_tactical.png must load as Image!")
-		assert(img_tactical.get_width() == 32 and img_tactical.get_height() == 32, "cursor_tactical.png must be 32x32!")
+		var tex_tactical = load("res://ui/cursor_tactical.png") as Texture2D
+		assert(tex_tactical != null, "cursor_tactical.png must load as Texture2D!")
+		assert(tex_tactical.get_width() == 32 and tex_tactical.get_height() == 32, "cursor_tactical.png must be 32x32!")
 		print("[PASS] Tactical Chevron Cursor verified (32x32 RGBA8).")
 
-		var img_pointer = Image.load_from_file("res://ui/cursor_pointer.png")
-		assert(img_pointer != null and not img_pointer.is_empty(), "cursor_pointer.png must load as Image!")
-		assert(img_pointer.get_width() == 32 and img_pointer.get_height() == 32, "cursor_pointer.png must be 32x32!")
+		var tex_pointer = load("res://ui/cursor_pointer.png") as Texture2D
+		assert(tex_pointer != null, "cursor_pointer.png must load as Texture2D!")
+		assert(tex_pointer.get_width() == 32 and tex_pointer.get_height() == 32, "cursor_pointer.png must be 32x32!")
 		print("[PASS] Target Lock Reticle Cursor verified (32x32 RGBA8).")
 
 		step = 1
@@ -123,8 +123,8 @@ func _process(delta: float) -> bool:
 		print("[PASS] mobile_yaw = 1.0 (Right) correctly maps to right turn in Godot.")
 
 		# Clean up
-		dummy_ship.queue_free()
-		home_menu.queue_free()
+		dummy_ship.free()
+		home_menu.free()
 
 		print("=================================================================")
 		print(">>> ALL MENU MOUSE, CURSOR & STEERING TESTS PASSED 100%! <<<")

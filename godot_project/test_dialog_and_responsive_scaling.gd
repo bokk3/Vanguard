@@ -130,9 +130,9 @@ func _run_all_tests() -> void:
 		print("  [PASS] %-22s min_size=(%d, %d) | Window clearance=%dpx" % [
 			entry["name"], int(main_p.custom_minimum_size.x), int(min_h), int(clearance)
 		])
-		inst.queue_free()
+		inst.free()
 
-	menu.queue_free()
+	menu.free()
 	print("=================================================================")
 	print(">>> ALL RESPONSIVE SCALING & DIALOG SIZING TESTS PASSED (100%) <<<")
 	print("=================================================================")
