@@ -271,3 +271,9 @@ func _on_verification_code_resent() -> void:
 	if status_label:
 		status_label.text = "✉ NEW CODE DISPATCHED // CHECK YOUR INBOX"
 		status_label.modulate = Color(0.2, 0.9, 0.5)
+
+func set_prompt_message(msg: String) -> void:
+	if status_label:
+		status_label.text = msg
+		status_label.modulate = Color(1.0, 0.8, 0.2)
+

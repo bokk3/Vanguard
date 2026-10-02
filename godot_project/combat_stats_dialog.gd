@@ -6,6 +6,7 @@ extends Control
 
 signal closed()
 signal open_rewards_requested()
+signal login_requested()
 
 @onready var callsign_label: Label = %CallsignLabel
 @onready var rank_label: Label = %RankLabel
@@ -186,10 +187,24 @@ func _populate_stats() -> void:
 			battles_container.add_child(badges_flow)
 
 func _on_sync_pressed() -> void:
+	var auth_mgr = get_node_or_null("/root/AuthManager")
+	var is_cloud_auth = auth_mgr != null and auth_mgr.has_method("is_cloud_authenticated") and auth_mgr.is_cloud_authenticated()
+	
+	if not is_cloud_auth:
+		if status_msg_label:
+			status_msg_label.text = "⚠ SYNC ERROR: NOT LOGGED IN // PILOT LOGIN REQUIRED"
+			status_msg_label.modulate = Color(1.0, 0.25, 0.25)
+		if is_inside_tree() and get_tree():
+			get_tree().create_timer(0.6).timeout.connect(func():
+				login_requested.emit()
+			)
+		else:
+			login_requested.emit()
+		return
+
 	if status_msg_label:
 		status_msg_label.text = "// SYNCHRONIZING DOSSIER WITH CLOUDFLARE EDGE... //"
 		status_msg_label.modulate = Color(1.0, 0.85, 0.2)
-	var auth_mgr = get_node_or_null("/root/AuthManager")
 	if auth_mgr and auth_mgr.has_method("sync_cloud_save"):
 		auth_mgr.sync_cloud_save()
 	if is_inside_tree() and get_tree():
@@ -199,6 +214,7 @@ func _on_sync_pressed() -> void:
 				status_msg_label.text = "// DOSSIER SYNCHRONIZED & SEALED //"
 				status_msg_label.modulate = Color(0.1, 0.95, 0.4)
 		)
+
 
 func _unhandled_input(event: InputEvent) -> void:
 	if visible and event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:

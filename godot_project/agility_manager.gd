@@ -340,6 +340,15 @@ func register_target_destroyed(target_idx: int) -> void:
 	var rem = max(0, total_targets_in_trial - targets_destroyed_count)
 	target_destroyed.emit(target_idx, rem)
 
+## Fails the active trial (e.g. ship destroyed or out of bounds)
+func fail_trial(reason: String = "AIRFRAME DESTROYED") -> void:
+	if not is_trial_active:
+		return
+	is_trial_active = false
+	var crash_time = elapsed_time
+	print(">>> [AgilityManager] Trial [%s] FAILED: %s at %.3fs" % [active_trial_id, reason, crash_time])
+	trial_failed.emit(active_trial_id, reason)
+
 ## Completes the active trial, awards medals, stars, updates profile & ghost
 func complete_trial() -> void:
 	if not is_trial_active:

@@ -40,6 +40,13 @@ func _unhandled_input(event: InputEvent) -> void:
 			settings_modal.hide()
 			return
 		
+		# If Agility debrief panel is open, let debrief handle clicks/exit
+		var ahud = get_node_or_null("../AgilityHUD")
+		if ahud and ahud.has_node("%DebriefPanel"):
+			var db_panel = ahud.get_node("%DebriefPanel") as Control
+			if db_panel and db_panel.visible:
+				return
+		
 		# Toggle pause state
 		if visible:
 			resume_flight()
@@ -56,16 +63,67 @@ func pause_flight() -> void:
 	show()
 
 func _refresh_objectives() -> void:
-	var mm = get_node_or_null("/root/MissionManager")
-	if not mm:
-		return
-	
 	if not mission_name_label:
 		mission_name_label = find_child("MissionNameLabel", true, false)
 	if not theater_label:
 		theater_label = find_child("TheaterLabel", true, false)
 	if not objectives_list:
 		objectives_list = find_child("ObjectivesList", true, false)
+
+	# 1. Agility Trial Course Handling
+	var am = get_node_or_null("/root/AgilityManager")
+	if am and (am.is_trial_active or not am.active_trial_id.is_empty()):
+		var t_data = am.TRIALS_DEF.get(am.active_trial_id, {})
+		if not t_data.is_empty():
+			if mission_name_label:
+				mission_name_label.text = "AGILITY TRIAL: [%s] %s" % [am.active_trial_id, t_data.get("codename", "PRECISION TRIAL")]
+			if theater_label:
+				theater_label.text = "CURRICULUM: %s" % t_data.get("subtitle", "TACTICAL APEX FLIGHT")
+			
+			if objectives_list:
+				for child in objectives_list.get_children():
+					objectives_list.remove_child(child)
+					child.queue_free()
+				
+				var add_row = func(icon: String, text: String, color: Color):
+					var row = HBoxContainer.new()
+					row.add_theme_constant_override("separation", 8)
+					var il = Label.new()
+					il.text = icon
+					il.add_theme_font_size_override("font_size", 11)
+					il.add_theme_color_override("font_color", color)
+					row.add_child(il)
+					var tl = Label.new()
+					tl.text = text
+					tl.add_theme_font_size_override("font_size", 11)
+					tl.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0, 0.95))
+					tl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+					row.add_child(tl)
+					objectives_list.add_child(row)
+				
+				var gates_done = am.current_gate_idx >= am.total_gates_in_trial
+				add_row.call("[X]" if gates_done else "[ ]",
+					"Navigate all course gates (%d/%d)" % [am.current_gate_idx, am.total_gates_in_trial],
+					Color(0.1, 1.0, 0.4) if gates_done else Color(0.0, 0.85, 1.0))
+				
+				if am.total_targets_in_trial > 0:
+					var tgts_done = am.targets_destroyed_count >= am.total_targets_in_trial
+					add_row.call("[X]" if tgts_done else "[ ]",
+						"Destroy target practice buoys (%d/%d)" % [am.targets_destroyed_count, am.total_targets_in_trial],
+						Color(0.1, 1.0, 0.4) if tgts_done else Color(0.0, 0.85, 1.0))
+						
+				add_row.call("[★]",
+					"Benchmark: Gold %.1fs | Silver %.1fs | Bronze %.1fs" % [
+						t_data.get("gold_time", 60.0),
+						t_data.get("silver_time", 75.0),
+						t_data.get("bronze_time", 90.0)
+					], Color(1.0, 0.85, 0.2))
+			return
+
+	# 2. Campaign Mission Handling
+	var mm = get_node_or_null("/root/MissionManager")
+	if not mm:
+		return
 	
 	var m = mm.get_mission(mm.current_mission_id)
 	if mission_name_label:
@@ -111,9 +169,17 @@ func _refresh_objectives() -> void:
 			objectives_list.add_child(row)
 
 func _refresh_save_buttons() -> void:
-	var sm = get_node_or_null("/root/SaveManager")
-	if load_btn:
-		load_btn.disabled = not (sm and sm.has_save())
+	var am = get_node_or_null("/root/AgilityManager")
+	var is_agility = am and (am.is_trial_active or not am.active_trial_id.is_empty())
+	if is_agility:
+		if save_btn: save_btn.visible = false
+		if load_btn: load_btn.visible = false
+	else:
+		if save_btn: save_btn.visible = true
+		if load_btn:
+			load_btn.visible = true
+			var sm = get_node_or_null("/root/SaveManager")
+			load_btn.disabled = not (sm and sm.has_save())
 
 func save_sortie() -> void:
 	var sm = get_node_or_null("/root/SaveManager")
@@ -152,6 +218,9 @@ func resume_flight() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func restart_sortie() -> void:
+	var am = get_node_or_null("/root/AgilityManager")
+	if am:
+		am.is_trial_active = false
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
@@ -160,8 +229,12 @@ func open_config() -> void:
 		settings_modal.open_menu()
 
 func return_to_hangar() -> void:
+	var am = get_node_or_null("/root/AgilityManager")
+	if am:
+		am.is_trial_active = false
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://home_menu.tscn")
 
 func quit_game() -> void:
 	get_tree().quit()
+

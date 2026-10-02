@@ -5,6 +5,8 @@ extends Control
 ## Fully synchronized with RewardManager and Cloudflare edge persistence.
 
 signal closed()
+signal login_requested()
+
 
 # Header & Dossier Elements
 @onready var title_label: Label = %TitleLabel
@@ -854,11 +856,25 @@ func _refresh_badges_view() -> void:
 # Cloud Synchronization
 # -----------------------------------------------------------------------------
 func _on_sync_pressed() -> void:
+	var auth = get_node_or_null("/root/AuthManager")
+	var is_cloud_auth = auth != null and auth.has_method("is_cloud_authenticated") and auth.is_cloud_authenticated()
+	
+	if not is_cloud_auth:
+		if status_banner_label:
+			status_banner_label.text = "⚠ SYNC ERROR: NOT LOGGED IN // PLEASE SIGN IN TO SYNC WALLET"
+			status_banner_label.modulate = Color(1.0, 0.25, 0.25)
+		if is_inside_tree() and get_tree():
+			get_tree().create_timer(0.6).timeout.connect(func():
+				login_requested.emit()
+			)
+		else:
+			login_requested.emit()
+		return
+
 	if status_banner_label:
 		status_banner_label.text = "// SYNCHRONIZING WITH CLOUDFLARE EDGE... //"
 		status_banner_label.modulate = Color(0.96, 0.62, 0.04)
 		
-	var auth = get_node_or_null("/root/AuthManager")
 	if auth:
 		if auth.has_method("fetch_cloud_save"):
 			auth.fetch_cloud_save()
@@ -872,6 +888,7 @@ func _on_sync_pressed() -> void:
 				status_banner_label.text = "// ARMORY & WALLET SYNCHRONIZED AND VERIFIED //"
 				status_banner_label.modulate = Color(0.2, 0.85, 0.55)
 		)
+
 
 func _unhandled_input(event: InputEvent) -> void:
 	if visible and event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:

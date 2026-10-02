@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://combat_telemetry.gd" id="4_telem"]
 [ext_resource type="PackedScene" uid="uid://c8agilityhud01" path="res://agility_hud.tscn" id="5_hud"]
 [ext_resource type="Material" uid="uid://terrain_ground_mat" path="res://shaders/terrain_ground_material.tres" id="6_mat"]
+[ext_resource type="PackedScene" path="res://pause_menu.tscn" id="7_pause"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_course"]
 sky_top_color = Color(0.12, 0.25, 0.45, 1)
@@ -80,3 +81,6 @@ fov = 75.0
 [node name="HUD" type="CanvasLayer" parent="."]
 
 [node name="AgilityHUD" parent="HUD" instance=ExtResource("5_hud")]
+
+[node name="PauseMenu" parent="HUD" instance=ExtResource("7_pause")]
+

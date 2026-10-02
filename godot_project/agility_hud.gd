@@ -56,6 +56,8 @@ func _ready() -> void:
 			am.target_destroyed.connect(_on_target_destroyed)
 		if not am.trial_completed.is_connected(_on_trial_completed):
 			am.trial_completed.connect(_on_trial_completed)
+		if not am.trial_failed.is_connected(_on_trial_failed):
+			am.trial_failed.connect(_on_trial_failed)
 		if not am.ghost_toggled.is_connected(_on_ghost_toggled):
 			am.ghost_toggled.connect(_on_ghost_toggled)
 		_update_ghost_ui(am.ghost_enabled)
@@ -202,3 +204,44 @@ func _on_trial_completed(_t_id: String, stats: Dictionary) -> void:
 		
 	debrief_panel.show()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func _on_trial_failed(trial_id: String, reason: String) -> void:
+	if not debrief_panel:
+		return
+		
+	var am = get_node_or_null("/root/AgilityManager")
+	var final_time = am.elapsed_time if am else 0.0
+	var mins = int(final_time / 60.0)
+	var secs = int(fmod(final_time, 60.0))
+	var ms = int(fmod(final_time * 1000.0, 1000.0))
+	
+	if chrono_label:
+		chrono_label.text = "%02d:%02d.%03d" % [mins, secs, ms]
+	if delta_label:
+		delta_label.text = "▲ AIRFRAME LOST"
+		delta_label.add_theme_color_override("font_color", Color(1.0, 0.25, 0.25))
+	if debrief_title:
+		debrief_title.text = "TRIAL ABORTED // %s" % trial_id
+		debrief_title.add_theme_color_override("font_color", Color(1.0, 0.25, 0.25))
+	if debrief_medal:
+		debrief_medal.text = "💥 %s" % reason.to_upper()
+		debrief_medal.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+	if debrief_time:
+		debrief_time.text = "TERMINATION TIME: %02d:%02d.%03d" % [mins, secs, ms]
+	if debrief_precision:
+		debrief_precision.text = "STATUS: FLIGHT RECORDER TERMINATED"
+		debrief_precision.add_theme_color_override("font_color", Color(0.85, 0.45, 0.45))
+	if debrief_maneuvers:
+		debrief_maneuvers.text = "GATES CLEARED: %d / %d" % [
+			am.current_gate_idx if am else 0,
+			am.total_gates_in_trial if am else 0
+		]
+	if debrief_score:
+		debrief_score.text = "TOTAL FLIGHT SCORE: 0 PTS [DISQUALIFIED]"
+		debrief_score.add_theme_color_override("font_color", Color(1.0, 0.35, 0.35))
+	if debrief_stars and am:
+		debrief_stars.text = "AVIONICS RATING: %d PTS // %s" % [am.avionics_score, am.avionics_class]
+		
+	debrief_panel.show()
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+

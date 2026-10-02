@@ -437,6 +437,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if is_pause_key or is_pause_pad:
 		var pause_menu = get_node_or_null("../HUD/PauseMenu")
 		if pause_menu:
+			var ahud = get_node_or_null("../HUD/AgilityHUD")
+			if ahud and ahud.has_node("%DebriefPanel"):
+				var db = ahud.get_node("%DebriefPanel") as Control
+				if db and db.visible:
+					return
 			pause_menu.pause_flight()
 			get_viewport().set_input_as_handled()
 			return
@@ -1282,6 +1287,11 @@ func _trigger_catastrophic_crash(impact_pos: Vector3, normal: Vector3, reason_co
 	var mm = _get_mission_manager()
 	if mm and mm.has_method("fail_mission"):
 		mm.fail_mission(reason_code, reason_text)
+		
+	# 7. Notify AgilityManager if in Agility Trial
+	var am = get_node_or_null("/root/AgilityManager")
+	if am and am.get("is_trial_active") == true and am.has_method("fail_trial"):
+		am.fail_trial(reason_text)
 
 func _trigger_coop_destroyed(reason_code: String, reason_text: String) -> void:
 	if is_airframe_destroyed:

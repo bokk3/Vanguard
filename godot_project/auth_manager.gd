@@ -410,10 +410,20 @@ func record_battle_result(theater: String, outcome: String, kills: int, duration
 	# Auto-sync cloud if authenticated
 	sync_cloud_save()
 
+## Returns true only if actively authenticated against Cloudflare D1 with a valid session token
+func is_cloud_authenticated() -> bool:
+	return is_authenticated and not token.strip_edges().is_empty()
+
+## Alias for is_cloud_authenticated
+func is_logged_in() -> bool:
+	return is_cloud_authenticated()
+
 ## Synchronizes combat stats and savegame to Cloudflare D1 via /api/pilot/sync
-func sync_cloud_save() -> void:
-	if token.is_empty():
-		return
+func sync_cloud_save() -> bool:
+	if not is_cloud_authenticated():
+		auth_failed.emit("Not logged in. Cloud synchronization requires pilot login.")
+		return false
+
 		
 	var sync_request = HTTPRequest.new()
 	add_child(sync_request)
@@ -460,6 +470,7 @@ func sync_cloud_save() -> void:
 		sync_request.queue_free()
 	)
 	sync_request.request("https://project-vanguard.pages.dev/api/pilot/sync", headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
+	return true
 
 ## Pulls latest pilot stats, stars, and rewards from Cloudflare D1 via GET /api/pilot/sync
 func fetch_cloud_save() -> void:

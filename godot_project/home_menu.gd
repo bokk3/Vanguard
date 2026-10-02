@@ -245,6 +245,14 @@ func _ready() -> void:
 	if agility_selector:
 		agility_selector.hide()
 
+	if combat_stats and combat_stats.has_signal("login_requested"):
+		if not combat_stats.login_requested.is_connected(func(): _show_login_dialog(true, "// PILOT LOGIN REQUIRED FOR CLOUD SYNC //")):
+			combat_stats.login_requested.connect(func(): _show_login_dialog(true, "// PILOT LOGIN REQUIRED FOR CLOUD SYNC //"))
+
+	if rewards_dialog and rewards_dialog.has_signal("login_requested"):
+		if not rewards_dialog.login_requested.is_connected(func(): _show_login_dialog(true, "// PILOT LOGIN REQUIRED TO SYNC WALLET //")):
+			rewards_dialog.login_requested.connect(func(): _show_login_dialog(true, "// PILOT LOGIN REQUIRED TO SYNC WALLET //"))
+
 	if login_dialog and not login_dialog.login_completed.is_connected(_on_login_completed):
 		login_dialog.login_completed.connect(_on_login_completed)
 
@@ -255,13 +263,11 @@ func _ready() -> void:
 		if not auth_mgr.logged_out.is_connected(_on_logged_out):
 			auth_mgr.logged_out.connect(_on_logged_out)
 			
-		if auth_mgr.is_authenticated:
-			_update_pilot_dossier_ui()
-			if login_dialog: login_dialog.hide()
-		else:
-			_show_login_dialog()
+		_update_pilot_dossier_ui()
+		if login_dialog: login_dialog.hide()
 	else:
 		if login_dialog: login_dialog.hide()
+
 
 	var reward_mgr = _get_autoload_node("RewardManager")
 	if reward_mgr:
@@ -373,8 +379,14 @@ func _update_responsive_layout() -> void:
 
 
 
-func _show_login_dialog() -> void:
+func _show_login_dialog(cloud_mode: bool = true, prompt_msg: String = "") -> void:
 	if login_dialog:
+		if cloud_mode and "is_cloud_mode" in login_dialog:
+			login_dialog.is_cloud_mode = true
+			if login_dialog.has_method("_update_mode_ui"):
+				login_dialog._update_mode_ui()
+		if not prompt_msg.is_empty() and login_dialog.has_method("set_prompt_message"):
+			login_dialog.set_prompt_message(prompt_msg)
 		login_dialog.show()
 		if settings_modal: settings_modal.hide()
 		if specs_panel: specs_panel.hide()
@@ -384,6 +396,7 @@ func _show_login_dialog() -> void:
 		if agility_selector and agility_selector.has_method("hide_selector"): agility_selector.hide_selector()
 		if leaderboard_dialog and leaderboard_dialog.has_method("close_leaderboard"):
 			leaderboard_dialog.close_leaderboard()
+
 
 func _show_mode_selector() -> void:
 	if mode_selector:
@@ -551,10 +564,10 @@ func _update_pilot_dossier_ui() -> void:
 	var stars_count = reward_mgr.stars if reward_mgr else 0
 	var streak_days = reward_mgr.streak if (reward_mgr and "streak" in reward_mgr) else 0
 	var badges_count = reward_mgr.unlocked_badges.size() if reward_mgr else 0
-	var is_auth = auth_mgr.is_authenticated and not auth_mgr.callsign.is_empty()
-	var callsign_text = auth_mgr.callsign if is_auth else "RECRUIT-CALLSIGN"
-	var rank_text = auth_mgr.rank if is_auth else "FLIGHT CADET"
-	var squad_text = auth_mgr.squadron if is_auth else "404th Vanguard Strike Wing"
+	var is_cloud_auth = auth_mgr.is_cloud_authenticated()
+	var callsign_text = auth_mgr.callsign if not auth_mgr.callsign.is_empty() else "RECRUIT-CALLSIGN"
+	var rank_text = auth_mgr.rank if not auth_mgr.rank.is_empty() else "FLIGHT CADET"
+	var squad_text = auth_mgr.squadron if not auth_mgr.squadron.is_empty() else "404th Vanguard Strike Wing"
 
 	var stats_dict: Dictionary = auth_mgr.stats if ("stats" in auth_mgr and typeof(auth_mgr.stats) == TYPE_DICTIONARY) else {}
 	var sorties_count = int(stats_dict.get("total_sorties", 0))
@@ -566,10 +579,10 @@ func _update_pilot_dossier_ui() -> void:
 	if pilot_label:
 		pilot_label.text = "PILOT: %s  |  ⭐ %d" % [callsign_text, stars_count]
 	if pilot_rank_label:
-		if is_auth:
+		if is_cloud_auth:
 			pilot_rank_label.text = "RANK: %s // %s" % [rank_text, squad_text]
 		else:
-			pilot_rank_label.text = "CLEARANCE: RECRUIT // %s" % squad_text
+			pilot_rank_label.text = "CLEARANCE: LOCAL GUEST // %s" % squad_text
 	if pilot_stars_label:
 		pilot_stars_label.text = "⭐ %d" % stars_count
 	if pilot_streak_label:
@@ -584,7 +597,7 @@ func _update_pilot_dossier_ui() -> void:
 		pilot_avionics_label.text = "AVIONICS: %s // %s PTS" % [av_class, _format_number(av_score)]
 
 	if switch_pilot_btn:
-		switch_pilot_btn.text = "LOGOUT" if is_auth else "LOGIN"
+		switch_pilot_btn.text = "🚪 LOGOUT" if is_cloud_auth else "🔑 LOGIN"
 
 	# 2. Update Top-Right Tactical Pilot HUD Card
 	if hud_pilot_callsign_label:
@@ -594,12 +607,12 @@ func _update_pilot_dossier_ui() -> void:
 	if hud_avionics_label:
 		hud_avionics_label.text = "AVIONICS: %s (%s PTS)" % [av_class, _format_number(av_score)]
 	if hud_online_status_label:
-		if is_auth:
-			hud_online_status_label.text = "● DOSSIER VERIFIED"
+		if is_cloud_auth:
+			hud_online_status_label.text = "● CLOUD ONLINE // VERIFIED"
 			hud_online_status_label.add_theme_color_override("font_color", Color(0.2, 0.9, 0.5, 1.0))
 		else:
-			hud_online_status_label.text = "○ LOCAL RECRUIT"
-			hud_online_status_label.add_theme_color_override("font_color", Color(0.96, 0.62, 0.04, 0.85))
+			hud_online_status_label.text = "○ GUEST // NOT LOGGED IN"
+			hud_online_status_label.add_theme_color_override("font_color", Color(0.96, 0.62, 0.04, 0.9))
 	if hud_stars_label:
 		hud_stars_label.text = "⭐ %d STARS" % stars_count
 	if hud_streak_label:
@@ -613,7 +626,7 @@ func _update_pilot_dossier_ui() -> void:
 	if hud_win_rate_label:
 		hud_win_rate_label.text = "⚡ WIN: %.1f%%" % win_rate_val
 	if hud_profile_btn:
-		hud_profile_btn.text = "🧑‍✈️ SWITCH ID" if is_auth else "🧑‍✈️ COMMISSION"
+		hud_profile_btn.text = "🚪 LOGOUT" if is_cloud_auth else "🔑 LOGIN"
 
 	_apply_hangar_skin()
 
@@ -676,10 +689,11 @@ func _on_logged_out() -> void:
 
 func _on_switch_pilot_pressed() -> void:
 	var auth_mgr = get_node_or_null("/root/AuthManager")
-	if auth_mgr and auth_mgr.is_authenticated:
+	if auth_mgr and auth_mgr.is_cloud_authenticated():
 		auth_mgr.logout()
 	else:
-		_show_login_dialog()
+		_show_login_dialog(true, "// SIGN IN TO ACCESS CLOUD DOSSIER & SYNC //")
+
 
 func _on_network_stats_updated(reg: int, online: int, lobbies: int) -> void:
 	_update_fleet_stats_ui(reg, online, lobbies)

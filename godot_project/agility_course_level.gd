@@ -49,39 +49,49 @@ func _setup_environment() -> void:
 	if not world_env or not world_env.environment:
 		return
 	var env = world_env.environment
+	var sky_mat = env.sky.sky_material if (env and env.sky) else null
+	
 	match trial_id:
 		"T01": # Salt Flats High Noon
-			env.sky_material.sky_top_color = Color(0.15, 0.35, 0.65)
-			env.sky_material.sky_horizon_color = Color(0.8, 0.88, 0.98)
+			if sky_mat:
+				sky_mat.sky_top_color = Color(0.15, 0.35, 0.65)
+				sky_mat.sky_horizon_color = Color(0.8, 0.88, 0.98)
 			env.volumetric_fog_enabled = false
 		"T02": # Iron Canyon Sunset
-			env.sky_material.sky_top_color = Color(0.25, 0.08, 0.05)
-			env.sky_material.sky_horizon_color = Color(0.95, 0.45, 0.15)
+			if sky_mat:
+				sky_mat.sky_top_color = Color(0.25, 0.08, 0.05)
+				sky_mat.sky_horizon_color = Color(0.95, 0.45, 0.15)
 			env.volumetric_fog_enabled = false
 		"T03": # Orbital Void
-			env.sky_material.sky_top_color = Color(0.01, 0.02, 0.04)
-			env.sky_material.sky_horizon_color = Color(0.04, 0.06, 0.10)
+			if sky_mat:
+				sky_mat.sky_top_color = Color(0.01, 0.02, 0.04)
+				sky_mat.sky_horizon_color = Color(0.04, 0.06, 0.10)
 			env.volumetric_fog_enabled = false
 		"T04": # Stratosphere Twilight
-			env.sky_material.sky_top_color = Color(0.08, 0.12, 0.28)
-			env.sky_material.sky_horizon_color = Color(0.7, 0.45, 0.85)
+			if sky_mat:
+				sky_mat.sky_top_color = Color(0.08, 0.12, 0.28)
+				sky_mat.sky_horizon_color = Color(0.7, 0.45, 0.85)
 			env.volumetric_fog_enabled = false
 		"T05": # Solar Corona Flare
-			env.sky_material.sky_top_color = Color(0.35, 0.15, 0.02)
-			env.sky_material.sky_horizon_color = Color(1.0, 0.65, 0.1)
+			if sky_mat:
+				sky_mat.sky_top_color = Color(0.35, 0.15, 0.02)
+				sky_mat.sky_horizon_color = Color(1.0, 0.65, 0.1)
 			env.volumetric_fog_enabled = false
 		"T06": # Supersonic Polar Night
-			env.sky_material.sky_top_color = Color(0.02, 0.05, 0.12)
-			env.sky_material.sky_horizon_color = Color(0.1, 0.85, 0.7)
+			if sky_mat:
+				sky_mat.sky_top_color = Color(0.02, 0.05, 0.12)
+				sky_mat.sky_horizon_color = Color(0.1, 0.85, 0.7)
 			env.volumetric_fog_enabled = false
 		"T07": # Blind Storm Fog
 			env.volumetric_fog_enabled = true
 			env.volumetric_fog_density = 0.085
 			env.volumetric_fog_albedo = Color(0.45, 0.5, 0.55)
 		"T08": # The Crucible Skunk Works
-			env.sky_material.sky_top_color = Color(0.06, 0.08, 0.14)
-			env.sky_material.sky_horizon_color = Color(0.95, 0.55, 0.05)
+			if sky_mat:
+				sky_mat.sky_top_color = Color(0.06, 0.08, 0.14)
+				sky_mat.sky_horizon_color = Color(0.95, 0.55, 0.05)
 			env.volumetric_fog_enabled = false
+
 
 func _generate_course_trajectory() -> void:
 	var am = get_node_or_null("/root/AgilityManager")
@@ -207,11 +217,6 @@ func _setup_maneuver_detector() -> void:
 		maneuver_detector.name = "ManeuverDetector"
 		maneuver_detector.ship = spaceship
 		spaceship.add_child(maneuver_detector)
-
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		_on_exit()
-		get_viewport().set_input_as_handled()
 
 func _on_retry() -> void:
 	get_tree().reload_current_scene()
