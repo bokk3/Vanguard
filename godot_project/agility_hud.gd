@@ -21,6 +21,10 @@ signal selector_requested()
 @onready var maneuver_label: Label = %ManeuverLabel
 @onready var targets_label: Label = %TargetsLabel
 @onready var ghost_status_label: Label = %GhostStatusLabel
+@onready var speed_label: Label = %SpeedLabel
+@onready var g_force_label: Label = %GForceLabel
+@onready var stall_banner: PanelContainer = %StallBanner
+@onready var stall_label: Label = %StallLabel
 
 # Debrief Modal
 @onready var debrief_panel: PanelContainer = %DebriefPanel
@@ -48,6 +52,7 @@ func _ready() -> void:
 	if debrief_panel: debrief_panel.hide()
 	if maneuver_banner: maneuver_banner.hide()
 	if apex_grade_label: apex_grade_label.hide()
+	if stall_banner: stall_banner.hide()
 	
 	if retry_btn: retry_btn.pressed.connect(func(): retry_requested.emit())
 	if exit_btn: exit_btn.pressed.connect(func(): selector_requested.emit())
@@ -122,6 +127,41 @@ func _process(delta: float) -> void:
 			flow_label.text = "FLOW: %.1fx" % am.flow_multiplier
 		if flow_bar:
 			flow_bar.value = (am.flow_multiplier - 1.0) / 2.0 * 100.0
+
+	# Flight Telemetry: Airspeed, G-Load, Stall Horn/Banner
+	var ship = get_tree().get_first_node_in_group("player_ship") if is_inside_tree() else null
+	if ship:
+		var cur_spd = float(ship.current_speed) if "current_speed" in ship else 0.0
+		var g_load = float(ship.current_g_load) if "current_g_load" in ship else 1.0
+		var is_stalled = bool(ship.is_stalled) if "is_stalled" in ship else false
+		var stl_spd = float(ship.stall_speed) if "stall_speed" in ship else 25.0
+		var grav_active = bool(ship.enable_gravity) if "enable_gravity" in ship else true
+		
+		if speed_label:
+			speed_label.text = "SPD: %3.0f m/s" % cur_spd
+			if is_stalled and grav_active:
+				speed_label.add_theme_color_override("font_color", Color(1.0, 0.25, 0.25))
+			else:
+				speed_label.add_theme_color_override("font_color", Color(0.15, 0.95, 1.0))
+		
+		if g_force_label:
+			g_force_label.text = "G-LOAD: %+4.1f G" % g_load
+			if g_load > 5.5:
+				g_force_label.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2))
+			elif g_load > 3.5:
+				g_force_label.add_theme_color_override("font_color", Color(1.0, 0.7, 0.1))
+			else:
+				g_force_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.25))
+		
+		if stall_banner:
+			if is_stalled and grav_active:
+				stall_banner.show()
+				var pulse = 0.5 + sin(Time.get_ticks_msec() * 0.018) * 0.5
+				if stall_label:
+					stall_label.text = ">>> STALL WARNING [%.0f < %.0f m/s] // NOSE DOWN / BOOST <<<" % [cur_spd, stl_spd]
+					stall_label.add_theme_color_override("font_color", Color(1.0, 0.2 * pulse, 0.2 * pulse))
+			else:
+				stall_banner.hide()
 			
 	# Fade banners
 	if banner_hide_timer > 0.0:

@@ -143,7 +143,8 @@ func apply_damage(amount: float) -> void:
 			ship.camera_shake_trauma = max(ship.camera_shake_trauma, 0.45)
 		var net_server = get_tree().root.get_node_or_null("NetworkControllerServer") if (is_inside_tree() and get_tree() and get_tree().root) else null
 		if net_server and net_server.has_method("notify_combat_event") and ship:
-			net_server.notify_combat_event(ship.player_id, "SHIELD_BROKEN")
+			var p_id = int(ship.player_id) if ("player_id" in ship) else 1
+			net_server.notify_combat_event(p_id, "SHIELD_BROKEN")
 	
 	shield_changed.emit(current_shield, max_shield)
 	hull_changed.emit(current_hull, max_hull)
@@ -325,7 +326,8 @@ func _update_target_lock(delta: float) -> void:
 	if not was_locked and is_locked:
 		var net_server = get_tree().root.get_node_or_null("NetworkControllerServer") if (is_inside_tree() and get_tree() and get_tree().root) else null
 		if net_server and net_server.has_method("notify_combat_event") and ship:
-			net_server.notify_combat_event(ship.player_id, "TARGET_LOCKED")
+			var p_id = int(ship.player_id) if ("player_id" in ship) else 1
+			net_server.notify_combat_event(p_id, "TARGET_LOCKED")
 	
 	lock_state_changed.emit(current_target, lock_progress, is_locked)
 

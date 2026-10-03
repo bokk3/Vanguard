@@ -89,6 +89,12 @@ func _init() -> void:
 		fail_result["reason"] = reason
 	)
 	
+	ship.is_airframe_destroyed = false
+	ship.collision_cooldown = 0.0
+	if ship.telemetry:
+		ship.telemetry.current_hull = ship.telemetry.max_hull
+		ship.telemetry.current_shield = ship.telemetry.max_shield
+	
 	# Dive directly into ground at high speed
 	if ship.is_inside_tree():
 		ship.global_position = Vector3(0, 0.5, 0)

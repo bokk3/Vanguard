@@ -261,7 +261,10 @@ func _process(delta: float) -> void:
 		
 		# Total apparent G-load: 1.0 (baseline gravity) + centripetal + linear G
 		var target_g = clamp(1.0 + centripetal_g + abs(linear_g) * 0.4, 1.0, 9.9)
-		current_g_force = lerp(current_g_force, target_g, 10.0 * delta)
+		if "current_g_load" in ship:
+			current_g_force = ship.current_g_load
+		else:
+			current_g_force = lerp(current_g_force, target_g, 10.0 * delta)
 		
 		# Blackout (High Positive G tunnel vision darkening)
 		if current_g_force > 5.2:
@@ -1087,14 +1090,24 @@ func _draw_nitro_and_ordnance(vp: Vector2) -> void:
 # 7. Stall Warning Banner
 # -----------------------------------------------------------------
 func _draw_stall_warning(center: Vector2) -> void:
-	var banner_w = 320.0
-	var banner_h = 36.0
+	var banner_w = 380.0
+	var banner_h = 44.0
 	var bx = center.x - (banner_w * 0.5)
-	var by = center.y + 110.0
+	var by = center.y + 105.0
 
-	draw_rect(Rect2(Vector2(bx, by), Vector2(banner_w, banner_h)), Color(0.2, 0.02, 0.04, 0.85), true)
-	draw_rect(Rect2(Vector2(bx, by), Vector2(banner_w, banner_h)), COLOR_RED, false, 2.0)
-	draw_string(ThemeDB.fallback_font, Vector2(bx + 20, by + 23), ">>> STALL WARNING - INSUFFICIENT LIFT <<<", HORIZONTAL_ALIGNMENT_CENTER, -1, 12, COLOR_RED)
+	var pulse = 0.6 + sin(Time.get_ticks_msec() * 0.016) * 0.4
+	var bg_col = Color(0.35, 0.02, 0.04, 0.88 * pulse)
+	var border_col = Color(1.0, 0.15, 0.15, pulse)
+
+	draw_rect(Rect2(Vector2(bx, by), Vector2(banner_w, banner_h)), bg_col, true)
+	draw_rect(Rect2(Vector2(bx, by), Vector2(banner_w, banner_h)), border_col, false, 2.0)
+
+	var cur_spd = ship.current_speed if (ship and "current_speed" in ship) else 0.0
+	var stl_spd = ship.stall_speed if (ship and "stall_speed" in ship) else 25.0
+	var line1 = ">>> STALL WARNING // AIRSPEED %.0f m/s (MIN: %.0f) <<<" % [cur_spd, stl_spd]
+	var line2 = "RECOVERY: PUSH NOSE DOWN // FULL AFTERBURNER"
+	draw_string(ThemeDB.fallback_font, Vector2(bx, by + 18), line1, HORIZONTAL_ALIGNMENT_CENTER, banner_w, 12, border_col)
+	draw_string(ThemeDB.fallback_font, Vector2(bx, by + 34), line2, HORIZONTAL_ALIGNMENT_CENTER, banner_w, 10, Color(1.0, 0.8, 0.3, pulse))
 
 # -----------------------------------------------------------------
 # 7b. Terrain / Pull-Up Warning Banner

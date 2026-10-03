@@ -15,8 +15,9 @@ var is_destroyed: bool = false
 var initial_pos_y: float = 0.0
 var anim_time: float = 0.0
 
-@onready var mesh_core: MeshInstance3D = $MeshCore
-@onready var mesh_ring: MeshInstance3D = $MeshRing
+@onready var drone_model: Node3D = get_node_or_null("DroneModel")
+@onready var mesh_core: Node = $MeshCore if has_node("MeshCore") else null
+@onready var mesh_ring: Node = $MeshRing if has_node("MeshRing") else null
 @onready var label_dist: Label3D = $LabelDist
 
 func _ready() -> void:
@@ -29,10 +30,18 @@ func _ready() -> void:
 	if label_dist:
 		label_dist.text = "[ TARGET %02d ]" % (target_index + 1)
 		
-	if mesh_core and not mesh_core.material_override:
-		var base_mat = mesh_core.get_surface_override_material(0)
+	if drone_model:
+		if not mesh_ring:
+			mesh_ring = drone_model.get_node_or_null("Buoy_Gyro_Ring")
+		if not mesh_core:
+			mesh_core = drone_model.get_node_or_null("target_buoy_drone")
+			if not mesh_core and drone_model is MeshInstance3D:
+				mesh_core = drone_model
+
+	if mesh_core and mesh_core is MeshInstance3D and not (mesh_core as MeshInstance3D).material_override:
+		var base_mat = (mesh_core as MeshInstance3D).get_surface_override_material(0)
 		if base_mat:
-			mesh_core.material_override = base_mat.duplicate()
+			(mesh_core as MeshInstance3D).material_override = base_mat.duplicate()
 
 func _physics_process(delta: float) -> void:
 	if is_destroyed:
@@ -41,6 +50,8 @@ func _physics_process(delta: float) -> void:
 	position.y = initial_pos_y + sin(anim_time * 2.0 + target_index) * 0.4
 	if mesh_ring:
 		mesh_ring.rotate_y(1.5 * delta)
+	elif drone_model:
+		drone_model.rotate_y(1.0 * delta)
 
 func take_damage(amount: float, _attacker: Node = null) -> void:
 	if is_destroyed:
@@ -49,8 +60,8 @@ func take_damage(amount: float, _attacker: Node = null) -> void:
 	current_health -= amount
 	
 	# Flash white/orange on hit
-	if mesh_core and mesh_core.material_override:
-		var mat = mesh_core.material_override as StandardMaterial3D
+	if mesh_core and mesh_core is MeshInstance3D and (mesh_core as MeshInstance3D).material_override:
+		var mat = (mesh_core as MeshInstance3D).material_override as StandardMaterial3D
 		if mat:
 			mat.emission_energy_multiplier = 6.0
 			var tw = create_tween()

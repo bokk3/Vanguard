@@ -14,6 +14,7 @@ from .cavern_core import build_cavern_generator_core
 from .asteroids import build_asteroid_boulder, build_asteroid_cluster, build_tether_mine
 from .cavern_tunnel import build_cavern_tunnel
 from .agility_assets import build_agility_gate_pylon, build_target_buoy_drone
+from .transport import build_transport_olympus4
 
 BUILDERS = {
     "player_fighter_v_hull": build_player_fighter,
@@ -30,6 +31,7 @@ BUILDERS = {
     "cavern_tunnel_straight": build_cavern_tunnel,
     "agility_gate_pylon": build_agility_gate_pylon,
     "target_buoy_drone": build_target_buoy_drone,
+    "transport_olympus4": build_transport_olympus4,
 }
 
 __all__ = [
@@ -47,5 +49,6 @@ __all__ = [
     "build_cavern_tunnel",
     "build_agility_gate_pylon",
     "build_target_buoy_drone",
+    "build_transport_olympus4",
     "BUILDERS",
 ]

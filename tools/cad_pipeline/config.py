@@ -478,9 +478,54 @@ ASSET_CONFIGS = {
             "ue5_fbx": os.path.join(STAGING_UE5_DIR, "vehicles", "target_buoy_drone.fbx"),
         },
     },
+
+    "transport_olympus4": {
+        "name": "transport_olympus4",
+        "category": "vehicles",
+        "target_polycount": (8000, 24000),
+        "dimensions": {
+            "length": 70.5,
+            "width": 36.6,
+            "height": 11.8,
+            "tolerance_percent": 10.0,
+        },
+        "materials": [
+            "MI_Transport_Hull",
+            "MI_Cargo_Bay",
+            "MI_Engine_Nozzles",
+            "MI_Engine_Superglow",
+            "MI_Cockpit_Glass",
+        ],
+        "sockets": {
+            "SOCKET_Bridge": (0.0, 28.5, 5.2),
+            "SOCKET_Docking_Port": (0.0, 0.0, 7.5),
+            "SOCKET_Engine_L": (-8.5, -34.0, 1.0),
+            "SOCKET_Engine_R": (8.5, -34.0, 1.0),
+            "SOCKET_Cargo_Bay": (0.0, 0.0, 0.0),
+        },
+        "collision_parts": [
+            ("Main_Fuselage", (0.0, 0.0, 1.5), (22.0, 56.0, 11.0)),
+            ("Cargo_Pods", (0.0, 0.0, 1.5), (36.0, 34.0, 9.5)),
+            ("Stern_Engines", (0.0, -29.0, 1.0), (24.0, 12.0, 9.0)),
+        ],
+        "export_paths": {
+            "godot_glb": os.path.join(STAGING_GODOT_DIR, "vehicles", "transport_olympus4.glb"),
+            "ue5_fbx": os.path.join(STAGING_UE5_DIR, "vehicles", "transport_olympus4.fbx"),
+        },
+    },
 }
 
 MATERIAL_PRESETS = {
+    "MI_Transport_Hull": {
+        "base_color": (0.22, 0.25, 0.28, 1.0),
+        "metallic": 0.85,
+        "roughness": 0.35,
+    },
+    "MI_Cargo_Bay": {
+        "base_color": (0.75, 0.50, 0.12, 1.0),
+        "metallic": 0.70,
+        "roughness": 0.40,
+    },
     "MI_Gate_Structure": {
         "base_color": (0.10, 0.12, 0.15, 1.0),
         "metallic": 0.85,

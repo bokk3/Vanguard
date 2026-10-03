@@ -44,6 +44,15 @@ var mouse_input: Vector2 = Vector2.ZERO
 var downward_velocity: float = 0.0
 var custom_hud: Control = null
 
+# Aerodynamic Momentum & G-Force Avionics
+var current_g_load: float = 1.0
+var previous_speed: float = 60.0
+var previous_forward_dir: Vector3 = Vector3.FORWARD
+var forward_velocity: Vector3 = Vector3.ZERO
+var stall_audio_player: AudioStreamPlayer = null
+var is_stalled: bool = false
+var stall_factor: float = 1.0
+
 # Network Replication State
 var net_target_pos: Vector3 = Vector3.ZERO
 var net_target_rot: Vector3 = Vector3.ZERO
@@ -308,6 +317,7 @@ func _ready() -> void:
 	if not telemetry and has_node("CombatTelemetry"):
 		telemetry = $CombatTelemetry
 	add_to_group("player")
+	add_to_group("player_ship")
 	if pvp_mode:
 		add_to_group("radar_targets")
 		add_to_group("enemies")
@@ -327,6 +337,7 @@ func _ready() -> void:
 		
 	current_speed = cruise_speed
 	downward_velocity = 0.0
+	collision_cooldown = 1.5
 	if not is_split_screen and not is_network_remote:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	
@@ -345,6 +356,7 @@ func _ready() -> void:
 	_setup_machine_gun()
 	_setup_collision_audio()
 	_setup_engine_audio()
+	_setup_stall_audio()
 	
 	if telemetry:
 		if not telemetry.missile_fired.is_connected(_on_missile_fired_sync):
@@ -558,6 +570,65 @@ func _physics_process(delta: float) -> void:
 		current_speed = move_toward(current_speed, target_top_speed, acceleration * accel_mult * delta)
 	elif throttle_down:
 		current_speed = move_toward(current_speed, min_speed, braking * delta)
+	else:
+		# Natural parasitic aerodynamic drag settling toward cruise speed
+		var cruise_target = cruise_speed * speed_mult
+		if current_speed > cruise_target:
+			current_speed = move_toward(current_speed, cruise_target, 10.0 * delta)
+		elif current_speed < cruise_target * 0.70 and not is_stalled:
+			current_speed = move_toward(current_speed, cruise_target * 0.70, 8.0 * delta)
+
+	# Gravity Kinetic Energy Exchange (Climbs lose speed, Dives gain speed)
+	var current_basis = global_transform.basis if is_inside_tree() else transform.basis
+	var forward_dir = -current_basis.z.normalized()
+	if enable_gravity:
+		if forward_dir.y > 0.05: # Climbing
+			var climb_drag = forward_dir.y * 14.0 * delta
+			if not can_boost:
+				current_speed = max(min_speed, current_speed - climb_drag)
+			else:
+				current_speed = max(min_speed, current_speed - climb_drag * 0.35)
+		elif forward_dir.y < -0.05: # Diving
+			var dive_accel = abs(forward_dir.y) * 16.0 * delta
+			var max_dive_speed = boost_speed * 1.15
+			current_speed = min(max_dive_speed, current_speed + dive_accel)
+
+	# Stall state determination & authority factor
+	if enable_gravity and current_speed < stall_speed:
+		is_stalled = true
+		stall_factor = clamp(current_speed / max(1.0, stall_speed), 0.25, 1.0)
+	else:
+		is_stalled = false
+		stall_factor = 1.0
+
+	# Stall Horn Audio Trigger
+	if is_stalled and not is_airframe_destroyed and enable_gravity:
+		if stall_audio_player and not stall_audio_player.playing:
+			stall_audio_player.play()
+	else:
+		if stall_audio_player and stall_audio_player.playing:
+			stall_audio_player.stop()
+
+	# G-Force Calculation & High-G Induced Drag
+	if previous_forward_dir == Vector3.ZERO:
+		previous_forward_dir = forward_dir
+	var turn_angle = previous_forward_dir.angle_to(forward_dir)
+	var turn_rate = turn_angle / max(0.0001, delta)
+	previous_forward_dir = forward_dir
+
+	var centripetal_g = (current_speed * turn_rate) / 9.81
+	var linear_accel = (current_speed - previous_speed) / max(0.0001, delta)
+	previous_speed = current_speed
+	var linear_g = linear_accel / 9.81
+
+	var target_g = clamp(1.0 + centripetal_g + abs(linear_g) * 0.35, 1.0, 9.9)
+	current_g_load = lerp(current_g_load, target_g, 10.0 * delta)
+
+	# Turn-induced drag: pulling high G turns bleeds energy unless boosted
+	if current_g_load > 3.2 and not can_boost:
+		var g_excess = current_g_load - 3.2
+		var drag_bleed = g_excess * 7.5 * delta
+		current_speed = max(min_speed, current_speed - drag_bleed)
 
 	# Dynamic Engine Thruster Exhaust Pitch & Volume Modulation
 	if engine_audio_player and not is_airframe_destroyed:
@@ -598,16 +669,25 @@ func _physics_process(delta: float) -> void:
 	mouse_input = Vector2.ZERO
 	last_pitch_input = clamp(p_input, -1.0, 1.0)
 
-	rotate_object_local(Vector3.RIGHT, p_input * pitch_rate * delta)
-	rotate_object_local(Vector3.FORWARD, r_input * roll_rate * delta)
-	rotate_object_local(Vector3.UP, y_input * yaw_rate * delta)
+	var control_authority = stall_factor
+	rotate_object_local(Vector3.RIGHT, p_input * pitch_rate * control_authority * delta)
+	rotate_object_local(Vector3.FORWARD, r_input * roll_rate * control_authority * delta)
+	rotate_object_local(Vector3.UP, y_input * yaw_rate * control_authority * delta)
+
+	# Aerodynamic nose-down moment when stalled
+	if is_stalled and enable_gravity:
+		var stall_deficit = 1.0 - (current_speed / max(1.0, stall_speed))
+		rotate_object_local(Vector3.RIGHT, -0.65 * stall_deficit * delta)
 
 	# ----------------------------------------------------
-	# 4. Aerodynamic Lift & Gravity Simulation
+	# 4. Aerodynamic Lift & Velocity Coupling
 	# ----------------------------------------------------
-	var current_basis = global_transform.basis if is_inside_tree() else transform.basis
-	var forward_dir = -current_basis.z.normalized()
-	var forward_velocity = forward_dir * current_speed
+	var target_forward_vel = forward_dir * current_speed
+	if forward_velocity.is_zero_approx():
+		forward_velocity = target_forward_vel
+	else:
+		var tracking_rate = lerp(4.0, 16.0, stall_factor)
+		forward_velocity = forward_velocity.lerp(target_forward_vel, tracking_rate * delta)
 
 	if enable_gravity:
 		var lift_ratio = clamp(current_speed / max(1.0, stall_speed), 0.0, 1.0)
@@ -875,10 +955,16 @@ func reset_state() -> void:
 	current_speed = cruise_speed
 	downward_velocity = 0.0
 	is_airframe_destroyed = false
-	collision_cooldown = 0.0
+	collision_cooldown = 1.5
 	camera_shake_trauma = 0.0
 	was_boosting = false
 	catapult_locked = false
+	current_g_load = 1.0
+	is_stalled = false
+	stall_factor = 1.0
+	forward_velocity = Vector3.ZERO
+	if stall_audio_player and stall_audio_player.playing:
+		stall_audio_player.stop()
 	
 	var ship_model = get_node_or_null("Model")
 	if ship_model:
@@ -1214,6 +1300,21 @@ func _setup_engine_audio() -> void:
 	boost_ignite_player.volume_db = -9.0
 	add_child(boost_ignite_player)
 
+func _setup_stall_audio() -> void:
+	stall_audio_player = AudioStreamPlayer.new()
+	stall_audio_player.name = "StallWarningAudio"
+	stall_audio_player.bus = "SFX"
+	var stall_stream = load("res://audio/sfx/sfx_hud_stall_warning.wav")
+	if stall_stream:
+		stall_audio_player.stream = stall_stream
+	stall_audio_player.volume_db = -6.0
+	stall_audio_player.pitch_scale = 1.0
+	stall_audio_player.finished.connect(func():
+		if is_stalled and not is_airframe_destroyed and stall_audio_player:
+			stall_audio_player.play()
+	)
+	add_child(stall_audio_player)
+
 func _on_telemetry_destroyed() -> void:
 	if is_airframe_destroyed:
 		return
@@ -1232,6 +1333,8 @@ func _process_flight_collisions(_delta: float) -> void:
 			global_position = ship_pos
 		else:
 			position = ship_pos
+		if collision_cooldown > 0.0:
+			return
 		var closing_speed = max(0.0, downward_velocity - velocity.y)
 		var nose_pitch_down = (global_transform.basis.z.y > 0.28) if is_inside_tree() else (transform.basis.z.y > 0.28)
 		if closing_speed > 22.0 or (current_speed > 40.0 and nose_pitch_down):
@@ -1245,6 +1348,8 @@ func _process_flight_collisions(_delta: float) -> void:
 			return
 
 	# B. Physical Slide Collisions (Walls, Mesas, Pylons, Ships, Drones, Asteroids)
+	if collision_cooldown > 0.0:
+		return
 	var collision_count = get_slide_collision_count()
 	if collision_count > 0:
 		for i in range(collision_count):
@@ -1334,6 +1439,8 @@ func _trigger_catastrophic_crash(impact_pos: Vector3, normal: Vector3, reason_co
 		engine_audio_player.stop()
 	if is_firing_gun and gun_audio_player:
 		gun_audio_player.stop()
+	if stall_audio_player and stall_audio_player.playing:
+		stall_audio_player.stop()
 		
 	# 1. Play Explosion Audio
 	if crash_audio_player:
