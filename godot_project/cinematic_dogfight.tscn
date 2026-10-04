@@ -1,0 +1,495 @@
+[gd_scene load_steps=22 format=3 uid="uid://c9dogfightcinematic01"]
+
+[ext_resource type="Script" path="res://cinematic_dogfight.gd" id="1_cine"]
+[ext_resource type="PackedScene" uid="uid://c21sm6f7vcpq4" path="res://Spaceship_Sculpted_V_Hull.glb" id="2_hero"]
+[ext_resource type="PackedScene" path="res://assets/meshes/vehicles/Spaceship_Viper_Supreme_HD.glb" id="3_enemy"]
+[ext_resource type="PackedScene" path="res://assets/meshes/vehicles/vanguard_strike_missile.glb" id="4_missile"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sunset"]
+sky_top_color = Color(0.08, 0.14, 0.28, 1)
+sky_horizon_color = Color(0.96, 0.58, 0.18, 1)
+sky_curve = 0.12
+ground_bottom_color = Color(0.12, 0.08, 0.06, 1)
+ground_horizon_color = Color(0.48, 0.22, 0.12, 1)
+ground_curve = 0.08
+sun_angle_max = 35.0
+
+[sub_resource type="Sky" id="Sky_sunset"]
+sky_material = SubResource("ProceduralSkyMaterial_sunset")
+
+[sub_resource type="Environment" id="Environment_cine"]
+background_mode = 2
+sky = SubResource("Sky_sunset")
+ambient_light_source = 2
+ambient_light_color = Color(0.92, 0.82, 0.72, 1)
+ambient_light_energy = 0.85
+tonemap_mode = 2
+tonemap_exposure = 1.05
+glow_enabled = true
+glow_intensity = 1.2
+glow_bloom = 0.2
+glow_blend_mode = 0
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.0015
+volumetric_fog_albedo = Color(0.95, 0.75, 0.55, 1)
+volumetric_fog_emission = Color(0.3, 0.15, 0.05, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_exhaust_hero"]
+albedo_color = Color(0.1, 0.85, 1, 1)
+emission_enabled = true
+emission = Color(0, 0.95, 1, 1)
+emission_energy_multiplier = 8.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_exhaust"]
+material = SubResource("StandardMaterial3D_exhaust_hero")
+top_radius = 0.12
+bottom_radius = 0.45
+height = 2.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_exhaust_boost"]
+albedo_color = Color(0.3, 0.6, 1, 1)
+emission_enabled = true
+emission = Color(0.2, 0.75, 1, 1)
+emission_energy_multiplier = 14.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_boost"]
+material = SubResource("StandardMaterial3D_exhaust_boost")
+top_radius = 0.22
+bottom_radius = 0.75
+height = 5.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_exhaust_enemy"]
+albedo_color = Color(1, 0.35, 0.1, 1)
+emission_enabled = true
+emission = Color(1, 0.25, 0.05, 1)
+emission_energy_multiplier = 7.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_enemy_exhaust"]
+material = SubResource("StandardMaterial3D_exhaust_enemy")
+top_radius = 0.12
+bottom_radius = 0.42
+height = 2.6
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tracer_hero"]
+albedo_color = Color(1, 0.88, 0.3, 1)
+emission_enabled = true
+emission = Color(1, 0.85, 0.2, 1)
+emission_energy_multiplier = 12.0
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tracer_enemy"]
+albedo_color = Color(1, 0.2, 0.2, 1)
+emission_enabled = true
+emission = Color(1, 0.15, 0.1, 1)
+emission_energy_multiplier = 12.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_tracer"]
+size = Vector3(0.08, 0.08, 3.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vapor"]
+transparency = 1
+albedo_color = Color(0.9, 0.95, 1, 0.4)
+
+[sub_resource type="SphereMesh" id="SphereMesh_vapor"]
+material = SubResource("StandardMaterial3D_vapor")
+radius = 0.18
+height = 0.36
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fire"]
+albedo_color = Color(1, 0.65, 0.15, 1)
+emission_enabled = true
+emission = Color(1, 0.45, 0.05, 1)
+emission_energy_multiplier = 10.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_fire"]
+material = SubResource("StandardMaterial3D_fire")
+radius = 0.35
+height = 0.7
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_smoke"]
+transparency = 1
+albedo_color = Color(0.2, 0.2, 0.22, 0.75)
+
+[sub_resource type="SphereMesh" id="SphereMesh_smoke"]
+material = SubResource("StandardMaterial3D_smoke")
+radius = 0.6
+height = 1.2
+
+[node name="CinematicDogfight" type="Node3D"]
+script = ExtResource("1_cine")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_cine")
+
+[node name="SunLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.707107, -0.353553, 0.612372, 0, 0.866025, 0.5, -0.707107, -0.353553, 0.612372, 0, 200, 0)
+light_color = Color(1, 0.82, 0.65, 1)
+light_energy = 1.45
+shadow_enabled = true
+
+[node name="TerrainRidges" type="Node3D" parent="."]
+
+[node name="CameraRig" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 15)
+current = true
+fov = 65.0
+
+[node name="HeroJet" type="Node3D" parent="."]
+
+[node name="Model" parent="HeroJet" instance=ExtResource("2_hero")]
+
+[node name="EngineLightL" type="OmniLight3D" parent="HeroJet"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.15, -0.05, 4.4)
+light_color = Color(0.1, 0.85, 1, 1)
+light_energy = 4.5
+omni_range = 14.0
+
+[node name="EngineLightR" type="OmniLight3D" parent="HeroJet"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.15, -0.05, 4.4)
+light_color = Color(0.1, 0.85, 1, 1)
+light_energy = 4.5
+omni_range = 14.0
+
+[node name="PlumeCruisingL" type="MeshInstance3D" parent="HeroJet"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, -1.15, -0.05, 5.8)
+mesh = SubResource("CylinderMesh_exhaust")
+
+[node name="PlumeCruisingR" type="MeshInstance3D" parent="HeroJet"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 1.15, -0.05, 5.8)
+mesh = SubResource("CylinderMesh_exhaust")
+
+[node name="PlumeBoostL" type="MeshInstance3D" parent="HeroJet"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, -1.15, -0.05, 7.0)
+visible = false
+mesh = SubResource("CylinderMesh_boost")
+
+[node name="PlumeBoostR" type="MeshInstance3D" parent="HeroJet"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 1.15, -0.05, 7.0)
+visible = false
+mesh = SubResource("CylinderMesh_boost")
+
+[node name="WingVaporL" type="CPUParticles3D" parent="HeroJet"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.8, 0.1, 1.2)
+emitting = false
+amount = 28
+lifetime = 0.45
+mesh = SubResource("SphereMesh_vapor")
+direction = Vector3(0, 0, 1)
+spread = 6.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 25.0
+initial_velocity_max = 45.0
+
+[node name="WingVaporR" type="CPUParticles3D" parent="HeroJet"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8, 0.1, 1.2)
+emitting = false
+amount = 28
+lifetime = 0.45
+mesh = SubResource("SphereMesh_vapor")
+direction = Vector3(0, 0, 1)
+spread = 6.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 25.0
+initial_velocity_max = 45.0
+
+[node name="MountedMissileL" parent="HeroJet" instance=ExtResource("4_missile")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.4, -0.25, 0.3)
+
+[node name="MountedMissileR" parent="HeroJet" instance=ExtResource("4_missile")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.4, -0.25, 0.3)
+
+[node name="EnemyJet" type="Node3D" parent="."]
+
+[node name="Model" parent="EnemyJet" instance=ExtResource("3_enemy")]
+
+[node name="EnemyLight" type="OmniLight3D" parent="EnemyJet"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4.5)
+light_color = Color(1, 0.25, 0.1, 1)
+light_energy = 5.0
+omni_range = 16.0
+
+[node name="PlumeEnemy" type="MeshInstance3D" parent="EnemyJet"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 5.8)
+mesh = SubResource("CylinderMesh_enemy_exhaust")
+
+[node name="DamageFire" type="CPUParticles3D" parent="EnemyJet"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0.2, 2.5)
+emitting = false
+amount = 32
+lifetime = 0.6
+mesh = SubResource("SphereMesh_fire")
+direction = Vector3(0, 0.2, 1)
+spread = 15.0
+gravity = Vector3(0, 2, 0)
+initial_velocity_min = 18.0
+initial_velocity_max = 35.0
+
+[node name="DamageSmoke" type="CPUParticles3D" parent="EnemyJet"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0.2, 2.5)
+emitting = false
+amount = 40
+lifetime = 1.1
+mesh = SubResource("SphereMesh_smoke")
+direction = Vector3(0, 0.3, 1)
+spread = 22.0
+gravity = Vector3(0, 4, 0)
+initial_velocity_min = 12.0
+initial_velocity_max = 24.0
+
+[node name="MissileInFlight" type="Node3D" parent="."]
+visible = false
+
+[node name="MissileModel" parent="MissileInFlight" instance=ExtResource("4_missile")]
+
+[node name="MissilePlume" type="CPUParticles3D" parent="MissileInFlight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.4)
+emitting = false
+amount = 45
+lifetime = 0.5
+mesh = SubResource("SphereMesh_fire")
+direction = Vector3(0, 0, 1)
+spread = 8.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 35.0
+initial_velocity_max = 60.0
+
+[node name="MissileSmoke" type="CPUParticles3D" parent="MissileInFlight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.4)
+emitting = false
+amount = 60
+lifetime = 0.9
+mesh = SubResource("SphereMesh_smoke")
+direction = Vector3(0, 0, 1)
+spread = 12.0
+gravity = Vector3(0, 1, 0)
+initial_velocity_min = 20.0
+initial_velocity_max = 40.0
+
+[node name="HeroTracers" type="CPUParticles3D" parent="."]
+emitting = false
+amount = 48
+lifetime = 0.4
+mesh = SubResource("BoxMesh_tracer")
+emission_shape = 2
+emission_box_extents = Vector3(0.5, 0.2, 0.2)
+direction = Vector3(0, 0, -1)
+spread = 1.5
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 450.0
+initial_velocity_max = 520.0
+
+[node name="EnemyTracers" type="CPUParticles3D" parent="."]
+emitting = false
+amount = 36
+lifetime = 0.4
+mesh = SubResource("BoxMesh_tracer")
+emission_shape = 2
+emission_box_extents = Vector3(0.8, 0.2, 0.2)
+direction = Vector3(0, 0, -1)
+spread = 2.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 420.0
+initial_velocity_max = 480.0
+
+[node name="ExplosionAnchor" type="Node3D" parent="."]
+
+[node name="ExplosionLight" type="OmniLight3D" parent="ExplosionAnchor"]
+light_color = Color(1, 0.65, 0.2, 1)
+light_energy = 0.0
+omni_range = 140.0
+
+[node name="ExplosionFire" type="CPUParticles3D" parent="ExplosionAnchor"]
+emitting = false
+amount = 120
+lifetime = 1.4
+one_shot = true
+explosiveness = 0.95
+mesh = SubResource("SphereMesh_fire")
+emission_shape = 1
+emission_sphere_radius = 4.0
+spread = 180.0
+gravity = Vector3(0, 1, 0)
+initial_velocity_min = 25.0
+initial_velocity_max = 65.0
+damping_min = 5.0
+damping_max = 12.0
+scale_amount_min = 1.5
+scale_amount_max = 5.0
+
+[node name="ExplosionDebris" type="CPUParticles3D" parent="ExplosionAnchor"]
+emitting = false
+amount = 75
+lifetime = 1.8
+one_shot = true
+explosiveness = 0.98
+mesh = SubResource("BoxMesh_tracer")
+emission_shape = 1
+emission_sphere_radius = 2.0
+spread = 180.0
+gravity = Vector3(0, -6, 0)
+initial_velocity_min = 35.0
+initial_velocity_max = 85.0
+damping_min = 4.0
+damping_max = 8.0
+
+[node name="ExplosionSmoke" type="CPUParticles3D" parent="ExplosionAnchor"]
+emitting = false
+amount = 90
+lifetime = 2.4
+one_shot = true
+explosiveness = 0.85
+mesh = SubResource("SphereMesh_smoke")
+emission_shape = 1
+emission_sphere_radius = 6.0
+spread = 180.0
+gravity = Vector3(0, 3, 0)
+initial_velocity_min = 10.0
+initial_velocity_max = 35.0
+scale_amount_min = 2.5
+scale_amount_max = 8.0
+
+[node name="HUDLayer" type="CanvasLayer" parent="."]
+
+[node name="LetterboxTop" type="ColorRect" parent="HUDLayer"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 54.0
+grow_horizontal = 2
+color = Color(0, 0, 0, 1)
+
+[node name="LetterboxBottom" type="ColorRect" parent="HUDLayer"]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -54.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(0, 0, 0, 1)
+
+[node name="TacticalOverlay" type="Control" parent="HUDLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TelemetryPanel" type="VBoxContainer" parent="HUDLayer/TacticalOverlay"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 60.0
+offset_top = -140.0
+offset_right = 260.0
+offset_bottom = -70.0
+grow_vertical = 0
+theme_override_constants/separation = 4
+
+[node name="SpeedLabel" type="Label" parent="HUDLayer/TacticalOverlay/TelemetryPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1, 0.95, 0.85, 0.95)
+theme_override_font_sizes/font_size = 13
+text = "SPD: 585 M/S  [MACH 1.8]"
+
+[node name="AltLabel" type="Label" parent="HUDLayer/TacticalOverlay/TelemetryPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1, 0.95, 0.85, 0.95)
+theme_override_font_sizes/font_size = 13
+text = "ALT: 4,820 M  [ANGELS 16]"
+
+[node name="GForceLabel" type="Label" parent="HUDLayer/TacticalOverlay/TelemetryPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.25, 0.95)
+theme_override_font_sizes/font_size = 13
+text = "G-LOAD: +1.2 G"
+
+[node name="BannerPanel" type="PanelContainer" parent="HUDLayer/TacticalOverlay"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -240.0
+offset_top = 70.0
+offset_right = 240.0
+offset_bottom = 104.0
+grow_horizontal = 2
+
+[node name="BannerLabel" type="Label" parent="HUDLayer/TacticalOverlay/BannerPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0.2, 1)
+theme_override_font_sizes/font_size = 13
+text = "// THREAT WARNING: BANDIT ON SIX // BREAK HIGH //"
+horizontal_alignment = 1
+
+[node name="TargetReticle" type="Control" parent="HUDLayer/TacticalOverlay"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -30.0
+offset_top = -30.0
+offset_right = 30.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TargetDiamond" type="Label" parent="HUDLayer/TacticalOverlay/TargetReticle"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -60.0
+offset_top = -14.0
+offset_right = 60.0
+offset_bottom = 14.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.25, 0.25, 0.95)
+theme_override_font_sizes/font_size = 14
+text = "[ TGT LOCK ]"
+horizontal_alignment = 1
+
+[node name="SubtitlesLabel" type="Label" parent="HUDLayer/TacticalOverlay"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -380.0
+offset_top = -88.0
+offset_right = 380.0
+offset_bottom = -60.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.95, 0.85, 0.98)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+text = "APEX CMD: Bandit closing 6 o'clock high! Break break break!"
+horizontal_alignment = 1
+
+[node name="FadeOverlay" type="ColorRect" parent="HUDLayer"]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0)

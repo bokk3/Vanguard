@@ -148,6 +148,153 @@ document.addEventListener('DOMContentLoaded', () => {
 
   startBgm();
 
+  // =========================================================================
+  // --- HERO DOGFIGHT 1080P60 VIDEO CONTROLLER & AUDIO COORDINATION ---
+  // =========================================================================
+  const heroVideo = document.getElementById('hero-dogfight-video');
+  const heroAudioBtn = document.getElementById('hero-video-audio-btn');
+  const heroAudioIcon = document.getElementById('hero-video-audio-icon');
+  const heroAudioLabel = document.getElementById('hero-video-audio-label');
+  const heroPlayBtn = document.getElementById('hero-video-play-btn');
+  const heroPlayIcon = document.getElementById('hero-video-play-icon');
+  const heroPausedOverlay = document.getElementById('hero-video-paused-overlay');
+  const heroFullscreenBtn = document.getElementById('hero-video-fullscreen-btn');
+  const heroProgressBar = document.getElementById('hero-video-progress-bar');
+  const heroProgressContainer = document.getElementById('hero-video-progress-container');
+  const heroStatus = document.getElementById('hero-video-status');
+  const heroSpd = document.getElementById('hero-video-spd');
+  const heroG = document.getElementById('hero-video-g');
+  const heroTgt = document.getElementById('hero-video-tgt');
+  const heroWatchBtn = document.getElementById('hero-watch-cinematic-btn');
+  const heroCard = document.getElementById('hero-video-card');
+
+  if (heroVideo) {
+    const dogfightPhases = [
+      { t: 0.0, status: "PATROL // DUSK CORRIDOR", spd: "420 M/S", g: "+1.0 G", tgt: "SEARCHING", color: "text-amber-300" },
+      { t: 1.2, status: "ALERT // BANDIT ON SIX", spd: "435 M/S", g: "+1.2 G", tgt: "WARNING", color: "text-red-400" },
+      { t: 3.5, status: "BREAK // +6.8G EVASIVE PULL", spd: "610 M/S", g: "+6.8 G", tgt: "EVADING", color: "text-red-400" },
+      { t: 6.8, status: "ENERGY REVERSAL // SCISSORS", spd: "520 M/S", g: "+3.2 G", tgt: "TRACKING", color: "text-amber-400" },
+      { t: 10.5, status: "AUTOCANNON BURST // LEAD HIT", spd: "540 M/S", g: "+1.8 G", tgt: "LEAD LOCK", color: "text-amber-300" },
+      { t: 14.5, status: "FOX TWO SEEKER TONE // SOLID", spd: "575 M/S", g: "+3.8 G", tgt: "TONE LOCK", color: "text-red-500" },
+      { t: 18.0, status: "FOX TWO AWAY // MISSILE TRACK", spd: "590 M/S", g: "+1.5 G", tgt: "INTERCEPT", color: "text-amber-400" },
+      { t: 21.5, status: "★ TARGET DESTROYED // SPLASH 1", spd: "640 M/S", g: "+2.0 G", tgt: "SPLASH ONE", color: "text-emerald-400" },
+      { t: 24.5, status: "PUNCH-THROUGH // STRATOSPHERE", spd: "720 M/S", g: "+4.2 G", tgt: "SORTIE DONE", color: "text-emerald-300" }
+    ];
+
+    heroVideo.addEventListener('timeupdate', () => {
+      const cur = heroVideo.currentTime;
+      const dur = heroVideo.duration || 26.0;
+      if (heroProgressBar) {
+        heroProgressBar.style.width = `${(cur / dur) * 100}%`;
+      }
+      
+      for (let i = dogfightPhases.length - 1; i >= 0; i--) {
+        if (cur >= dogfightPhases[i].t) {
+          const pt = dogfightPhases[i];
+          if (heroStatus) heroStatus.textContent = pt.status;
+          if (heroSpd) heroSpd.textContent = pt.spd;
+          if (heroG) heroG.textContent = pt.g;
+          if (heroTgt) {
+            heroTgt.textContent = pt.tgt;
+            heroTgt.className = pt.color + ' font-bold';
+          }
+          break;
+        }
+      }
+    });
+
+    let videoAudioUnmuted = false;
+
+    function setVideoAudio(unmute) {
+      videoAudioUnmuted = unmute;
+      heroVideo.muted = !unmute;
+      if (unmute) {
+        heroVideo.volume = 0.95;
+        if (heroAudioIcon) heroAudioIcon.textContent = '🔊';
+        if (heroAudioLabel) heroAudioLabel.textContent = '[ SFX ACTIVE ]';
+        heroAudioBtn?.classList.add('border-amber-400', 'text-amber-300', 'bg-amber-500/25');
+        // Duck website BGM so cinematic audio and radio comms take center stage
+        if (bgmPlaying && !bgm.paused) {
+          bgm.pause();
+        }
+      } else {
+        if (heroAudioIcon) heroAudioIcon.textContent = '🔇';
+        if (heroAudioLabel) heroAudioLabel.textContent = '[ UNMUTE AUDIO ]';
+        heroAudioBtn?.classList.remove('border-amber-400', 'text-amber-300', 'bg-amber-500/25');
+        // Resume BGM if not explicitly user-muted
+        if (!bgmUserMuted && bgmPlaying) {
+          bgm.play().catch(() => {});
+        }
+      }
+    }
+
+    heroAudioBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      audio.ping();
+      setVideoAudio(!videoAudioUnmuted);
+    });
+
+    function toggleVideoPlay() {
+      audio.beep(1200, 0.04);
+      if (heroVideo.paused) {
+        heroVideo.play();
+        if (heroPlayIcon) heroPlayIcon.textContent = '⏸️';
+        heroPausedOverlay?.classList.add('hidden');
+      } else {
+        heroVideo.pause();
+        if (heroPlayIcon) heroPlayIcon.textContent = '▶️';
+        heroPausedOverlay?.classList.remove('hidden');
+      }
+    }
+
+    heroPlayBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleVideoPlay();
+    });
+
+    heroVideo.addEventListener('click', () => {
+      toggleVideoPlay();
+    });
+
+    heroFullscreenBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      audio.lock();
+      if (!document.fullscreenElement) {
+        if (heroVideo.requestFullscreen) {
+          heroVideo.requestFullscreen();
+        } else if (heroVideo.webkitRequestFullscreen) {
+          heroVideo.webkitRequestFullscreen();
+        }
+      } else {
+        document.exitFullscreen?.();
+      }
+    });
+
+    heroProgressContainer?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const rect = heroProgressContainer.getBoundingClientRect();
+      const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      heroVideo.currentTime = pos * (heroVideo.duration || 26.0);
+    });
+
+    heroWatchBtn?.addEventListener('click', () => {
+      audio.lock();
+      if (heroCard) {
+        heroCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        heroCard.classList.add('ring-2', 'ring-amber-400', 'shadow-[0_0_35px_rgba(251,191,36,0.4)]');
+        setTimeout(() => {
+          heroCard.classList.remove('ring-2', 'ring-amber-400', 'shadow-[0_0_35px_rgba(251,191,36,0.4)]');
+        }, 2500);
+      }
+      if (heroVideo.paused) {
+        heroVideo.play();
+        if (heroPlayIcon) heroPlayIcon.textContent = '⏸️';
+        heroPausedOverlay?.classList.add('hidden');
+      }
+      setVideoAudio(true);
+    });
+  }
+
   // --- Campaign Mission Dossier System ---
   let selectedMissionIndex = 0;
   const missionTabsContainer = document.getElementById('mission-tabs');
