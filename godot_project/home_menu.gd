@@ -14,6 +14,7 @@ extends Node3D
 @onready var prologue_btn: Button = %PrologueBtn
 @onready var pvp_btn: Button = %PvPBtn
 @onready var mobile_hotas_btn: Button = %MobileHotasBtn
+@onready var hotas_banner_btn: Button = get_node_or_null("%HotasBannerBtn")
 @onready var config_btn: Button = %ConfigBtn
 @onready var specs_btn: Button = %SpecsBtn
 @onready var quit_btn: Button = %QuitBtn
@@ -27,6 +28,7 @@ extends Node3D
 @onready var category_campaign_btn: Button = %CategoryCampaignBtn
 @onready var category_agility_btn: Button = %CategoryAgilityBtn
 @onready var category_multiplayer_btn: Button = %CategoryMultiplayerBtn
+@onready var category_hotas_btn: Button = get_node_or_null("%CategoryHotasBtn")
 @onready var category_intel_btn: Button = %CategoryIntelBtn
 @onready var category_settings_btn: Button = %CategorySettingsBtn
 
@@ -153,6 +155,10 @@ func _ready() -> void:
 		pvp_btn.pressed.connect(_on_pvp_pressed)
 	if mobile_hotas_btn and not mobile_hotas_btn.pressed.is_connected(_toggle_qr_dialog):
 		mobile_hotas_btn.pressed.connect(func(): _toggle_qr_dialog(1))
+	if hotas_banner_btn and not hotas_banner_btn.pressed.is_connected(_toggle_qr_dialog):
+		hotas_banner_btn.pressed.connect(func(): _toggle_qr_dialog(1))
+	if category_hotas_btn and not category_hotas_btn.pressed.is_connected(_toggle_qr_dialog):
+		category_hotas_btn.pressed.connect(func(): _toggle_qr_dialog(1))
 	if leaderboard_btn and not leaderboard_btn.pressed.is_connected(_show_leaderboard_dialog):
 		leaderboard_btn.pressed.connect(_show_leaderboard_dialog)
 	if rewards_btn and not rewards_btn.pressed.is_connected(func(): _show_rewards_dialog("wheel")):
@@ -192,6 +198,11 @@ func _ready() -> void:
 	if net_ctrl:
 		if not net_ctrl.pilot_connected.is_connected(_on_mobile_pilot_joined):
 			net_ctrl.pilot_connected.connect(_on_mobile_pilot_joined)
+		if not net_ctrl.pilot_disconnected.is_connected(_on_mobile_pilot_disconnected):
+			net_ctrl.pilot_disconnected.connect(_on_mobile_pilot_disconnected)
+		if "connected_clients" in net_ctrl and net_ctrl.connected_clients.size() > 0:
+			var c = net_ctrl.connected_clients[0]
+			_on_mobile_pilot_joined(c.get("callsign", "PILOT"), c.get("player_id", 1))
 
 	var net_mgr = _get_autoload_node("NetworkManager")
 	if net_mgr:
@@ -328,8 +339,11 @@ func _exit_tree() -> void:
 			agility_mgr.medal_earned.disconnect(_on_agility_medal_earned)
 
 	var net_ctrl = _get_autoload_node("NetworkControllerServer")
-	if net_ctrl and net_ctrl.has_signal("pilot_connected") and net_ctrl.pilot_connected.is_connected(_on_mobile_pilot_joined):
-		net_ctrl.pilot_connected.disconnect(_on_mobile_pilot_joined)
+	if net_ctrl:
+		if net_ctrl.has_signal("pilot_connected") and net_ctrl.pilot_connected.is_connected(_on_mobile_pilot_joined):
+			net_ctrl.pilot_connected.disconnect(_on_mobile_pilot_joined)
+		if net_ctrl.has_signal("pilot_disconnected") and net_ctrl.pilot_disconnected.is_connected(_on_mobile_pilot_disconnected):
+			net_ctrl.pilot_disconnected.disconnect(_on_mobile_pilot_disconnected)
 
 	var net_mgr = _get_autoload_node("NetworkManager")
 	if net_mgr and net_mgr.has_signal("network_stats_updated") and net_mgr.network_stats_updated.is_connected(_on_network_stats_updated):
@@ -603,9 +617,29 @@ func _update_layout_ui() -> void:
 
 func _on_mobile_pilot_joined(cs: String, pid: int) -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	var link_txt = "  [ 📱 ]  CONTROLLER %d: %s (LINKED)" % [pid, cs]
+	var link_col = Color(0.1, 0.95, 0.4)
 	if mobile_hotas_btn:
-		mobile_hotas_btn.text = "  [ 📱 ]  CONTROLLER %d: %s (LINKED)" % [pid, cs]
-		mobile_hotas_btn.add_theme_color_override("font_color", Color(0.1, 0.95, 0.4))
+		mobile_hotas_btn.text = link_txt
+		mobile_hotas_btn.add_theme_color_override("font_color", link_col)
+	if hotas_banner_btn:
+		hotas_banner_btn.text = link_txt
+		hotas_banner_btn.add_theme_color_override("font_color", link_col)
+	if category_hotas_btn:
+		category_hotas_btn.text = "  04.  PHONE STICK: %s (LINKED)  ✔" % cs
+		category_hotas_btn.add_theme_color_override("font_color", link_col)
+
+func _on_mobile_pilot_disconnected(_cs: String, _pid: int) -> void:
+	var def_col = Color(0.2, 0.95, 1.0)
+	if mobile_hotas_btn:
+		mobile_hotas_btn.text = "  [ 📱 ]  PAIR MOBILE HOTAS (LAN / F3)"
+		mobile_hotas_btn.add_theme_color_override("font_color", def_col)
+	if hotas_banner_btn:
+		hotas_banner_btn.text = "  [ 📱 ]  PHONE GYRO HOTAS: SCAN QR (F3)"
+		hotas_banner_btn.add_theme_color_override("font_color", def_col)
+	if category_hotas_btn:
+		category_hotas_btn.text = "  04.  MOBILE PHONE HOTAS [F3]  ▶"
+		category_hotas_btn.add_theme_color_override("font_color", def_col)
 
 func _update_pilot_dossier_ui() -> void:
 	var auth_mgr = _get_autoload_node("AuthManager")
@@ -1056,27 +1090,27 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.keycode == KEY_ESCAPE:
 			if leaderboard_dialog and leaderboard_dialog.visible:
 				leaderboard_dialog.close_leaderboard()
-				get_viewport().set_input_as_handled()
+				if get_viewport(): get_viewport().set_input_as_handled()
 				return
 			if agility_selector and agility_selector.visible:
 				if agility_selector.has_method("hide_selector"):
 					agility_selector.hide_selector()
 				else:
 					agility_selector.hide()
-				get_viewport().set_input_as_handled()
+				if get_viewport(): get_viewport().set_input_as_handled()
 				return
 			if specs_panel and specs_panel.visible:
 				specs_panel.hide()
-				get_viewport().set_input_as_handled()
+				if get_viewport(): get_viewport().set_input_as_handled()
 				return
 			if current_active_submenu != null:
 				_close_submenu()
-				get_viewport().set_input_as_handled()
+				if get_viewport(): get_viewport().set_input_as_handled()
 				return
 		elif event.keycode == KEY_F3:
 			_toggle_qr_dialog(1)
-			get_viewport().set_input_as_handled()
+			if get_viewport(): get_viewport().set_input_as_handled()
 		elif event.keycode == KEY_F1:
 			_toggle_keyboard_layout()
-			get_viewport().set_input_as_handled()
+			if get_viewport(): get_viewport().set_input_as_handled()
 

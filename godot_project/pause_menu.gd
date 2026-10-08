@@ -8,6 +8,7 @@ extends Control
 @onready var load_btn: Button = %LoadBtn
 @onready var restart_btn: Button = %RestartBtn
 @onready var config_btn: Button = %ConfigBtn
+@onready var mobile_hotas_btn: Button = get_node_or_null("%MobileHotasPauseBtn")
 @onready var hangar_btn: Button = %HangarBtn
 @onready var quit_btn: Button = %QuitBtn
 
@@ -18,6 +19,8 @@ extends Control
 @onready var mission_name_label: Label = find_child("MissionNameLabel", true, false)
 @onready var theater_label: Label = find_child("TheaterLabel", true, false)
 @onready var objectives_list: VBoxContainer = find_child("ObjectivesList", true, false)
+
+var qr_dialog: Control = null
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -30,34 +33,55 @@ func _ready() -> void:
 	load_btn.pressed.connect(load_last_save)
 	restart_btn.pressed.connect(restart_sortie)
 	config_btn.pressed.connect(open_config)
+	if mobile_hotas_btn:
+		mobile_hotas_btn.pressed.connect(_toggle_qr_dialog)
 	hangar_btn.pressed.connect(return_to_hangar)
 	quit_btn.pressed.connect(quit_game)
 
+	var net_ctrl = get_node_or_null("/root/NetworkControllerServer")
+	if net_ctrl:
+		if not net_ctrl.pilot_connected.is_connected(_on_pilot_connected):
+			net_ctrl.pilot_connected.connect(_on_pilot_connected)
+		if not net_ctrl.pilot_disconnected.is_connected(_on_pilot_disconnected):
+			net_ctrl.pilot_disconnected.connect(_on_pilot_disconnected)
+		_refresh_hotas_btn()
+
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.keycode == KEY_ESCAPE:
-		# If settings modal is open, close it first
-		if settings_modal and settings_modal.visible:
-			settings_modal.hide()
+	if event is InputEventKey and event.pressed:
+		if event.keycode == KEY_F3 and visible:
+			_toggle_qr_dialog()
+			if get_viewport(): get_viewport().set_input_as_handled()
 			return
-		
-		# If Agility debrief panel is open, let debrief handle clicks/exit
-		var ahud = get_node_or_null("../AgilityHUD")
-		if ahud and ahud.has_node("%DebriefPanel"):
-			var db_panel = ahud.get_node("%DebriefPanel") as Control
-			if db_panel and db_panel.visible:
+		if event.keycode == KEY_ESCAPE:
+			# If QR dialog is open, close it first
+			if qr_dialog and qr_dialog.visible:
+				qr_dialog.hide()
+				if get_viewport(): get_viewport().set_input_as_handled()
 				return
-		
-		# Toggle pause state
-		if visible:
-			resume_flight()
-		else:
-			pause_flight()
+			# If settings modal is open, close it first
+			if settings_modal and settings_modal.visible:
+				settings_modal.hide()
+				return
+			
+			# If Agility debrief panel is open, let debrief handle clicks/exit
+			var ahud = get_node_or_null("../AgilityHUD")
+			if ahud and ahud.has_node("%DebriefPanel"):
+				var db_panel = ahud.get_node("%DebriefPanel") as Control
+				if db_panel and db_panel.visible:
+					return
+			
+			# Toggle pause state
+			if visible:
+				resume_flight()
+			else:
+				pause_flight()
 
 func pause_flight() -> void:
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_refresh_save_buttons()
 	_refresh_objectives()
+	_refresh_hotas_btn()
 	if save_toast:
 		save_toast.hide()
 	show()
@@ -211,6 +235,8 @@ func _show_toast(msg: String, is_err: bool = false) -> void:
 	)
 
 func resume_flight() -> void:
+	if qr_dialog:
+		qr_dialog.hide()
 	if settings_modal:
 		settings_modal.hide()
 	hide()
@@ -218,6 +244,8 @@ func resume_flight() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func restart_sortie() -> void:
+	if qr_dialog:
+		qr_dialog.hide()
 	var am = get_node_or_null("/root/AgilityManager")
 	if am:
 		am.is_trial_active = false
@@ -225,10 +253,51 @@ func restart_sortie() -> void:
 	get_tree().reload_current_scene()
 
 func open_config() -> void:
+	if qr_dialog:
+		qr_dialog.hide()
 	if settings_modal:
 		settings_modal.open_menu()
 
+func _toggle_qr_dialog() -> void:
+	if not qr_dialog:
+		var scene = load("res://qr_join_dialog.tscn")
+		if scene:
+			qr_dialog = scene.instantiate()
+			add_child(qr_dialog)
+			if not qr_dialog.closed.is_connected(_on_qr_dialog_closed):
+				qr_dialog.closed.connect(_on_qr_dialog_closed)
+	if qr_dialog and qr_dialog.has_method("toggle_dialog"):
+		qr_dialog.toggle_dialog(1)
+
+func _on_qr_dialog_closed() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func _on_pilot_connected(callsign: String, p_id: int) -> void:
+	if mobile_hotas_btn:
+		mobile_hotas_btn.text = "  [ 📱 ]  PHONE HOTAS: %s (LINKED)" % callsign
+		mobile_hotas_btn.add_theme_color_override("font_color", Color(0.1, 0.95, 0.4))
+	_show_toast("// PHONE HOTAS LINKED: %s (P%d) //" % [callsign, p_id])
+
+func _on_pilot_disconnected(_callsign: String, _p_id: int) -> void:
+	if mobile_hotas_btn:
+		mobile_hotas_btn.text = "  [ 📱 ]  PAIR PHONE HOTAS (F3)"
+		mobile_hotas_btn.add_theme_color_override("font_color", Color(0.2, 0.95, 1.0))
+
+func _refresh_hotas_btn() -> void:
+	if not mobile_hotas_btn:
+		return
+	var net_ctrl = get_node_or_null("/root/NetworkControllerServer")
+	if net_ctrl and "connected_clients" in net_ctrl and net_ctrl.connected_clients.size() > 0:
+		var c = net_ctrl.connected_clients[0]
+		mobile_hotas_btn.text = "  [ 📱 ]  PHONE HOTAS: %s (LINKED)" % c.get("callsign", "PILOT")
+		mobile_hotas_btn.add_theme_color_override("font_color", Color(0.1, 0.95, 0.4))
+	else:
+		mobile_hotas_btn.text = "  [ 📱 ]  PAIR PHONE HOTAS (F3)"
+		mobile_hotas_btn.add_theme_color_override("font_color", Color(0.2, 0.95, 1.0))
+
 func return_to_hangar() -> void:
+	if qr_dialog:
+		qr_dialog.hide()
 	var am = get_node_or_null("/root/AgilityManager")
 	if am:
 		am.is_trial_active = false

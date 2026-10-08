@@ -280,6 +280,17 @@ icon = ExtResource("6_icon_config")
 alignment = 0
 expand_icon = true
 
+[node name="MobileHotasPauseBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
+text = "  [ 📱 ]  PAIR PHONE HOTAS (F3)"
+alignment = 0
+
 [node name="HangarBtn" type="Button" parent="CenterContainer/PanelContainer/MarginContainer/VBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 36)
@@ -288,7 +299,7 @@ theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 13
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  [ 06 ]  RETURN TO HANGAR"
+text = "  [ 07 ]  RETURN TO HANGAR"
 icon = ExtResource("3_badge")
 alignment = 0
 expand_icon = true
@@ -301,7 +312,7 @@ theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
 theme_override_font_sizes/font_size = 13
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn")
-text = "  [ 07 ]  ABORT TO DESKTOP"
+text = "  [ 08 ]  ABORT TO DESKTOP"
 icon = ExtResource("7_icon_quit")
 alignment = 0
 expand_icon = true
