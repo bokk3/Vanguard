@@ -156,9 +156,9 @@
   <!-- HERO SECTION                                                          -->
   <!-- ===================================================================== -->
   <section class="relative pt-16 pb-24 overflow-hidden border-b border-white/10 bg-vanguard-dark">
-    <!-- Atmospheric Stealth Void Backdrop with Ambient Dogfight Feed -->
+    <!-- Atmospheric Stealth Void Backdrop with Pre-Blurred WebP -->
     <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-      <video class="w-full h-full object-cover object-center opacity-25 filter blur-[3px] scale-105" autoplay loop muted playsinline preload="none" poster="/images/dogfight_hero_poster.webp" src="/videos/dogfight_cinematic_hq.mp4"></video>
+      <img src="/images/dogfight_hero_backdrop_blur.webp" alt="" class="w-full h-full object-cover object-center opacity-30 scale-105" fetchpriority="high" decoding="async">
       <div class="absolute inset-0 bg-gradient-to-r from-vanguard-dark via-vanguard-dark/95 to-vanguard-dark/80"></div>
       <div class="absolute inset-0 bg-gradient-to-b from-vanguard-dark/90 via-transparent to-vanguard-dark"></div>
       <div class="absolute inset-0 bg-[radial-gradient(circle_at_75%_35%,rgba(245,158,11,0.08),transparent_65%)]"></div>
@@ -232,13 +232,13 @@
                 <video 
                   id="hero-dogfight-video" 
                   class="w-full h-full object-cover select-none cursor-pointer"
-                  src="/videos/dogfight_cinematic_hq.mp4" 
+                  src="/videos/dogfight_hero_web.mp4" 
                   poster="/images/dogfight_hero_poster.webp" 
                   autoplay 
                   loop 
                   muted 
                   playsinline 
-                  preload="auto"
+                  preload="metadata"
                 ></video>
                 
                 <!-- HUD Scanlines & Dynamic Ambient Glow -->
@@ -294,7 +294,7 @@
 
                 <!-- Live Progress Scrub Bar -->
                 <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/10 cursor-pointer z-10" id="hero-video-progress-container">
-                  <div id="hero-video-progress-bar" class="h-full bg-amber-400 w-0 transition-all duration-100 shadow-[0_0_8px_rgba(251,191,36,0.8)]"></div>
+                  <div id="hero-video-progress-bar" class="h-full bg-amber-400 w-full scale-x-0 origin-left transition-transform duration-75 shadow-[0_0_8px_rgba(251,191,36,0.8)]"></div>
                 </div>
               </div>
 

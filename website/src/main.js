@@ -181,27 +181,55 @@ document.addEventListener('DOMContentLoaded', () => {
       { t: 24.5, status: "PUNCH-THROUGH // STRATOSPHERE", spd: "720 M/S", g: "+4.2 G", tgt: "SORTIE DONE", color: "text-emerald-300" }
     ];
 
+    let currentPhaseIndex = -1;
+    let isUserPaused = false;
+
+    // Performance-optimized update loop: zero layout reflows, transforms only
     heroVideo.addEventListener('timeupdate', () => {
       const cur = heroVideo.currentTime;
       const dur = heroVideo.duration || 26.0;
       if (heroProgressBar) {
-        heroProgressBar.style.width = `${(cur / dur) * 100}%`;
+        heroProgressBar.style.transform = `scaleX(${Math.min(1, cur / dur)})`;
       }
       
+      let matchedIndex = 0;
       for (let i = dogfightPhases.length - 1; i >= 0; i--) {
         if (cur >= dogfightPhases[i].t) {
-          const pt = dogfightPhases[i];
-          if (heroStatus) heroStatus.textContent = pt.status;
-          if (heroSpd) heroSpd.textContent = pt.spd;
-          if (heroG) heroG.textContent = pt.g;
-          if (heroTgt) {
-            heroTgt.textContent = pt.tgt;
-            heroTgt.className = pt.color + ' font-bold';
-          }
+          matchedIndex = i;
           break;
         }
       }
+
+      // ONLY mutate DOM when phase actually changes
+      if (matchedIndex !== currentPhaseIndex) {
+        currentPhaseIndex = matchedIndex;
+        const pt = dogfightPhases[matchedIndex];
+        if (heroStatus) heroStatus.textContent = pt.status;
+        if (heroSpd) heroSpd.textContent = pt.spd;
+        if (heroG) heroG.textContent = pt.g;
+        if (heroTgt) {
+          heroTgt.textContent = pt.tgt;
+          heroTgt.className = pt.color + ' font-bold';
+        }
+      }
     });
+
+    // Auto-pause video when scrolled out of view to save 100% of GPU/CPU decoding
+    const heroObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          if (!isUserPaused && heroVideo.paused) {
+            heroVideo.play().catch(() => {});
+          }
+        } else {
+          if (!heroVideo.paused) {
+            heroVideo.pause();
+          }
+        }
+      });
+    }, { threshold: 0.1 });
+
+    heroObserver.observe(heroCard || heroVideo);
 
     let videoAudioUnmuted = false;
 
@@ -237,10 +265,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function toggleVideoPlay() {
       audio.beep(1200, 0.04);
       if (heroVideo.paused) {
-        heroVideo.play();
+        isUserPaused = false;
+        heroVideo.play().catch(() => {});
         if (heroPlayIcon) heroPlayIcon.textContent = '⏸️';
         heroPausedOverlay?.classList.add('hidden');
       } else {
+        isUserPaused = true;
         heroVideo.pause();
         if (heroPlayIcon) heroPlayIcon.textContent = '▶️';
         heroPausedOverlay?.classList.remove('hidden');
@@ -286,8 +316,9 @@ document.addEventListener('DOMContentLoaded', () => {
           heroCard.classList.remove('ring-2', 'ring-amber-400', 'shadow-[0_0_35px_rgba(251,191,36,0.4)]');
         }, 2500);
       }
+      isUserPaused = false;
       if (heroVideo.paused) {
-        heroVideo.play();
+        heroVideo.play().catch(() => {});
         if (heroPlayIcon) heroPlayIcon.textContent = '⏸️';
         heroPausedOverlay?.classList.add('hidden');
       }
@@ -453,6 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let simulatedAlt = 3450.0;
 
   setInterval(() => {
+    if (document.hidden) return;
     simulatedSpeed = Math.max(48.0, Math.min(125.0, simulatedSpeed + (Math.random() - 0.48) * 1.5));
     simulatedAlt = simulatedAlt + (Math.random() - 0.5) * 6.0;
     const liftRatio = Math.min(1.0, simulatedSpeed / 25.0);
@@ -460,7 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tickerSpeed) tickerSpeed.textContent = `${simulatedSpeed.toFixed(1)} m/s (${Math.round(simulatedSpeed * 3.6)} km/h)`;
     if (tickerAlt) tickerAlt.textContent = `${Math.round(simulatedAlt)} m`;
     if (tickerLift) tickerLift.textContent = `${(liftRatio * 100).toFixed(0)}% (OPTIMAL)`;
-  }, 350);
+  }, 1000);
 
   // --- Mobile Drawer Toggle ---
   const mobileMenuBtn = document.getElementById('mobile-menu-btn');
