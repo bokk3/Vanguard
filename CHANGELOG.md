@@ -32,6 +32,10 @@ Notable changes to Project Vanguard. The format follows
 - Device link codes are `ACE-` plus 6 characters from a cryptographic RNG
   (previously 3 characters from `Math.random`), and only the IP that requested
   a code can collect the login token once it is approved.
+- The phone controller page put the `host` and `http` URL parameters into
+  `innerHTML`, so a crafted link could run script on the site and read the
+  saved login token. It now accepts only a private IPv4 host and numeric
+  ports, and builds the LAN link with DOM methods.
 
 ### Fixed
 - Cloud sync added the game's cumulative flight time to the stored total on

@@ -270,19 +270,43 @@ function updateConnectionUI(status, label) {
   }
 }
 
-function isPrivateHost(h) {
-  if (!h) return false;
-  const hostOnly = h.split(':')[0];
-  return /^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|127\.|localhost)/.test(hostOnly);
+// host, ws and http come from the URL, so treat them as untrusted: only a bare
+// private IPv4 address and numeric ports are accepted.
+const PRIVATE_IPV4_RE = /^(?:10|127)(?:\.\d{1,3}){3}$|^192\.168(?:\.\d{1,3}){2}$|^172\.(?:1[6-9]|2\d|3[01])(?:\.\d{1,3}){2}$/;
+
+function parsePort(value, fallback) {
+  const s = String(value ?? '').trim();
+  if (!/^\d{1,5}$/.test(s)) return fallback;
+  const n = Number(s);
+  return n >= 1 && n <= 65535 ? String(n) : fallback;
+}
+
+function parsePrivateHost(h) {
+  if (!h) return null;
+  const [ip, port, ...rest] = String(h).trim().split(':');
+  if (rest.length || !PRIVATE_IPV4_RE.test(ip)) return null;
+  if (ip.split('.').some((octet) => Number(octet) > 255)) return null;
+  return { ip, port: parsePort(port, '8081') };
 }
 
 function handleMixedContentBlock() {
-  if (window.location.protocol === 'https:' && isPrivateHost(state.host)) {
-    const ipOnly = state.host.split(':')[0];
-    const wsPort = state.host.split(':')[1] || '8081';
-    const httpPort = state.httpPort || '8080';
-    const lanUrl = `http://${ipOnly}:${httpPort}/?ws=${wsPort}&room=${encodeURIComponent(state.token || '')}&callsign=${encodeURIComponent(state.callsign || '')}&pid=${state.playerId || 1}&role=${encodeURIComponent(state.role || 'pilot')}`;
-    els.threatBanner.innerHTML = `<a href="${lanUrl}" style="text-decoration:underline;color:#00e5ff;font-weight:bold;">⚡ CONNECTING LOCAL LAN FLIGHT DECK... TAP HERE IF NOT OPENED</a>`;
+  const parsed = parsePrivateHost(state.host);
+  if (window.location.protocol === 'https:' && parsed) {
+    const httpPort = parsePort(state.httpPort, '8080');
+    const query = new URLSearchParams({
+      ws: parsed.port,
+      room: state.token || '',
+      callsign: state.callsign || '',
+      pid: String(state.playerId || 1),
+      role: state.role || 'pilot',
+    });
+    const lanUrl = `http://${parsed.ip}:${httpPort}/?${query}`;
+
+    const link = document.createElement('a');
+    link.href = lanUrl;
+    link.style.cssText = 'text-decoration:underline;color:#00e5ff;font-weight:bold;';
+    link.textContent = '⚡ CONNECTING LOCAL LAN FLIGHT DECK... TAP HERE IF NOT OPENED';
+    els.threatBanner.replaceChildren(link);
     els.threatBanner.className = 'text-vanguard-cyan font-bold tracking-widest truncate cursor-pointer';
     els.threatBanner.onclick = () => { window.location.href = lanUrl; };
 
@@ -1032,7 +1056,7 @@ function init() {
   const paramRole = params.get('role') || (params.get('pid') === '2' ? 'wingman' : 'pilot');
   const paramPid = parseInt(params.get('pid') || '1', 10);
 
-  state.httpPort = paramHttp;
+  state.httpPort = parsePort(paramHttp, '8080');
   state.role = paramRole;
   state.playerId = paramPid;
 
