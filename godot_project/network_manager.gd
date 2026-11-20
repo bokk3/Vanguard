@@ -48,7 +48,7 @@ var upnp_object: UPNP = null
 var upnp_thread: Thread = null
 
 # Fleet Operations Presence & Telemetry
-var registered_pilots: int = 1420
+var registered_pilots: int = 0
 var online_pilots: int = 1
 var active_lobbies: int = 0
 var remote_lobbies: Array[Dictionary] = []
@@ -96,7 +96,7 @@ func _notification(what: int) -> void:
 		send_leave()
 
 func _init_network_presence() -> void:
-	client_session_id = "vng-client-" + str(randi() % 900000 + 100000)
+	client_session_id = "vng-client-" + Crypto.new().generate_random_bytes(12).hex_encode()
 	
 	stats_http = HTTPRequest.new()
 	stats_http.timeout = 5.0
@@ -179,7 +179,6 @@ func send_heartbeat() -> void:
 		return
 	var auth_mgr = get_node_or_null("/root/AuthManager")
 	var cs = auth_mgr.callsign if (auth_mgr and auth_mgr.is_authenticated and not auth_mgr.callsign.is_empty()) else player_callsign
-	var pid = auth_mgr.pilot_id if auth_mgr else ""
 	var peer_count = 1
 	if multiplayer and multiplayer.has_multiplayer_peer() and is_host:
 		peer_count = multiplayer.get_peers().size() + 1
@@ -198,7 +197,6 @@ func send_heartbeat() -> void:
 	var payload = {
 		"session_id": client_session_id,
 		"callsign": cs,
-		"pilot_id": pid,
 		"session_type": session_type,
 		"is_public": is_public_lobby,
 		"port": DEFAULT_GAME_PORT,
@@ -207,6 +205,9 @@ func send_heartbeat() -> void:
 		"metadata": meta
 	}
 	var headers = ["Content-Type: application/json"]
+	# The server takes the pilot ID from the token, so guests show as unverified hosts.
+	if auth_mgr and auth_mgr.is_authenticated and not auth_mgr.token.is_empty():
+		headers.append("Authorization: Bearer " + auth_mgr.token)
 	heartbeat_http.request(CLOUD_NETWORK_API + "/heartbeat", headers, HTTPClient.METHOD_POST, JSON.stringify(payload))
 
 func send_leave() -> void:

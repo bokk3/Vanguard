@@ -53,6 +53,16 @@ function requireSecret(secret) {
 // 1. CORS & Response Helpers
 // ============================================================================
 
+/**
+ * The caller's public IP as Cloudflare sees it.
+ */
+export function clientIpOf(request) {
+    return request.headers.get("cf-connecting-ip") ||
+        request.headers.get("x-real-ip") ||
+        (request.headers.get("x-forwarded-for") || "").split(",")[0].trim() ||
+        "127.0.0.1";
+}
+
 export function corsHeaders() {
     return {
         "Access-Control-Allow-Origin": "*",

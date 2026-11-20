@@ -1938,7 +1938,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ============================================================================
   // Live Fleet Radar & Operational Presence Engine
   // ============================================================================
-  const webSessionId = "web-" + Math.random().toString(36).substring(2, 10);
+  const webSessionId = "web-" + crypto.randomUUID();
 
   async function fetchNetworkStats() {
     try {
@@ -1949,7 +1949,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const onlineCount = data.online_pilots || 1;
       const lobbyCount = data.active_lobbies || 0;
-      const rosterCount = (data.registered_pilots || 1420).toLocaleString();
+      const rosterCount = (data.registered_pilots ?? 0).toLocaleString();
 
       // Top Ticker Elements
       const tickerOnline = document.getElementById('ticker-online-pilots');
@@ -1983,13 +1983,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fallback default
       }
 
+      // The server takes the pilot ID from the token, not the body.
+      const headers = { 'Content-Type': 'application/json' };
+      const token = localStorage.getItem('vanguard_pilot_token');
+      if (token && pilotId) headers['Authorization'] = `Bearer ${token}`;
+
       await fetch('/api/network/heartbeat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           session_id: webSessionId,
           callsign: callsign,
-          pilot_id: pilotId,
           session_type: 'PILOT',
           metadata: { client: 'website_portal' }
         })

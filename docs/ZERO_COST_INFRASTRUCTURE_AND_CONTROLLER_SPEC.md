@@ -73,10 +73,10 @@ the `_*.js` files.
 | `/api/pilot/reward` | POST | `get_status`, `claim_streak`, `spin_wheel`, `buy_skin`, `equip_skin`, `buy_upgrade` |
 | `/api/leaderboard` | GET, POST | `?type=` / `?mission=` / `?limit=` to read. POST submits a result |
 | `/api/network/lobbies` | GET | Public P2P lobbies |
-| `/api/network/heartbeat` | POST | Presence and lobby heartbeat |
-| `/api/network/leave` | POST | `?session_id=` |
+| `/api/network/heartbeat` | POST | Presence and lobby heartbeat. A session belongs to the IP that created it; other IPs get 409 until it expires (5 min). The pilot ID comes from the Bearer token, if sent |
+| `/api/network/leave` | POST | `session_id` in the body or query. Only the owning IP can remove a session |
 | `/api/network/stats` | GET | Online, lobby and registered counts |
-| `/api/diag` | GET | Email configuration check (`?test_to=`) |
+| `/api/diag` | GET | Email and auth configuration check (`?test_to=` sends a test email). Needs `Authorization: Bearer <DIAG_TOKEN>`; returns 404 otherwise or when `DIAG_TOKEN` isn't set |
 
 ### 2.3 What's validated
 

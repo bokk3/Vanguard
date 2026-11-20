@@ -17,6 +17,20 @@ Notable changes to Project Vanguard. The format follows
   could connect and fly a player's ship. Room codes are now 6 characters
   from a cryptographic RNG, and wrong or missing codes close the connection
   (4001 / 4002).
+- `/api/diag` is off unless a `DIAG_TOKEN` secret is set and sent as a Bearer
+  token. It used to be public, showed the start of the Brevo API key, and
+  would send a test email to any address.
+- Lobby sessions belong to the IP that created them. Session IDs are listed
+  publicly, so anyone could previously re-point or delete another player's
+  lobby. The heartbeat now takes the pilot ID from the login token instead of
+  trusting the request body, and limits the length of names and metadata.
+- The game and website create session IDs from a cryptographic RNG.
+
+### Fixed
+- Cloud sync added the game's cumulative flight time to the stored total on
+  every sync, so it grew far past the real value. It now keeps the larger of
+  the two, and the highest unlocked mission can't go backwards.
+- The registered pilot count no longer adds a made-up 1,420 to the real number.
 
 ### Changed
 - Renamed the Blender and Fusion 360 bridges to `vanguard_bridge` and
@@ -27,7 +41,8 @@ Notable changes to Project Vanguard. The format follows
   the defaults.
 - The bridge clients set `__file__` on scripts sent with `--file`, so
   repo-relative paths still work when the code runs inside Fusion or Blender.
-- `project.godot` and the macOS export preset now report 0.9.7, matching `VERSION`.
+- `project.godot`, the macOS export preset and `wrangler.toml` now report 0.9.7,
+  matching `VERSION`.
 - Rewrote the README and changelog, and changed doc links from `file:///`
   absolute paths to relative ones.
 

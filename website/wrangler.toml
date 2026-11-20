@@ -4,7 +4,7 @@ pages_build_output_dir = "dist"
 
 [vars]
 ENVIRONMENT = "production"
-VERSION = "0.9.3"
+VERSION = "0.9.7"
 GAME_TITLE = "Project Vanguard"
 REPOSITORY = "https://github.com/bokk3/Vanguard"
 # Secrets (AUTH_SECRET, BREVO_API_KEY) are not set here. Use

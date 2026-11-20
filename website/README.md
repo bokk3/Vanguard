@@ -44,6 +44,7 @@ also read:
 | :--- | :--- |
 | `AUTH_SECRET` | Signing login and email tokens. At least 32 random characters, set as a secret (`npx wrangler pages secret put AUTH_SECRET`). Auth requests fail with a server error if it's missing |
 | `BREVO_API_KEY` | Sending verification emails |
+| `DIAG_TOKEN` | Optional secret (16+ characters) that enables `/api/diag`. Leave unset to keep it off |
 | `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME` | Email sender |
 
 ## Deployment
