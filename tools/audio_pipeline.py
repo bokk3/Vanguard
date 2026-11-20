@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 """
 ===============================================================================
-PROJECT VANGUARD: AUDIO PIPELINE & DSP SOUND ENGINEERING SUITE
+PROJECT VANGUARD: AUDIO PIPELINE
 ===============================================================================
-Lead Audio Director & DSP Sound Engineer: Automated Audio Pipeline
-Platform: Godot 4 Space Combat Flight Simulator
-License: MIT / Sol Directorate Internal
-Cost: $0.00 External Cloud / 100% Local Automated Execution
+Synthesizes the game's sound effects locally, and generates voice lines with
+edge-tts (an online service) plus ffmpeg radio filters.
 
 Subcommands:
     python tools/audio_pipeline.py generate-sfx

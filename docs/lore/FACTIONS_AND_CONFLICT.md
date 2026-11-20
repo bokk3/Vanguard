@@ -1,4 +1,4 @@
-# ⚔️ Factions & The Global Theater
+# Factions & The Global Theater
 
 The conflict in **Project Vanguard** unfolds across the upper atmosphere, planetary ascension corridors, and low orbital platforms. The skies are partitioned between three primary entities:
 

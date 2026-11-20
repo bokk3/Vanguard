@@ -26,6 +26,9 @@ import math
 import adsk.core
 import adsk.fusion
 
+# Repo root; set VANGUARD_ROOT to override when the script runs from elsewhere.
+PROJECT_ROOT = os.environ.get("VANGUARD_ROOT") or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 def dist_ext(val):
     return adsk.fusion.DistanceExtentDefinition.create(adsk.core.ValueInput.createByReal(val))
@@ -656,7 +659,7 @@ def build_supreme_sculpted_spaceship():
     # =========================================================================
     print("[10/10] Exporting fully sculpted spaceship CAD (STEP & high-res STL)...")
 
-    export_dir = r"c:\Users\Boris\Documents\antigravity\lucid-davinci\Exports"
+    export_dir = os.path.join(PROJECT_ROOT, "Exports")
     os.makedirs(export_dir, exist_ok=True)
     step_path = os.path.join(export_dir, "Spaceship_Sculpted_V_Hull.step")
     stl_path = os.path.join(export_dir, "Spaceship_Sculpted_V_Hull.stl")

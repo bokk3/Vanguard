@@ -1,20 +1,20 @@
-# 🛠️ Project Vanguard: 3D Asset Generation & Mission Technical Specification
-**A Comprehensive Production & Modeling Guide for AI Agents and 3D Technical Artists**
+# Asset Generation and Mission Specification
 
----
-
-## 📋 Document Purpose & How to Use This Guide
-This document serves as the **authoritative master specification** for generating, processing, and integrating 3D assets (using **Autodesk Fusion 360** and **Blender 4.2+ LTS**), as well as implementing all 8 sorties across **Chapter 1 ("Planetary Ascent")** and **Chapter 2 ("Belt Invasion")** of *Project Vanguard*.
+Conventions for building, processing and wiring up 3D assets (Fusion 360 and
+Blender 4.2+), plus the design of all 8 missions across Chapter 1 ("Planetary
+Ascent") and Chapter 2 ("Belt Invasion").
 
 > [!IMPORTANT]
-> **For the Coder Agent:**
-> - Follow the unit scale conventions, forward-vector orientations, socket schemas, and collision conventions strictly.
-> - All asset filenames, bone/empty hierarchies, and material slot names must match this specification to guarantee automated loading in Godot 4 and Unreal Engine 5.
-> - For programmatic generation, use Blender headless Python (`blender -b --python <script.py>`) or Fusion 360 Python API scripts as defined in Section 3.
+> The game and the Unreal tooling load assets by name. Keep the unit scale,
+> forward axis, socket names, collision prefixes, file names and material slot
+> names exactly as described here, or the automated import will miss them.
+>
+> Scripted generation uses Blender headless (`blender -b --python <script.py>`)
+> or Fusion 360 scripts run through the bridge (see Section 3).
 
 ---
 
-## 1. 🏭 CAD vs. DCC Tooling Matrix: Fusion 360 vs. Blender
+## 1. CAD vs. DCC Tooling Matrix: Fusion 360 vs. Blender
 
 Project Vanguard uses a **hybrid dual-pipeline** combining parametric engineering CAD with polygonal digital content creation (DCC).
 
@@ -55,7 +55,7 @@ graph TD
 
 ---
 
-## 2. 📐 Universal Scales, Vectors, and Socket Standards
+## 2. Universal Scales, Vectors, and Socket Standards
 
 | Standard | Autodesk Fusion 360 | Blender 4.2+ LTS | Godot 4.x (glTF 2.0) | Unreal Engine 5 (FBX) |
 | :--- | :--- | :--- | :--- | :--- |
@@ -78,7 +78,7 @@ graph TD
 
 ---
 
-## 3. 📦 Master 3D Asset Catalog & Modeling Specifications
+## 3. Master 3D Asset Catalog & Modeling Specifications
 
 Below is the complete catalog of all assets required across the campaign, detailing their modeling tool, polycount budget, collision hierarchy, material slots, and socket configurations.
 
@@ -229,7 +229,7 @@ Below is the complete catalog of all assets required across the campaign, detail
 
 ---
 
-## 4. 🎮 Complete 8-Mission Campaign Specification
+## 4. Complete 8-Mission Campaign Specification
 
 The campaign comprises two 4-mission chapters progressing from low-altitude planetary atmospheric warfare to hard-vacuum deep space carrier ops.
 
@@ -444,7 +444,7 @@ CHAPTER 2: BELT INVASION (Hard Vacuum Dynamics: stall_speed_ms = 0.0)
 
 ---
 
-## 5. 🎬 Narrative Interludes & Cinematic Specifications
+## 5. Narrative Interludes & Cinematic Specifications
 
 All transitions between missions feature an in-engine cinematic sequence rendered with 21:9 letterbox black bars, smooth dynamic 3D camera orbits, typewriter subtitles with audio blips, and narrator voiceover by **Brian** (`en-US-BrianNeural`, pitch: `-3Hz`, rate: `-4%`).
 
@@ -462,9 +462,7 @@ All transitions between missions feature an in-engine cinematic sequence rendere
 
 ---
 
-## 6. 🤖 Actionable Implementation Guide for the Coder Agent
-
-Follow these exact steps when implementing or generating assets for this specification:
+## 6. Adding or Regenerating Assets
 
 ### Phase 1: 3D Asset Creation
 1. **For CAD Models (Fighter, Carrier, Dreadnought, Sockets, Guns):**
@@ -476,24 +474,26 @@ Follow these exact steps when implementing or generating assets for this specifi
    - Export directly as glTF 2.0 (`.glb`) with embedded normals and material slots into `godot_project/assets/meshes/`.
 
 ### Phase 2: Engine Import Pass
-Run Godot in headless editor mode so it registers and compiles all `.import` resource files:
+Run the Godot editor headless once so it imports the new files and writes their `.import` metadata:
 ```powershell
-godot_console --headless --editor --quit --path "godot_project"
+godot --headless --editor --quit --path godot_project
 ```
 
 ### Phase 3: Manifest & Script Registration
-1. Verify entries in `godot_project/data/campaign_manifest.json`:
-   - Every mission (`M01` through `M08`) must define `id`, `code`, `name`, `theater`, `description`, `objectives`, `skybox_preset`, `recon_card`, and `medals`.
-2. Ensure `mission_manager.gd` has spawning handlers (`_spawn_m01_entities` through `_spawn_m08_entities`).
-3. Ensure `interlude_cutscene.gd` maps cutscene IDs (`INT_M01_M02` through `EPILOGUE_CH2`) to audio files and camera paths.
+1. Check the mission entry in `godot_project/data/campaign_manifest.json`. Each
+   mission (`M01`–`M08`) has `id`, `codename`, `theater`, `sky_preset`,
+   `stall_speed_ms`, `player`, `enemies` and `objectives`.
+2. Make sure `mission_manager.gd` has a spawn handler for the mission
+   (`_spawn_m01_entities` through `_spawn_m08_entities`).
+3. Make sure `interlude_cutscene.gd` maps each cutscene ID (`INT_M01_M02`
+   through `EPILOGUE_CH2`) to its audio file and camera path.
 
 ### Phase 4: Automated Headless Verification
-Execute the test harness to verify 100% pass rate:
+Run the campaign test script:
 ```powershell
-godot_console --headless -s test_campaign_headless.gd --path "godot_project"
+godot --headless --path godot_project -s test_campaign_headless.gd
 ```
-**Acceptance Criteria:**
-- Exit code must be `0`.
-- All 8 missions must instantiate and spawn valid entity counts without missing mesh errors.
-- All 9 cutscenes must validate audio bindings and camera rigs.
-- All 8 mission recon cards must exist and load.
+It should exit with code `0`. It checks that:
+- all 8 missions instantiate and spawn their entities without missing-mesh errors,
+- all 9 cutscenes have their audio and camera rigs,
+- all 8 mission recon cards exist and load.

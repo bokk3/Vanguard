@@ -226,7 +226,7 @@ def process_dreadnought():
     root = max(mesh_objs, key=lambda o: o.dimensions.length)
     print(f"  Root mesh: {root.name}  dims={tuple(round(d,1) for d in root.dimensions)}")
 
-    # -- Materials (TEAM_SYNC_HUB CAD-01) -------------------------------------
+    # -- Materials ------------------------------------------------------------
     mat_plating = make_pbr_material(
         "MI_Dreadnought_Plating",
         base_color=(0.06, 0.07, 0.08),

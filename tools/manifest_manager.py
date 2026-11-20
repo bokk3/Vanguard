@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Asset Manifest Manager for Antigravity Game Studio.
+Asset manifest manager for Project Vanguard.
 Tracks 3D assets, dimensions, collision setup, and Unreal Engine paths.
 """
 

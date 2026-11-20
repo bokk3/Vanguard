@@ -14,10 +14,13 @@ import math
 import os
 from mathutils import Vector, Euler
 
+# Repo root; set VANGUARD_ROOT to override when the script runs from elsewhere.
+PROJECT_ROOT = os.environ.get("VANGUARD_ROOT") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 print(">>> Integrating Vanguard Strike Missile into Blender...")
 
-stl_path = r"c:\Users\Boris\Documents\antigravity\lucid-davinci\assets\cad\vehicles\Vanguard_Strike_Missile.stl"
-export_fbx_path = r"c:\Users\Boris\Documents\antigravity\lucid-davinci\assets\meshes\vehicles\Vanguard_Strike_Missile.fbx"
+stl_path = os.path.join(PROJECT_ROOT, "assets", "cad", "vehicles", "Vanguard_Strike_Missile.stl")
+export_fbx_path = os.path.join(PROJECT_ROOT, "assets", "meshes", "vehicles", "Vanguard_Strike_Missile.fbx")
 
 # Remove previous missile objects if any
 for obj in list(bpy.data.objects):

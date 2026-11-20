@@ -1,8 +1,8 @@
-# Project Vanguard: Multi-Engine 3D Asset Pipeline 🛠️
+# Asset Pipeline
 
 ## 1. Overview & Architecture
 
-Project Vanguard bridges high-precision parametric CAD engineering with real-time video game production across two primary game engines: **Godot 4 (Rapid Mechanics Prototyping)** and **Unreal Engine 5 (Nanite & Photorealism)**.
+Models start as parametric CAD in Fusion 360, go through Blender for cleanup, and are exported to Godot 4 (the game) and Unreal Engine 5 (an experimental port).
 
 ```mermaid
 graph LR
@@ -31,7 +31,7 @@ graph LR
 
 ## 2. Unit Scales & Coordinate Conventions
 
-One of the most frequent traps in multi-tool 3D pipelines is unit mismatch and forward-vector inversion. Vanguard enforces strict standardization:
+Each tool uses different units and axes. These are the conventions:
 
 | Software | Measurement Unit | Forward Vector | Up Vector | Handedness |
 | :--- | :--- | :--- | :--- | :--- |
@@ -43,18 +43,18 @@ One of the most frequent traps in multi-tool 3D pipelines is unit mismatch and f
 ### Transformation Rules:
 1. **Scale Normalization:**
    * Fusion 360 exports in millimeters ($10,300\text{ mm}$ fighter length).
-   * Blender Bridge script detects any mesh dimension $> 150.0$ units and automatically applies a $0.001$ scale multiplier.
+   * The Blender bridge scripts apply a $0.001$ scale to any mesh with a dimension over 150 units.
    * Final dimensions in meters: $10.30\text{m} \times 9.78\text{m} \times 2.70\text{m}$.
 2. **glTF Export for Godot 4:**
-   * Handled by Blender's native glTF exporter. Blender's $+Y$ forward is automatically mapped to glTF's standard $-Z$ forward.
+   * Blender's glTF exporter converts Blender's $+Y$ forward to glTF's $-Z$.
 3. **FBX Export for Unreal Engine 5:**
-   * Handled with `axis_forward='-Z'`, `axis_up='Y'` and `apply_scale_options='FBX_SCALE_ALL'`.
+   * Exported with `axis_forward='-Z'`, `axis_up='Y'` and `apply_scale_options='FBX_SCALE_ALL'`.
 
 ---
 
 ## 3. Collision Mesh Standards
 
-High-poly meshes (especially CAD geometry) cause severe CPU performance drops if used directly for physics calculations.
+CAD meshes are too dense to use for physics directly, so each ship gets simple collision hulls:
 
 ```
 Fighter Jet Collision Composition:
@@ -65,8 +65,8 @@ Fighter Jet Collision Composition:
 ```
 
 ### Engine-Specific Conventions:
-* **Unreal Engine 5:** Recognizes objects named `UCX_<MeshName>_<Index>`. UE5 imports them as convex hulls, automatically hides their visual mesh, and uses them for Chaos Physics.
-* **Godot 4:** Recognizes suffixes:
+* **Unreal Engine 5:** imports objects named `UCX_<MeshName>_<Index>` as hidden convex collision.
+* **Godot 4:** uses name suffixes:
   * `-colonly`: Mesh is hidden and turned purely into a static collision shape.
   * `-convcol`: Generates a convex collision shape from the mesh.
 
@@ -74,7 +74,7 @@ Fighter Jet Collision Composition:
 
 ## 4. Multi-Material PBR Shading Standards
 
-Vanguard divides vehicles into discrete material slots to avoid monolithic texturing and allow distinct shader effects (emissive thruster glow, translucent glass):
+Vehicles use separate material slots so glass and emissive parts can have their own shaders:
 
 | Material Name | Shader Type | Visual Characteristics |
 | :--- | :--- | :--- |
@@ -88,7 +88,7 @@ Vanguard divides vehicles into discrete material slots to avoid monolithic textu
 
 ## 5. Gameplay Hardpoint Sockets (`SOCKET_*`)
 
-Blender Empty objects prefixed with `SOCKET_` are automatically converted by Unreal Engine's FBX Importer into **Static Mesh Sockets**, and by Godot into `Node3D` attachment markers.
+Blender empties named `SOCKET_*` become Static Mesh Sockets in Unreal's FBX importer and plain `Node3D` markers in Godot.
 
 ### Spaceship Socket Directory:
 | Socket Name | Coordinates ($x, y, z$) in Meters | Function |

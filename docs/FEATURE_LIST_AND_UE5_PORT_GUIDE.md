@@ -1,95 +1,25 @@
-# Project Vanguard: Feature List & Unreal Engine 5 Porting Guide
+# Feature List and UE5 Port Notes
 
-A comprehensive architectural inventory of all systems implemented in Project Vanguard, accompanied by a step-by-step technical conversion guide for porting to Unreal Engine 5 (UE 5.4+).
+Part 1 lists what the Godot game currently does, with links to the detailed
+docs. Part 2 sketches how each system would map onto Unreal Engine 5 (5.4+).
+There is no UE5 port yet. Only the asset pipeline and `tools/ue5_client.py`
+target it today.
 
 ---
 
-## Part 1: Comprehensive Feature List
+## Part 1: Features
 
-### 1. Flight Dynamics & Physics
-* **6-DOF Aerodynamic Flight Model**:
-  * Cruise throttle with smooth acceleration (`180 m/s` top cruise) and braking/reverse.
-  * Afterburner boost accelerating to `290 m/s`.
-  * Multi-axis rotational steering (Pitch, Roll, Yaw) with inertia-damped angular velocity.
-  * Aerodynamic stall & lift simulation: dynamic lift ratio dependent on forward velocity vs stall speed (`45 m/s`), with uncompensated gravity acting when stalled.
-* **Dual Control Inputs (Mouse + Keyboard + Gamepad Readiness)**:
-  * **Turn (Yaw)**: Left / Right Arrow keys (and A / E alternates), plus horizontal Mouse X steering.
-  * **Roll (Aileron)**: Q / D keys (or A / D on QWERTY).
-  * **Throttle (Speed)**: Z / S keys (or W / S on QWERTY).
-  * **Pitch (Elevator)**: Up / Down Arrow keys, plus vertical Mouse Y steering (with optional flight-stick inversion).
-* **Fully Customizable Input Remapping**:
-  * In-game click-to-rebind modal in the Settings menu.
-  * Native Godot `InputMap` integration.
-  * Instant presets for **Belgian AZERTY** and **QWERTY**.
-  * Persistent storage in `user://settings.cfg`.
-
-### 2. Tactical Military Sci-Fi HUD
-* **Top Compass Horizon Ribbon (`0°..360°`)**:
-  * Scrolling heading tape with cardinal markers (`N`, `E`, `S`, `W`) and degree ticks.
-  * Hostile bogeys plotted in Tactical Crimson Red (`#FF1744`) with down-chevrons.
-  * Mission objectives plotted in Tactical Gold (`#FFD700`) with diamond markers.
-* **Toggleable Circular Radar Disc (`R` key)**:
-  * Top-down polar projection with 100m, 200m, and 300m range rings.
-  * Azimuth and elevation tracking for all targets within 350m radius.
-* **Target Tracking & Missile Lock-On System**:
-  * 45° forward seeker acquisition cone.
-  * Screen-space projection around targets in camera frustum.
-  * Timed lock-on ring transitioning to solid lock reticle upon missile lock acquisition.
-  * Off-screen edge tracking chevrons with range readouts when bogeys break visual contact.
-* **Nitro / Afterburner Capacitor**:
-  * 100-unit energy pool draining during afterburner boost.
-  * Recharges automatically during cruise flight.
-  * 3.0s emergency overheat lockout penalty with flashing warning alerts if depleted.
-* **Unified Shield & Hull Pool**:
-  * 100 HP multi-phase regenerative shield halo (15 HP/s recharge after 4s no-damage cooldown).
-  * 100 HP structural composite hull.
-  * Real-time damage testing hook (`H` key).
-* **Ordnance Bay**:
-  * 4x Vanguard Strike Missiles rack with armed/expended status.
-  * 20mm rotary autocannon ammo counter.
-
-### 3. Presentation, Menus & Hangar
-* **Home Menu & Eerie White Hangar Construct**:
-  * 3D cleanroom showroom with reflective glossy white floor and soft directional lighting.
-  * Dark carbon docking pad with glowing cyan accents.
-  * Player fighter rotating on a turntable (`0.12 rad/s`) with subtle hydraulic hover breathing.
-  * Active repair FX: moving cyan diagnostic laser scan ring and nanite weld spark particles.
-  * Left-aligned tactical sidebar with transparent 404th Vanguard Strike Wing insignia.
-  * Interactive technical specifications modal with top-down CAD blueprint.
-* **Tactical In-Flight Pause Menu**:
-  * Simulation suspension via `ESC` key.
-  * Quick save and load buttons with animated confirmation toasts (`// SORTIE SAVED // SECURE SYNC COMPLETE`).
-  * Return to Hangar, restart sortie, and avionics configuration.
-
-### 4. Persistence & Versioning
-* **Save Game System**:
-  * Human-readable, indented JSON saved to `user://saves/vanguard_savegame.json` (`%APPDATA%\Godot\app_userdata\Project Vanguard\saves\`).
-  * Full serialization of 3D coordinates, orientation, velocity, vitals, ordnance, and enemy drone state.
-  * Home Menu detection enabling **`[ CONTINUE SORTIE ]`** with timestamp and hull readouts.
-* **Semantic Versioning**:
-  * Tracked centrally via root `VERSION` file, `project.godot`, and `CHANGELOG.md`.
-
-### 5. Multiplayer, Split-Screen & Networking Suite
-* **Campaign Drop-In Split-Screen Co-Op**:
-  * Single-player sorties start in full screen by default across all 8 campaign missions.
-  * Player 2 drops in dynamically upon verified secondary control keypress (action `P2_ACTIONS`, gamepad `device >= 1`, or secondary keyboard cluster `IJKL`, `Enter`, NumPad).
-  * Dual `SubViewport`s created on the fly sharing the active campaign `World3D`.
-  * Player 2 spawns in wingman formation with distinct Solar Amber / Gold wingman livery.
-  * Threat AI (drones and bosses) dynamically acquire and engage whichever active player is closest.
-  * 5-second wingman field respawn loop upon airframe destruction; sortie fails only if both flight elements are lost.
-* **Local Split-Screen PvP Dogfight Arena**:
-  * First-to-5 dogfight arena (`split_screen_arena.tscn`) in the canyon proving grounds.
-  * On-the-fly layout toggle via `F2` (Horizontal Top/Bottom $\leftrightarrow$ Vertical Left/Right).
-  * Dual independent cameras and tactical HUD overlays without cross-viewport state bleeding.
-  * Mutual radar acquisition and missile lock-on against opponent.
-* **LAN Peer-to-Peer / Network Dogfight Arena**:
-  * ENet multiplayer architecture on UDP port 7779.
-  * Background UDP discovery beacon broadcast on UDP port 7778 for zero-configuration local lobby discovery.
-  * Client snapshot interpolation (20Hz lerp smoothing position, rotation, and velocities).
-  * Synchronized RPC cannon bursts, missile tracking, and damage events.
-* **PvP Matchmaking & Lobby Hub (`pvp_menu.tscn`)**:
-  * Instant access from the Home Menu.
-  * Host LAN Server, Auto-Discover LAN Games, Direct IP Connect, and Local Split-Screen Arena buttons.
+| Area | What's there | Details |
+| :--- | :--- | :--- |
+| Flight | 6-DOF flight, speed-dependent lift, stalls, G-load and drag, chase camera | [CONTROLS_AND_PHYSICS.md](CONTROLS_AND_PHYSICS.md) |
+| Input | Keyboard (AZERTY/QWERTY detection), mouse, gamepad, phone controller, rebinding | [CONTROLS_AND_PHYSICS.md](CONTROLS_AND_PHYSICS.md) |
+| HUD and combat | Compass, radar, missile lock, afterburner heat, shields and hull, gun aim assist, homing missiles | [HUD_AND_COMBAT_SYSTEM.md](HUD_AND_COMBAT_SYSTEM.md), [WEAPONS_AND_SOCKETS.md](WEAPONS_AND_SOCKETS.md) |
+| Campaign | 8 missions, 9 cutscenes plus a prologue, debrief and scoring, 3 difficulty settings | [docs/lore/](lore/README.md), [ASSET_GENERATION_AND_MISSION_SPECIFICATION.md](ASSET_GENERATION_AND_MISSION_SPECIFICATION.md) |
+| Agility mode | 8 time trials with gates, buoys and a ghost replay | `agility_*.gd`, `agility_courses/` |
+| Multiplayer | Campaign co-op, split-screen 1v1, LAN, internet P2P lobbies | [MULTIPLAYER_AND_COOP_SYSTEM.md](MULTIPLAYER_AND_COOP_SYSTEM.md) |
+| Saves and accounts | Local JSON saves, optional accounts, cloud sync, leaderboards | [SAVE_SYSTEM_AND_PROFILES.md](SAVE_SYSTEM_AND_PROFILES.md) |
+| Progression | Stars currency, badges, login streak, reward wheel, armory | `reward_manager.gd`, `/api/pilot/reward` |
+| Menus | 3D hangar home menu, pause menu, settings, in-game updater (checks GitHub releases) | `home_menu.gd`, `updater.gd` |
 
 ---
 
@@ -155,7 +85,7 @@ flowchart TD
 ---
 
 ### 2. Enhanced Input Subsystem (UE 5.1+)
-Unreal's **Enhanced Input** maps directly to our Godot actions:
+The Godot `InputMap` actions map onto Enhanced Input like this:
 
 #### A. Input Actions (`UInputAction`)
 * `IA_Throttle` (`Axis1D`): Continuous speed forward / brake.
@@ -172,8 +102,8 @@ Unreal's **Enhanced Input** maps directly to our Godot actions:
 * Create two mapping contexts: `IMC_AZERTY` and `IMC_QWERTY`.
 * **AZERTY Context**:
   * `IA_Throttle`: `Z` (1.0), `S` (-1.0)
-  * `IA_Yaw`: `Left Arrow` (-1.0), `Right Arrow` (1.0), `A` (-1.0), `E` (1.0), Gamepad `LeftThumbstick X`
-  * `IA_Roll`: `Q` (1.0), `D` (-1.0), Gamepad `Left/Right Bumper`
+  * `IA_Yaw`: `Left Arrow` (-1.0), `Right Arrow` (1.0), Gamepad `Left/Right Shoulder`, `RightThumbstick X`
+  * `IA_Roll`: `Q` (1.0), `D` (-1.0), Gamepad `LeftThumbstick X`
   * `IA_Pitch`: `Down Arrow` (1.0), `Up Arrow` (-1.0), Gamepad `LeftThumbstick Y`
   * `IA_Look`: Mouse XY (with `Negate` modifier for Y when inverted)
 * **Runtime Layout Switching**:
@@ -206,10 +136,10 @@ Unreal's **Enhanced Input** maps directly to our Godot actions:
 * **Vector Shaders / Materials**:
   * Create a Dynamic Material Instance for the Compass Ribbon:
     `Material Parameter: HeadingOffset = Normalize(ActorYaw / 360.0f)`.
-  * Use the SVG vector assets already created in user space:
-    * [`assets/ui/reticle_bracket.svg`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/assets/ui/reticle_bracket.svg)
-    * [`assets/ui/ship_paperdoll.svg`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/assets/ui/ship_paperdoll.svg)
-    * [`godot_project/ui/vanguard_squadron_patch.svg`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/godot_project/ui/vanguard_squadron_patch.svg)
+  * Reuse the existing SVGs:
+    * [`assets/ui/reticle_bracket.svg`](../assets/ui/reticle_bracket.svg)
+    * [`assets/ui/ship_paperdoll.svg`](../assets/ui/ship_paperdoll.svg)
+    * [`godot_project/ui/vanguard_squadron_patch.svg`](../godot_project/ui/vanguard_squadron_patch.svg)
 * **Post-Process & Glitch**:
   * Screen-space Retainer Box with slight scanline and chromatic aberration post-process.
 
@@ -254,8 +184,8 @@ Unreal's **Enhanced Input** maps directly to our Godot actions:
 
 ---
 
-### 7. Asset & Pipeline Readiness in User Space
-All prerequisites for a frictionless UE5 import are already prepared in this workspace:
-* **Game-Ready FBX**: [`Exports/Spaceship_Sculpted_V_Hull_game_ready.fbx`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/Exports/Spaceship_Sculpted_V_Hull_game_ready.fbx) contains clean Smart UVs and convex `UCX_` collision hulls recognized natively by Unreal Engine.
-* **PBR Textures**: Packed ORM (Ambient Occlusion, Roughness, Metallic) and DirectX Normal maps generated via [`tools/texture_processor.py`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/tools/texture_processor.py).
-* **Automation Client**: [`tools/ue5_client.py`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/tools/ue5_client.py) ready for remote execution socket imports.
+### 7. Assets
+What already exists for a UE5 import:
+* **FBX:** the Blender pipeline writes `Exports/Spaceship_Sculpted_V_Hull_game_ready.fbx` (Smart UVs plus `UCX_` hulls). `Exports/` is git-ignored, so run the pipeline to produce it. UE-ready staging copies are in `assets/staging/ue5/`.
+* **PBR textures:** packed ORM (Ambient Occlusion, Roughness, Metallic) and DirectX Normal maps generated via [`tools/texture_processor.py`](../tools/texture_processor.py).
+* **Automation:** [`tools/ue5_client.py`](../tools/ue5_client.py) drives a running editor through Python remote execution.

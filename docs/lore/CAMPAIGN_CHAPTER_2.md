@@ -1,10 +1,10 @@
-# 🚀 Project Vanguard: Chapter 2 — The Belt Invasion (Missions 05 – 08)
+# Project Vanguard: Chapter 2 — The Belt Invasion (Missions 05 – 08)
 
 The second chapter of **Project Vanguard** takes the air war beyond planetary gravity into the cold vacuum of the **Gordian Asteroid Belt**. With the equatorial launch corridors secure, the Sol Orbital Directorate deploys the mobile super-carrier *SOC Dauntless* into deep space to locate and neutralize the Helion Combine's autonomous shipyard infrastructure.
 
 ---
 
-## 🗺️ Chapter 2 Campaign Architecture & Cutscene Progression
+## Chapter 2 Campaign Architecture & Cutscene Progression
 
 ```mermaid
 graph TD
@@ -21,7 +21,7 @@ graph TD
 
 ---
 
-## 🎬 Cinematic Interludes (Narrator: Brian)
+## Cinematic Interludes (Narrator: Brian)
 
 Every transition between missions features an in-engine cinematic sequence rendered in 21:9 letterbox with dynamic 3D camera sweeps and Brian's official narration (`en-US-BrianNeural`, pitch: `-3Hz`, rate: `-4%`):
 
@@ -69,7 +69,7 @@ Every transition between missions features an in-engine cinematic sequence rende
 
 ---
 
-## ⚡ Mission 05: Operation "SILENT ORBIT"
+## Mission 05: Operation "SILENT ORBIT"
 
 ```text
 THEATER: Gordian Asteroid Belt Rim (Sector 24)
@@ -103,7 +103,7 @@ ARMAMENT: 4x VPSM-01 Strike Missiles, 20mm Internal Rotary Cannon (1,200 Rnds)
 
 ---
 
-## ⚡ Mission 06: Operation "GHOST REEF"
+## Mission 06: Operation "GHOST REEF"
 
 ```text
 THEATER: Hollow Interior of Asteroid 433-Eros ("The Iron Hollow")
@@ -136,7 +136,7 @@ Coordinates retrieved from Mission 05 lead directly into the interior of Asteroi
 
 ---
 
-## ⚡ Mission 07: Operation "DAUNTLESS DEFENDER"
+## Mission 07: Operation "DAUNTLESS DEFENDER"
 
 ```text
 THEATER: 5th Fleet Tactical Perimeter, Dauntless Staging Sector
@@ -168,7 +168,7 @@ Enraged by the destruction of their foundry inside Eros, the Combine launches a 
 
 ---
 
-## ⚡ Mission 08: Operation "NEXUS CRUCIBLE"
+## Mission 08: Operation "NEXUS CRUCIBLE"
 
 ```text
 THEATER: The Celestial Forge (Combine Command Shipyard Ring)
@@ -206,7 +206,7 @@ The climactic battle of Chapter 2. Vanguard Squadron assaults the Celestial Forg
 
 ---
 
-## 🗂️ Chapter 2 Progression & Asset Matrix
+## Chapter 2 Progression & Asset Matrix
 
 | Mission | Codename | Environment & Sky | Primary Threat | Key Gameplay Innovations |
 | :--- | :--- | :--- | :--- | :--- |

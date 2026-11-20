@@ -1,12 +1,14 @@
-# Project Vanguard: Multiplayer, Split-Screen & Co-Op Architecture 🛰️
+# Multiplayer, Split-Screen and Co-op
 
-## 1. Overview
+The game has four multiplayer modes:
 
-Project Vanguard features a multi-tiered multiplayer and co-operative flight combat framework built natively within Godot 4.7.2. Designed for instantaneous low-latency dogfights and shared narrative campaign sorties, the system delivers three distinct game modes:
-
-1. **Campaign Drop-In Split-Screen Co-Op**: Single-player campaign sorties allow a secondary pilot to seamlessly join in progress as a wingman upon pressing secondary controls.
-2. **Local Split-Screen Dogfight Arena**: Direct head-to-head 1v1 air combat on a single PC with first-to-5 scoring, dynamic layout toggling (Horizontal $\leftrightarrow$ Vertical), and dual independent HUDs.
-3. **LAN Peer-to-Peer / Network Dogfight Arena**: Zero-configuration local area network dogfighting utilizing Godot's high-performance ENet multiplayer peer, background UDP discovery beacons, snapshot interpolation, and synchronized RPC ordnance.
+1. **Campaign co-op:** a second player can join any campaign mission at any
+   time, on a split screen.
+2. **Split-screen arena:** local 1v1 on one PC, first to 5 kills.
+3. **LAN arena:** ENet over the local network, found with UDP broadcast
+   beacons.
+4. **Internet lobbies:** the same ENet game over the internet, with lobbies
+   listed through the website API (see Section 5).
 
 ---
 
@@ -28,10 +30,10 @@ graph TD
     end
 
     subgraph NETWORK [ENet & UDP Discovery Engine]
-        BeaconServer[UDP Beacon Broadcaster: Port 7778]
-        BeaconClient[UDP Beacon Listener: Port 7778]
-        ENetServer[ENet Listen Server: Port 7779]
-        ENetClient[ENet Remote Client: Port 7779]
+        BeaconServer[UDP beacon broadcaster: 7778]
+        BeaconClient[UDP beacon listener: 7778]
+        ENetServer[ENet listen server: 7777]
+        ENetClient[ENet client]
         BeaconServer -.->|Broadcast LAN Ping| BeaconClient
         BeaconClient -->|Auto-Connect| ENetClient
         ENetClient <==>|RPCs & Net Snapshot 20Hz| ENetServer
@@ -42,144 +44,129 @@ graph TD
 
 ## 3. Campaign Drop-In Split-Screen Co-Op
 
-### Dynamic Join Verification
-Single-player campaign sorties (`main.tscn` / `main.gd`) start in full-screen single-player mode. The engine does **not** split the screen until Player 2 actively verifies readiness via secondary controls:
+### Joining
+Campaign sorties (`main.tscn` / `main.gd`) start full-screen. The screen splits when player 2 presses one of their controls:
 * **Gamepad Input**: Any button or thumbstick deflection ($> 0.6$) on `device >= 1`.
 * **Secondary Keyboard Cluster**: `I`, `J`, `K`, `L`, `U`, `O`, `Y`, `H`, `N`, `M`, `P`, `Enter`, `NumPad Enter`, or NumPad directional keys (`8`, `2`, `4`, `6`, `5`, `7`, `9`, `0`).
-* **Configured Actions**: Any event mapped to `P2_ACTIONS` in [`config_manager.gd`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/godot_project/config_manager.gd).
+* **Configured Actions**: Any event mapped to `P2_ACTIONS` in [`config_manager.gd`](../godot_project/config_manager.gd).
 
-### Dynamic Viewport Partitioning & World3D Sharing
-Upon keypress verification:
+### What happens on join
 1. `join_player_2()` instantiates `SpaceshipP2` with `player_id = 2`, `is_split_screen = true`, and `pvp_mode = false`.
 2. A runtime `CoopSplitLayer` (`CanvasLayer` on `layer = 1`) is created with two `SubViewportContainer`s.
-3. Both `SubViewport`s are assigned `sub_viewport.world_3d = get_world_3d()`, enabling both pilots to interact with the exact same physics entities (canyon walls, drones, nav pylons, capital ships) without duplicate rendering overhead or physics desync.
-4. Independent `Camera3D` and `TacticalOverlay` HUD nodes are bound to each viewport. The single-player full-screen HUD is hidden.
-5. AWACS transmission is dispatched: *"Vanguard-2 has joined the battlespace. Wingman formation established."*
+3. Both `SubViewport`s use `sub_viewport.world_3d = get_world_3d()`, so both players fly in the same world and nothing is duplicated.
+4. Each viewport gets its own `Camera3D` and `TacticalOverlay` HUD. The full-screen HUD is hidden.
+5. A radio message announces the wingman.
 
-### Formation Spawn & Visual Livery
-* **Spawn Offset**: Player 2 spawns at `ship_p1.global_position + (right * 22.0) - (fwd * 6.0)` aligned with Player 1's heading and matched to their current airspeed.
-* **Livery Customization**:
-  - In PvP mode, Player 2 is rendered with **Crimson Aggressor** accents (`Color(1.0, 0.15, 0.1)`).
-  - In Co-Op Campaign, Player 2 is rendered with **Solar Amber / Gold Wingman** accents (`Color(1.0, 0.72, 0.08)`) with matching amber engine exhaust glow.
+### Spawn position and colours
+* Player 2 spawns at `ship_p1.global_position + (right * 22.0) - (fwd * 6.0)`, with player 1's heading and airspeed.
+* Colours:
+  - PvP: red accents (`Color(1.0, 0.15, 0.1)`).
+  - Co-op: amber accents and exhaust (`Color(1.0, 0.72, 0.08)`).
 
-### Dynamic Threat AI Engagement
-Hostile AI ([`target_drone.gd`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/godot_project/target_drone.gd) and [`boss_combine_ghost.gd`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/godot_project/boss_combine_ghost.gd)) dynamically evaluate proximity to all active flight elements in group `"player"`. Drones acquire and lead whichever living player is closest, providing natural combat threat distribution.
+### Enemy targeting
+Hostile AI ([`target_drone.gd`](../godot_project/target_drone.gd) and [`boss_combine_ghost.gd`](../godot_project/boss_combine_ghost.gd)) target whichever living ship in group `"player"` is closest.
 
-### 5-Second Wingman Field Repair Loop
-* If a wingman suffers catastrophic airframe failure, the sortie does **not** fail.
-* A 5-second repair countdown displays on the downed pilot's HUD while the survivor receives an emergency alert.
-* Upon timer expiration, the destroyed craft respawns in formation near the surviving wingman with fully replenished shields, hull, and missiles.
-* **Fail Condition**: If **both** aircraft are lost simultaneously, the sortie terminates with `SORTIE_WIPED`.
+### Respawning
+* A downed player respawns next to their wingman after 5 seconds (`COOP_RESPAWN_DELAY`), with full shields, hull and missiles.
+* If both ships are down at the same time, the sortie ends with `SORTIE_WIPED`.
 
 ---
 
 ## 4. Local Split-Screen PvP Dogfight Arena
 
-The dedicated split-screen dogfight arena (`split_screen_arena.tscn` / `split_screen_arena.gd`) provides high-stakes local 1v1 competition:
-* **Victory Condition**: First pilot to achieve **5 confirmed kills**.
-* **Orientation Toggle (<kbd>F2</kbd>)**:
-  - **Horizontal Split**: Top (Player 1) / Bottom (Player 2) — ideal for 16:9 widescreen monitors.
-  - **Vertical Split**: Left (Player 1) / Right (Player 2) — ideal for ultra-wide displays.
-* **Mutual Lock-On**: Both fighters belong to groups `"player"`, `"radar_targets"`, and `"enemies"`, allowing full missile radar lock-on against each other.
-* **Kill Banners**: Real-time kill tracking with dynamic combat toasts: `// VANGUARD-1 SPLASHED HOSTILE // [3 / 5] //`.
+`split_screen_arena.tscn` / `split_screen_arena.gd`:
+* First to 5 kills wins (`max_kills_to_win`).
+* F2 switches between a top/bottom split and a left/right split.
+* Both ships are in the `"player"`, `"radar_targets"` and `"enemies"` groups, so each can lock the other.
+* A banner shows each kill and the running score.
 
 ---
 
-## 5. LAN Peer-to-Peer & Network Architecture
+## 5. Networking
 
-Project Vanguard implements an autonomous listen-server network model with zero router port forwarding required on local networks:
+One player hosts (a listen server) and the others connect to them. On a LAN no port forwarding is needed.
 
-### UDP Auto-Discovery Protocol (Port 7778)
-[`network_manager.gd`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/godot_project/network_manager.gd) manages background beacon broadcasts using `PacketPeerUDP`:
-* When a player selects **Host LAN Game**, the host broadcasts UDP packets every $1.0\text{s}$ containing JSON metadata:
+### LAN discovery (UDP 7778)
+[`network_manager.gd`](../godot_project/network_manager.gd) manages background beacon broadcasts using `PacketPeerUDP`:
+* While hosting, the game broadcasts a JSON beacon every second:
   ```json
   {
+    "magic": "VANGUARD_PVP_BEACON",
     "server_name": "Vanguard-FlightHost",
-    "port": 7779,
-    "game_mode": "PVP_ARENA",
-    "version": "0.8.0"
+    "port": 7777,
+    "host_callsign": "VANGUARD-LEAD",
+    "map": "...",
+    "players": 1,
+    "max_players": 4,
+    "timestamp": 123456
   }
   ```
-* Remote clients listening on UDP port 7778 discover servers automatically and populate the LAN Server Browser without requiring manual IP entry. Direct IP connection (`IP:Port`) is also fully supported.
+* Clients listening on 7778 list these in the server browser. You can also connect directly by IP (`IP:port`, IPv4 or bracketed IPv6).
 
-### ENet High-Performance Multiplayer Peer (Port 7779)
-* **Server Role**: The host runs an `ENetMultiplayerPeer` listening on UDP port 7779, serving as the authority for kill adjudication and game state.
-* **State Synchronization**: Aircraft position, Euler rotation, velocity, speed, and afterburner boost state are broadcast at 20Hz via `@rpc("unreliable_ordered") func sync_net_state(...)`.
-* **Snapshot Interpolation**: Remote aircraft smoothly interpolate incoming state snapshots using Delta-time weighted lerping:
+### Game traffic (ENet, UDP 7777)
+* The host runs an `ENetMultiplayerPeer` on 7777 and decides kills.
+* Each ship sends position, rotation, velocity, speed and boost state at 20 Hz with `@rpc("unreliable_ordered") func sync_net_state(...)`.
+* Remote ships lerp toward the latest snapshot:
   ```gdscript
   global_position = global_position.lerp(net_target_pos, clamp(20.0 * delta, 0.0, 1.0))
   rotation = rotation.lerp(net_target_rot, clamp(20.0 * delta, 0.0, 1.0))
   ```
-* **Synchronized Combat Actions**:
+* Weapons and damage go over reliable RPCs:
   - Cannon bursts: `@rpc("any_peer", "call_local", "reliable") func rpc_fire_gun_burst()`
   - Guided missile launch: `@rpc("any_peer", "call_local", "reliable") func rpc_fire_missile_net()`
   - Damage & Destruction: `@rpc("any_peer", "call_local", "reliable") func rpc_take_damage_net(dmg, attacker_path)`
 
----
+### Internet lobbies
+* Logged-in hosts publish their lobby through `/api/network/heartbeat`.
+  Clients list lobbies with `GET /api/network/lobbies`.
+* The host tries to map UDP 7777 and 7778 with UPnP. The menu shows whether
+  that worked.
+* Clients measure ping with UDP probes to the host on 7778. Hosts behind
+  strict NAT or CGNAT show as timed out and need manual port forwarding.
+* Game traffic goes directly between players. Cloudflare only lists lobbies.
 
 ---
 
-## 6. Input Routing & Hardware Controls
+## 6. Input
 
-| Control Scheme | Player 1 (Lead Element) | Player 2 (Wingman / Opponent) |
-| :--- | :--- | :--- |
-| **Primary Gamepad** | Gamepad 1 (`device 0`) | Gamepad 2 (`device 1`) |
-| **Haptic Feedback** | Device 0 Dual Motors | Device 1 Dual Motors |
-| **Mobile Web Controller** | Web HOTAS / Gyro Steering | Web HOTAS / Gyro Steering (QR Scan) |
-| **Keyboard Steering**| Mouse or `W`/`S` + `A`/`D` (or `Z`/`S` + `Q`/`D`) | `NumPad 8/2` + `NumPad 4/6` or `I/K` + `J/L` |
-| **Keyboard Throttle**| `Z`/`S` (AZERTY) or `W`/`S` (QWERTY) | `Y` (Throttle Up) / `H` (Airbrake) |
-| **Keyboard Rudder** | `A`/`E` (AZERTY) or `Q`/`E` (QWERTY) | `U` (Rudder Left) / `O` (Rudder Right) |
-| **Afterburner Nitro**| `Left Shift` | `N` or `NumPad 0` |
-| **Fire Cannon** | `Space` / Left Mouse Button | `Enter` / `NumPad Enter` or `M` |
-| **Launch Missile** | `R` / Right Mouse Button | `P` or `NumPad +` |
-| **Layout Toggle** | `F2` | `F2` |
+Player 1 and 2 bindings are in [CONTROLS_AND_PHYSICS.md](CONTROLS_AND_PHYSICS.md#5-split-screen-and-co-op-input).
+Gamepad 0 drives player 1 and gamepad 1 drives player 2. Each gets its own
+rumble.
 
 ---
 
-## 7. "Scan-to-Fly" Mobile Web Controller (Zero-Install HOTAS) 📱
+## 7. Phone Controller
 
-To eliminate the "missing controller" barrier for local split-screen co-op and LAN dogfights, Project Vanguard features an autonomous mobile web controller companion:
+Either player can use a phone instead of a gamepad: press F3, scan the QR code
+and the phone connects to the game over the LAN. Protocol details are in
+[ZERO_COST_INFRASTRUCTURE_AND_CONTROLLER_SPEC.md](ZERO_COST_INFRASTRUCTURE_AND_CONTROLLER_SPEC.md#3-phone-controller).
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    actor Wingman as Friend / Player 2
-    participant TV as Game Station (TV / Monitor)
-    participant Phone as Mobile Browser (Safari / Chrome)
-    participant Host as Godot Engine (Local WebSocket Server)
+    actor P2 as Player 2
+    participant Game as Game (PC)
+    participant Phone as Phone browser
 
-    TV->>TV: Displays dynamic QR code in lobby
-    Note over TV: QR: https://project-vanguard.pages.dev/controller?host=192.168.1.50:8080
-    Wingman->>TV: Scans QR with regular phone camera
-    Wingman->>Phone: Mobile Web Controller opens instantly
-    Phone->>Host: Direct LAN WebSocket connection (ws://192.168.1.50:8080)
-    Host->>TV: "PILOT WINGMAN-2 JOINED VIA MOBILE HOTAS"
-    Host->>TV: Splits screen into co-op / dogfight mode!
-    Host->>Phone: 10Hz Aircraft Vitals (Shields, Hull, Missiles)
-    Phone->>Host: 30Hz Control Frame (Pitch, Roll, Yaw, Fire)
+    Game->>Game: Show QR (LAN IP, ports, room, player slot)
+    P2->>Phone: Scan QR
+    Phone->>Game: WebSocket to ws://<host-ip>:8081
+    Game->>Game: Assign phone to player slot
+    Phone->>Game: Input, 16-byte binary, ~30 Hz
+    Game->>Phone: Vitals JSON, 10 Hz
 ```
-
-### Key Highlights:
-1. **Zero App Store Downloads**: Runs 100% in the mobile browser (`https://project-vanguard.pages.dev/controller`). No iOS App Store / Google Play downloads needed.
-2. **Sub-5ms Direct LAN Latency**: Connects directly to the host PC's local IP via WebSockets. No cloud relays or internet lag.
-3. **Motion / Gyroscope Steering**: Tilt the physical phone forward/back for pitch and left/right for roll using `DeviceOrientationEvent`.
-4. **Haptic Rumble**: Vibrates the phone upon weapon firing, missile lock, and taking fire using `navigator.vibrate()`.
-5. **Secondary Instrument Display**: Real-time HUD gauges (shield %, hull %, missile count, radar warnings) directly in the pilot's palms.
 
 ---
 
-## 8. Automated Test Suite
-
-Headless verification for all multiplayer and co-operative systems is integrated into the continuous test harness:
+## 8. Tests
 
 ```powershell
 # 1. Campaign Drop-In Co-Op Verification
-godot_console --headless --path godot_project -s test_campaign_coop.gd
+godot --headless --path godot_project -s test_campaign_coop.gd
 
 # 2. Local Split-Screen PvP Arena Verification
-godot_console --headless --path godot_project -s test_split_screen.gd
+godot --headless --path godot_project -s test_split_screen.gd
 
 # 3. LAN Peer-to-Peer & UDP Discovery Verification
-godot_console --headless --path godot_project -s test_pvp_system.gd
+godot --headless --path godot_project -s test_pvp_system.gd
 ```
 

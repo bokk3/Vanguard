@@ -1,4 +1,4 @@
-# 🎬 Cinematic Prologue Script: "The Last Envelope"
+# Cinematic Prologue Script: "The Last Envelope"
 
 **Role:** Game Intro Cutscene / Narrative Prologue  
 **Speaker:** The Chronicler (Narrator) — **Voiced by Brian** (`en-US-BrianNeural`, Pitch `-3Hz`, Rate `-4%`)  
@@ -39,7 +39,7 @@
 
 ---
 
-## 🎙️ Audition Samples Manifest
+## Audition Samples Manifest
 
 The signature teaser paragraph used for the voice auditions:
 > *"For half a century, humanity believed the stars had been conquered by code. To protect our ascent, we surrendered the sky to autonomous machines... until the algorithms turned. Now, the swarms darken our horizon. Machines calculate odds. Humans defy them. When the automated sky falls... we are the Vanguard."*

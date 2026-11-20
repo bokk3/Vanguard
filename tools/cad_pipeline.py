@@ -45,9 +45,9 @@ except ImportError:
 def find_blender():
     """Finds the Blender executable on Windows or POSIX."""
     candidates = [
+        os.environ.get("BLENDER_EXE"),
         shutil.which("blender"),
         os.path.expandvars(r"%USERPROFILE%\tools\blender\blender.exe"),
-        r"C:\Users\Boris\tools\blender\blender.exe",
         r"C:\Program Files\Blender Foundation\Blender 4.2\blender.exe",
         r"C:\Program Files\Blender Foundation\Blender 4.1\blender.exe",
         r"C:\Program Files\Blender Foundation\Blender 4.0\blender.exe",

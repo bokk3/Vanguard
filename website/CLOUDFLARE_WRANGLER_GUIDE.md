@@ -1,20 +1,22 @@
-# Deploying Project Vanguard to Cloudflare Pages via Wrangler
+# Deploying to Cloudflare Pages with Wrangler
 
-This guide provides step-by-step instructions for deploying and maintaining the Project Vanguard website on **Cloudflare Pages** using the official **Wrangler CLI**.
-
----
-
-## 🛠️ Prerequisites
-
-1. **Node.js 18+ and npm installed** (checked on your system: Node v24.19.0, npm 11.17.0).
-2. A free [Cloudflare Account](https://dash.cloudflare.com/sign-up).
-3. The Project Vanguard repository cloned locally.
+The site normally deploys through the Cloudflare Pages Git integration (see
+[README.md](README.md)). This guide covers deploying by hand, setting up D1 and
+secrets, and an optional GitHub Actions deploy.
 
 ---
 
-## 🚀 Quick Deployment (3 Steps via Wrangler)
+## Prerequisites
 
-Navigate to the `website/` directory in your terminal:
+1. Node.js 18 or newer, and npm.
+2. A [Cloudflare account](https://dash.cloudflare.com/sign-up). The free plan is enough.
+3. A local clone of this repository.
+
+---
+
+## Manual deploy
+
+From the `website/` directory:
 
 ```bash
 cd website
@@ -25,33 +27,46 @@ If you haven't logged in with Wrangler yet, run:
 ```bash
 npx wrangler login
 ```
-*A browser window will open asking you to authorize Wrangler with your Cloudflare account. Click **Allow**.*
+This opens a browser window to authorize Wrangler.
 
-### 2. Compile the Static Production Build
-Compile the optimized HTML, Tailwind CSS, and bundled JavaScript assets into the `dist/` directory:
+### 2. Build
 ```bash
 npm run build
 ```
-*(This takes ~2-3 seconds and generates the production bundle in `website/dist/`).*
+The output goes to `website/dist/`.
 
-### 3. Deploy to Cloudflare Pages
-Deploy the compiled `dist/` directory directly to Cloudflare Pages:
+### 3. Deploy
 ```bash
 npx wrangler pages deploy dist --project-name=project-vanguard
 ```
-*On your first run, Wrangler will ask if you want to create a new project named `project-vanguard`. Press **Enter** to confirm.*
+On the first run, Wrangler offers to create the `project-vanguard` project.
 
-**Wrangler Output:**
+Expected output:
 ```text
 ✨ Success! Uploaded 31 files (2.4 sec)
 ✨ Deployment complete! Take a peek over at https://project-vanguard.pages.dev
 ```
 
-Your website is now live globally across Cloudflare's edge network!
+## D1 database and secrets
+
+`wrangler.toml` binds the D1 database `vanguard-db` as `DB`. To set up a new
+database:
+
+```bash
+npx wrangler d1 create vanguard-db          # put the returned id in wrangler.toml
+npx wrangler d1 execute vanguard-db --remote --file=./schema.sql
+```
+
+Set the secrets for the Pages project instead of committing them:
+
+```bash
+npx wrangler pages secret put AUTH_SECRET --project-name=project-vanguard
+npx wrangler pages secret put BREVO_API_KEY --project-name=project-vanguard
+```
 
 ---
 
-## 🌐 Setting Up a Custom Domain (Optional)
+## Setting Up a Custom Domain (Optional)
 
 To link your own domain (e.g. `vanguard.yourdomain.com` or `projectvanguard.com`):
 
@@ -67,9 +82,9 @@ npx wrangler pages domain set project-vanguard vanguard.yourdomain.com
 
 ---
 
-## 🤖 Continuous Deployment via GitHub Actions (Automated CI/CD)
+## Continuous Deployment via GitHub Actions (Automated CI/CD)
 
-If you prefer every `git push origin main` to automatically deploy to Cloudflare Pages via Wrangler, create `.github/workflows/deploy-pages.yml`:
+Only needed if you deploy from GitHub Actions instead of the Pages Git integration. This workflow doesn't exist in the repo yet. To add it, create `.github/workflows/deploy-pages.yml`:
 
 ```yaml
 name: Deploy Website to Cloudflare Pages
@@ -118,7 +133,7 @@ In your GitHub repo &rarr; **Settings** &rarr; **Secrets and variables** &rarr; 
 
 ---
 
-## ⚙️ Configuration Files Explained
+## Configuration Files Explained
 
-- **[`website/wrangler.toml`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/website/wrangler.toml)**: Defines the Cloudflare Pages project configuration, build directory (`dist`), and production environment variables.
-- **[`website/public/_headers`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/website/public/_headers)**: Automatically copied to `dist/_headers` by Vite during `npm run build`. Enforces strict security headers (`X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`) and long-term asset caching on Cloudflare's edge.
+- **[`wrangler.toml`](wrangler.toml)**: project name, build output (`dist`), plain vars and the D1 binding.
+- **[`public/_headers`](public/_headers)**: copied to `dist/_headers` by Vite. Sets security headers (`X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`) and cache rules.

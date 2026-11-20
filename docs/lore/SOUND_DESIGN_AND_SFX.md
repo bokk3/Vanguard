@@ -1,13 +1,12 @@
-# 🔊 Project Vanguard: Diegetic Sound Design & SFX Suite
-**Authoritative Audio Engineering Guide & DSP Architecture**
+# Sound Design and SFX
 
-The sound design in **Project Vanguard** is built on the philosophy of **Hard-Surface Aerospace Diegesis**: every cockpit bleep, aerodynamic rush, combat alarm, and radio transmission represents authentic military electronic synthesis, aerodynamic physics, and tactical radio signal processing rather than generic stock audio.
+Every sound in the game is synthesized or processed by our own scripts rather than taken from stock libraries. Cockpit tones, engine noise, alarms and radio voices are all meant to sound like they come from the aircraft itself.
 
-All SFX and radio vocals are managed centrally via the **Automated Audio Pipeline** ([`tools/audio_pipeline.py`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/tools/audio_pipeline.py)) with **$0 external cloud cost** (100% local mathematical synthesis and offline edge-tts/ffmpeg DSP).
+All SFX and radio vocals are managed centrally via the **Automated Audio Pipeline** ([`tools/audio_pipeline.py`](../../tools/audio_pipeline.py)) SFX are synthesized locally. Voice lines use edge-tts (an online text-to-speech service) and are then filtered with ffmpeg.
 
 ---
 
-## 🎛️ Audio Pipeline CLI Commands
+## Audio Pipeline CLI Commands
 
 The pipeline provides three primary commands:
 
@@ -24,7 +23,7 @@ python tools/audio_pipeline.py audit
 
 ---
 
-## 🎧 Master SFX Catalog
+## Master SFX Catalog
 
 All sound effects are synthesized as **16-bit 44.1kHz PCM mono WAV** files normalized to **-1.0 dBFS** with zero DC offset. Looping files incorporate micro-crossfades to eliminate click/pop artifacts at seam boundaries.
 
@@ -88,7 +87,7 @@ Subtle, high-frequency haptic sounds for menu navigation, tactical radio mic key
 
 ---
 
-## 🎙️ Character Voice Profiles & Diegetic Radio DSP
+## Character Voice Profiles & Diegetic Radio DSP
 
 All in-game voices are synthesized using local `edge-tts` and processed through character-specific `ffmpeg` audio filters:
 
@@ -103,9 +102,9 @@ All in-game voices are synthesized using local `edge-tts` and processed through 
 
 ---
 
-## 🎚️ Godot 4 Audio Bus Architecture
+## Godot 4 Audio Bus Architecture
 
-The project employs a dedicated 5-bus hierarchy defined in [`default_bus_layout.tres`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/godot_project/default_bus_layout.tres) and registered in `project.godot`:
+The project employs a dedicated 5-bus hierarchy defined in [`default_bus_layout.tres`](../../godot_project/default_bus_layout.tres) and registered in `project.godot`:
 
 ```mermaid
 graph TD
@@ -129,7 +128,7 @@ graph TD
 
 ---
 
-## 🛰️ 3D Positional Audio & Doppler Configuration
+## 3D Positional Audio & Doppler Configuration
 
 For external in-world sound sources (`missile.gd`, `explosion_fx.gd`), `AudioStreamPlayer3D` is configured with:
 

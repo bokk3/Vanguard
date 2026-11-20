@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Client interface for the Antigravity Fusion 360 Live Bridge.
+Client for the Vanguard Fusion 360 live bridge.
 Provides programmatic and CLI access to dispatch modeling commands to Autodesk Fusion 360.
 """
 
@@ -65,12 +65,15 @@ class FusionBridgeClient:
 
         with open(file_path, "r", encoding="utf-8") as f:
             code = f.read()
+        # The bridge exec()s the code, so give it a real __file__ and
+        # repo-relative paths inside the script keep working.
+        code = f"__file__ = {os.path.abspath(file_path)!r}\n" + code
 
         return self.execute_code(code, timeout=timeout)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Antigravity Fusion 360 Bridge CLI Client")
+    parser = argparse.ArgumentParser(description="Vanguard Fusion 360 bridge client")
     parser.add_argument("--host", default=DEFAULT_HOST, help="Bridge host (default: 127.0.0.1)")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help="Bridge port (default: 9876)")
     parser.add_argument("--ping", action="store_true", help="Ping Fusion 360 bridge and check status")

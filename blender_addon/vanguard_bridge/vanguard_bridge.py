@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Antigravity Live Bridge for Blender 4.2+
+Vanguard live bridge for Blender 4.2+
 Runs an HTTP server on port 9877 inside Blender.
 Enables real-time remote control, code execution on Blender's main thread,
-and automated asset staging between Antigravity, Fusion 360, and Unreal Engine.
+and asset staging between the Vanguard tools, Fusion 360 and Unreal Engine.
 """
 
 import sys
@@ -18,6 +18,18 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import bpy
 
 BRIDGE_PORT = 9877
+
+
+def _project_root():
+    """Repo root: VANGUARD_ROOT if set, otherwise three levels above this file."""
+    env = os.environ.get("VANGUARD_ROOT")
+    if env:
+        return env
+    try:
+        return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    except NameError:
+        return os.getcwd()
+
 task_queue = queue.Queue()
 server_instance = None
 server_thread = None
@@ -86,7 +98,7 @@ class BlenderBridgeHTTPHandler(BaseHTTPRequestHandler):
         if self.path == "/ping":
             data = {
                 "status": "online",
-                "bridge": "Antigravity Blender Bridge",
+                "bridge": "Vanguard Blender Bridge",
                 "version": "1.0.0",
                 "blender_version": bpy.app.version_string,
                 "active_file": bpy.data.filepath or "Untitled.blend",
@@ -131,48 +143,48 @@ class BlenderBridgeHTTPHandler(BaseHTTPRequestHandler):
 def start_server():
     global server_instance, server_thread
     if server_instance:
-        print("[Antigravity] Bridge server is already running.")
+        print("[Vanguard] Bridge server is already running.")
         return
 
     try:
         server_instance = HTTPServer(("127.0.0.1", BRIDGE_PORT), BlenderBridgeHTTPHandler)
         server_thread = threading.Thread(target=server_instance.serve_forever, daemon=True)
         server_thread.start()
-        print(f"[Antigravity] Blender Live Bridge listening on http://127.0.0.1:{BRIDGE_PORT}")
+        print(f"[Vanguard] Blender Live Bridge listening on http://127.0.0.1:{BRIDGE_PORT}")
     except Exception as e:
-        print(f"[Antigravity ERROR] Failed to start bridge server: {e}")
+        print(f"[Vanguard ERROR] Failed to start bridge server: {e}")
 
 
 # =========================================================================
-# BLENDER UI PANEL (3D VIEWPORT SIDEBAR -> 'Antigravity' TAB)
+# BLENDER UI PANEL (3D VIEWPORT SIDEBAR -> 'Vanguard' TAB)
 # =========================================================================
 
-class ANTIGRAVITY_PT_BridgePanel(bpy.types.Panel):
-    bl_label = "Antigravity Bridge"
-    bl_idname = "ANTIGRAVITY_PT_bridge_panel"
+class VANGUARD_PT_BridgePanel(bpy.types.Panel):
+    bl_label = "Vanguard Bridge"
+    bl_idname = "VANGUARD_PT_bridge_panel"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
-    bl_category = "Antigravity"
+    bl_category = "Vanguard"
 
     def draw(self, context):
         layout = self.layout
         col = layout.column(align=True)
         box = col.box()
-        box.label(text="🟢 Bridge: ONLINE", icon="RADIOBUT_ON")
+        box.label(text="Bridge: online", icon="RADIOBUT_ON")
         box.label(text=f"Port: {BRIDGE_PORT} (http://127.0.0.1:{BRIDGE_PORT})")
         
         col.separator()
-        col.operator("antigravity.import_sculpted_spaceship", text="Import Sculpted Spaceship", icon="MESH_MONKEY")
-        col.operator("antigravity.smart_uv_all", text="Auto Smart UV Unwarp All", icon="UV")
+        col.operator("vanguard.import_sculpted_spaceship", text="Import Sculpted Spaceship", icon="MESH_MONKEY")
+        col.operator("vanguard.smart_uv_all", text="Smart UV Unwrap Selected", icon="UV")
 
 
-class ANTIGRAVITY_OT_ImportSpaceship(bpy.types.Operator):
-    bl_idname = "antigravity.import_sculpted_spaceship"
+class VANGUARD_OT_ImportSpaceship(bpy.types.Operator):
+    bl_idname = "vanguard.import_sculpted_spaceship"
     bl_label = "Import Sculpted Spaceship"
     bl_description = "Import the latest Sculpted Spaceship from the Exports folder"
 
     def execute(self, context):
-        exports_dir = r"c:\Users\Boris\Documents\antigravity\lucid-davinci\Exports"
+        exports_dir = os.path.join(_project_root(), "Exports")
         fbx_path = os.path.join(exports_dir, "Spaceship_Sculpted_V_Hull.fbx")
         stl_path = os.path.join(exports_dir, "Spaceship_Sculpted_V_Hull.stl")
 
@@ -190,8 +202,8 @@ class ANTIGRAVITY_OT_ImportSpaceship(bpy.types.Operator):
         return {"FINISHED"}
 
 
-class ANTIGRAVITY_OT_SmartUVAll(bpy.types.Operator):
-    bl_idname = "antigravity.smart_uv_all"
+class VANGUARD_OT_SmartUVAll(bpy.types.Operator):
+    bl_idname = "vanguard.smart_uv_all"
     bl_label = "Auto Smart UV Unwrap All"
     bl_description = "Run Smart UV Project on all selected mesh objects"
 
@@ -215,9 +227,9 @@ class ANTIGRAVITY_OT_SmartUVAll(bpy.types.Operator):
 
 
 classes = (
-    ANTIGRAVITY_PT_BridgePanel,
-    ANTIGRAVITY_OT_ImportSpaceship,
-    ANTIGRAVITY_OT_SmartUVAll,
+    VANGUARD_PT_BridgePanel,
+    VANGUARD_OT_ImportSpaceship,
+    VANGUARD_OT_SmartUVAll,
 )
 
 

@@ -1,16 +1,17 @@
-# 🌌 Project Vanguard: Worldbuilding & Lore Bible
+# Lore
 
-Welcome to the official narrative archive for **Project Vanguard**. This directory contains the complete worldbuilding, faction dossiers, aircraft operational lore, timeline chronology, and military brevity protocols governing the Vanguard universe.
+The setting, factions, aircraft, missions and radio language of Project Vanguard.
 
 ---
 
-## 🧭 Lore Archive Directory
+## Lore Archive Directory
 
 | Document | Description |
 | :--- | :--- |
 | **[World Setting & Timeline](TIMELINE_AND_HISTORY.md)** | Chronology of the Karman Fractures, Ascension Corridors, and the Orbital Sovereignty Wars. |
 | **[Cinematic Prologue Script & Narrator Auditions](CINEMATIC_PROLOGUE_SCRIPT.md)** | Complete intro cutscene script ("The Last Envelope") with storyboard scene cues and narrator audio auditions. |
 | **[Campaign Missions (01-04)](CAMPAIGN_MISSIONS.md)** | Tactical mission briefs, radio comms dialogue, and objective design for Operations Cloudburst, Iron Canyon, Apex Liftoff, and Stratosphere Zero. |
+| **[Campaign Chapter 2 (05-08)](CAMPAIGN_CHAPTER_2.md)** | The Belt Invasion: Silent Orbit, Ghost Reef, Dauntless Defender and Nexus Crucible, with their interludes. |
 | **[Factions & Global Theater](FACTIONS_AND_CONFLICT.md)** | Intelligence dossiers on the Sol Orbital Coalition, 404th Vanguard Strike Wing, and the Helion Extraction Syndicate. |
 | **[Aircraft & Ordnance Dossiers](AIRCRAFT_AND_ORDNANCE.md)** | Diegetic manufacturing profiles, aerospace specifications, and combat doctrines for the Sculpted V-Hull, Viper Supreme, and Vanguard Strike Missile. |
 | **[Comms, Avionics & Brevity Protocol](PILOT_BRIEFING_AND_COMMUNICATIONS.md)** | Tactical callouts, AWACS command procedures, EVA cockpit AI voice lines, and pilot doctrine. |
@@ -19,7 +20,7 @@ Welcome to the official narrative archive for **Project Vanguard**. This directo
 
 ---
 
-## ⚡ Narrative Core Pillars
+## Narrative Core Pillars
 
 ```text
        ┌────────────────────────────────────────────────────────┐

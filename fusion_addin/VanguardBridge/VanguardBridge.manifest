@@ -1,0 +1,13 @@
+{
+	"autodeskProduct":	"Fusion",
+	"type":	"addin",
+	"id":	"vanguard_fusion_bridge",
+	"author":	"bokk3",
+	"description":	{
+		"":	"Local HTTP bridge that lets the Vanguard tools run modeling and export scripts inside Fusion 360."
+	},
+	"version":	"1.0.0",
+	"runOnStartup":	false,
+	"supportedOS":	"windows",
+	"editEnabled":	true
+}
