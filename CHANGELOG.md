@@ -58,6 +58,9 @@ Notable changes to Project Vanguard. The format follows
 - The registered pilot count no longer adds a made-up 1,420 to the real number.
 
 ### Changed
+- Website dev dependencies updated within their ranges (Vite 6.4.6) to clear
+  `npm audit` advisories for the dev server. The website CI build now also
+  checks that `verify.html` and the standalone controller are produced.
 - Renamed the Blender and Fusion 360 bridges to `vanguard_bridge` and
   `VanguardBridge`. The Blender panel is now under the "Vanguard" sidebar tab,
   and its operators are `vanguard.*`.
