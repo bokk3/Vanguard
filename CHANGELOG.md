@@ -48,6 +48,12 @@ Notable changes to Project Vanguard. The format follows
   accepts `?authtoken=`.
 - Removed `rpc_take_damage_net`. Nothing called it, but any connected peer
   could use it to deal any amount of damage.
+- The in-game updater refuses zip entries that point outside the staging
+  folder (`../`, absolute paths), checks the download's size and, when GitHub
+  provides one, its SHA-256 digest, clears earlier extractions first, and
+  aborts if a file can't be written. Covered by `test_updater_safety.gd`.
+- The website sends a Content-Security-Policy that only allows its own
+  scripts.
 
 ### Fixed
 - `verify.html` wasn't in the Vite build, so on the live site verification

@@ -19,6 +19,7 @@ var available_version: String = ""
 var changelog_text: String = ""
 var download_url: String = ""
 var asset_size_bytes: int = 0
+var asset_sha256: String = ""  # From the release asset's "digest" field, when GitHub provides one
 
 var has_dismissed_prompt: bool = false
 var is_downloading: bool = false
@@ -110,6 +111,8 @@ func _on_check_request_completed(result: int, response_code: int, _headers: Pack
 	changelog_text = str(parsed.get("body", "No release notes provided."))
 	download_url = str(target_asset.get("browser_download_url", ""))
 	asset_size_bytes = int(target_asset.get("size", 0))
+	var digest: String = str(target_asset.get("digest", ""))
+	asset_sha256 = digest.trim_prefix("sha256:").to_lower() if digest.begins_with("sha256:") else ""
 	
 	print("[Updater] Update available: %s -> %s (%d bytes)" % [current_version, available_version, asset_size_bytes])
 	emit_signal("update_available", available_version, changelog_text, download_url, asset_size_bytes)
@@ -185,6 +188,15 @@ func _on_download_request_completed(result: int, response_code: int, _headers: P
 	var zip_abs = staging_abs.path_join("update.zip")
 	var extracted_abs = staging_abs.path_join("extracted")
 	
+	var verify_error = verify_download(zip_abs, asset_size_bytes, asset_sha256)
+	if not verify_error.is_empty():
+		DirAccess.remove_absolute(zip_abs)
+		emit_signal("update_error", verify_error)
+		return
+	
+	# Start from an empty folder so files left by an earlier attempt aren't installed.
+	_remove_dir_recursive(extracted_abs)
+	
 	# Extract ZIP archive
 	var extract_ok = _extract_zip_archive(zip_abs, extracted_abs)
 	if not extract_ok:
@@ -212,6 +224,10 @@ func _extract_zip_archive(zip_path: String, out_dir: String) -> bool:
 	
 	var files = reader.get_files()
 	for entry in files:
+		if not is_safe_zip_entry(entry):
+			print("[Updater] Refusing unsafe archive entry: ", entry)
+			reader.close()
+			return false
 		var dest = out_dir.path_join(entry)
 		if entry.ends_with("/"):
 			DirAccess.make_dir_recursive_absolute(dest)
@@ -227,7 +243,10 @@ func _extract_zip_archive(zip_path: String, out_dir: String) -> bool:
 			f.store_buffer(data)
 			f.close()
 		else:
+			# A partial install is worse than none.
 			print("[Updater] Could not write extracted file: ", dest)
+			reader.close()
+			return false
 	
 	reader.close()
 	return true
@@ -356,8 +375,56 @@ func apply_update_and_restart() -> void:
 		emit_signal("update_error", "Failed to spawn update launcher process.")
 
 # ─────────────────────────────────────────────────────────────
-# Static Utilities (Version parsing & BBCode conversion)
+# Static Utilities (download checks, version parsing, BBCode conversion)
 # ─────────────────────────────────────────────────────────────
+
+## True if a zip entry stays inside the folder it's extracted to: no absolute
+## paths, drive letters or ".." segments.
+static func is_safe_zip_entry(entry: String) -> bool:
+	if entry.is_empty():
+		return false
+	var e = entry.replace("\\", "/")
+	if e.begins_with("/") or (e.length() > 1 and e[1] == ":"):
+		return false
+	for part in e.split("/"):
+		if part == "..":
+			return false
+	return true
+
+## Returns "" if the file at `path` matches the expected size and SHA-256
+## (either may be left out), or an error message otherwise.
+static func verify_download(path: String, expected_size: int, expected_sha256: String) -> String:
+	var f = FileAccess.open(path, FileAccess.READ)
+	if not f:
+		return "Downloaded update could not be opened."
+	var size = f.get_length()
+	if expected_size > 0 and size != expected_size:
+		f.close()
+		return "Downloaded update is %d bytes, expected %d." % [size, expected_size]
+	if expected_sha256.is_empty():
+		f.close()
+		return ""
+	var ctx = HashingContext.new()
+	ctx.start(HashingContext.HASH_SHA256)
+	while f.get_position() < size:
+		ctx.update(f.get_buffer(1 << 20))
+	f.close()
+	var actual = ctx.finish().hex_encode()
+	if actual != expected_sha256:
+		return "Downloaded update failed its checksum."
+	return ""
+
+static func _remove_dir_recursive(dir_path: String) -> void:
+	if not DirAccess.dir_exists_absolute(dir_path):
+		return
+	var dir = DirAccess.open(dir_path)
+	if not dir:
+		return
+	for sub in dir.get_directories():
+		_remove_dir_recursive(dir_path.path_join(sub))
+	for file in dir.get_files():
+		DirAccess.remove_absolute(dir_path.path_join(file))
+	DirAccess.remove_absolute(dir_path)
 
 static func parse_semver(v_str: String) -> Dictionary:
 	var s = v_str.strip_edges().trim_prefix("v").trim_prefix("V")
