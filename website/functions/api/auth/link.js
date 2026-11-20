@@ -10,6 +10,7 @@ import {
     handleOptions,
     getAuthenticatedPilot,
     createPilotToken,
+    getAuthSecret,
 } from "../_utils.js";
 
 export async function onRequestOptions() {
@@ -162,7 +163,7 @@ export async function onRequestPost({ request, env }) {
                     rank: auth.rank,
                     device: "game_station",
                 },
-                env.AUTH_SECRET,
+                getAuthSecret(env),
                 86400 * 90 // 90 days validity on game station
             );
 

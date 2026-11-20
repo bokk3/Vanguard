@@ -57,7 +57,9 @@ npx wrangler d1 create vanguard-db          # put the returned id in wrangler.to
 npx wrangler d1 execute vanguard-db --remote --file=./schema.sql
 ```
 
-Set the secrets for the Pages project instead of committing them:
+Set the secrets for the Pages project instead of committing them.
+`AUTH_SECRET` must be at least 32 random characters, for example
+`node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`:
 
 ```bash
 npx wrangler pages secret put AUTH_SECRET --project-name=project-vanguard
@@ -135,5 +137,5 @@ In your GitHub repo &rarr; **Settings** &rarr; **Secrets and variables** &rarr; 
 
 ## Configuration Files Explained
 
-- **[`wrangler.toml`](wrangler.toml)**: project name, build output (`dist`), plain vars and the D1 binding.
+- **[`wrangler.toml`](wrangler.toml)**: project name, build output (`dist`), plain vars and the D1 binding. No secrets.
 - **[`public/_headers`](public/_headers)**: copied to `dist/_headers` by Vite. Sets security headers (`X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`) and cache rules.

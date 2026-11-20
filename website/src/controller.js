@@ -336,9 +336,17 @@ function connectWebSocket() {
       } catch {}
     };
 
-    ws.onclose = () => {
+    ws.onclose = (event) => {
       state.connected = false;
       updateConnectionUI('disconnected');
+      // 4001 / 4002 come from network_controller_server.gd
+      if (event.code === 4001) {
+        els.connectionText.textContent = 'WRONG ROOM CODE';
+        els.threatBanner.textContent = '// REJECTED: ROOM CODE DOES NOT MATCH THE GAME // RESCAN THE QR CODE //';
+      } else if (event.code === 4002) {
+        els.connectionText.textContent = 'NO HANDSHAKE';
+        els.threatBanner.textContent = '// CONNECTION TIMED OUT // RESCAN THE QR CODE //';
+      }
     };
 
     ws.onerror = () => {

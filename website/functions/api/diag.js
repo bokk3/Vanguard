@@ -6,6 +6,8 @@
  * Safely inspects runtime environment variables and tests Brevo transactional API dispatch.
  */
 
+import { getAuthSecret } from "./_utils.js";
+
 export async function onRequestGet(context) {
     const { env, request } = context;
     const url = new URL(request.url);
@@ -25,6 +27,14 @@ export async function onRequestGet(context) {
             brevo_sender_name: senderName,
             has_db: Boolean(env.DB),
             has_auth_secret: Boolean(env.AUTH_SECRET),
+            auth_secret_valid: (() => {
+                try {
+                    getAuthSecret(env);
+                    return true;
+                } catch {
+                    return false;
+                }
+            })(),
         },
         brevo_test_dispatch: null,
     };

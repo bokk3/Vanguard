@@ -35,6 +35,27 @@ func _init() -> void:
 		quit(1)
 		return
 	print("[PASS] NetworkControllerServer listening (HTTP: %d, WS: %d)" % [server.http_port, server.port])
+
+	# 1b. Room code: generated once, required in the handshake
+	var code: String = server.session_room_code
+	if not code.begins_with("VNG-") or code.length() != 10:
+		push_error("Unexpected room code format: '%s'" % code)
+		quit(1)
+		return
+	if not server.is_valid_room_code(code) or not server.is_valid_room_code("  " + code.to_lower() + " "):
+		push_error("Valid room code was rejected!")
+		quit(1)
+		return
+	for bad in ["", "test-token-77", "VNG-77", code + "X", null, 12345]:
+		if server.is_valid_room_code(bad):
+			push_error("Invalid room code was accepted: %s" % str(bad))
+			quit(1)
+			return
+	if server.get_controller_url(1, "pilot", false).find("room=" + code) == -1:
+		push_error("Controller URL does not carry the room code!")
+		quit(1)
+		return
+	print("[PASS] Room code %s required for pairing; wrong codes rejected." % code)
 	
 	# 2. Verify QR Code & URL (Web Gateway + Direct LAN)
 	var url_gw = server.get_controller_url(1, "pilot", true)
@@ -141,7 +162,7 @@ func _process(delta: float) -> bool:
 			var handshake_msg = JSON.stringify({
 				"type": "handshake",
 				"callsign": "MAVERICK-TEST",
-				"token": "test-token-77"
+				"token": server.session_room_code
 			})
 			test_client.send_text(handshake_msg)
 			step = 3

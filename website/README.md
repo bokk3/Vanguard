@@ -27,7 +27,8 @@ npm run preview    # serve dist/
 inlines the controller into a single HTML file. The game serves that copy
 itself on port 8080.
 
-To run the API locally against a local D1:
+To run the API locally against a local D1, copy `.dev.vars.example` to
+`.dev.vars` (git-ignored), fill in `AUTH_SECRET`, then:
 
 ```sh
 npx wrangler d1 execute vanguard-db --local --file=./schema.sql
@@ -41,7 +42,7 @@ also read:
 
 | Variable | Used for |
 | :--- | :--- |
-| `AUTH_SECRET` | Signing login tokens. Set it as a secret (`npx wrangler pages secret put AUTH_SECRET`), not in `wrangler.toml` |
+| `AUTH_SECRET` | Signing login and email tokens. At least 32 random characters, set as a secret (`npx wrangler pages secret put AUTH_SECRET`). Auth requests fail with a server error if it's missing |
 | `BREVO_API_KEY` | Sending verification emails |
 | `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME` | Email sender |
 

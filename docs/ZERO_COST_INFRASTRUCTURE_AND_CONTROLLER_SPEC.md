@@ -81,8 +81,10 @@ the `_*.js` files.
 ### 2.3 What's validated
 
 * Passwords: PBKDF2-SHA256 with 100,000 iterations and a per-user salt.
-* Tokens: HMAC-SHA256 signed with `AUTH_SECRET` (set in `wrangler.toml` or as
-  a Pages secret).
+* Tokens: HMAC-SHA256 signed with `AUTH_SECRET`, which must be a Pages
+  secret of at least 32 characters. If it is missing, too short or the old
+  published value, auth requests fail with a server error (500 or 503) that
+  names the problem, rather than falling back to a default.
 * Leaderboard submissions: score must be in `(0, 2,000,000]` and completion
   time at least 5 s. Anything else is taken on trust from the client, so treat
   the leaderboards as casual.
@@ -96,13 +98,17 @@ the `_*.js` files.
 1. The game starts `network_controller_server.gd`, which runs an HTTP server
    on port 8080, which serves a bundled copy of the controller page, and a
    WebSocket server on port 8081.
-2. The QR code holds a URL with the host's LAN IP, ports, a room code, the
-   player's callsign and the player slot.
+2. The QR code holds a URL with the host's LAN IP, ports, the session's room
+   code (`VNG-` plus 6 random characters), the player's callsign and the
+   player slot.
 3. The phone opens the page and connects straight to `ws://<host-ip>:8081`.
    Input never goes through Cloudflare.
 
-The room code is sent in the URL, but the server doesn't check it yet, so any
-device on the same network can connect.
+The phone's first message must be a handshake whose `token` matches the room
+code (case doesn't matter). Until then nothing it sends reaches a ship, and it
+doesn't count as a connected controller. A wrong code closes the socket with
+code 4001. No handshake within 5 seconds closes it with 4002. The phone shows
+which one happened.
 
 ### 3.2 Browser APIs
 

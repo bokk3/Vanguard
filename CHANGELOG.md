@@ -6,6 +6,18 @@ Notable changes to Project Vanguard. The format follows
 
 ## [Unreleased]
 
+### Security
+- `AUTH_SECRET` is no longer in `wrangler.toml` or in code. The value that
+  was committed is public, so anyone could forge login tokens. It must now
+  be set as a Pages secret of at least 32 characters, and the old value is
+  refused. If it's missing, auth endpoints return a server error instead of
+  falling back to a default. Rotating it logs everyone out once.
+- The phone controller server now requires the session room code in the
+  handshake before it accepts any input. Previously any device on the LAN
+  could connect and fly a player's ship. Room codes are now 6 characters
+  from a cryptographic RNG, and wrong or missing codes close the connection
+  (4001 / 4002).
+
 ### Changed
 - Renamed the Blender and Fusion 360 bridges to `vanguard_bridge` and
   `VanguardBridge`. The Blender panel is now under the "Vanguard" sidebar tab,

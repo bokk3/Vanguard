@@ -10,6 +10,7 @@ import {
     generateSalt,
     hashPassword,
     createPilotToken,
+    getAuthSecret,
 } from "../_utils.js";
 import { ensureVerificationSchema } from "../_db_utils.js";
 import {
@@ -84,7 +85,7 @@ export async function onRequestPost({ request, env }) {
         // 5. Generate 6-digit in-game verification code & 24h HMAC verification token
         const verificationCode = generateVerificationCode();
         const verificationExpiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 mins
-        const verificationToken = await createVerificationToken(pilotId, email, env.AUTH_SECRET);
+        const verificationToken = await createVerificationToken(pilotId, email, getAuthSecret(env));
 
         // 6. Atomic insertion into pilots & initial pilot_records
         const batch = await env.DB.batch([
@@ -118,7 +119,7 @@ export async function onRequestPost({ request, env }) {
                 squadron,
                 email_verified: false,
             },
-            env.AUTH_SECRET
+            getAuthSecret(env)
         );
 
         return jsonResponse(

@@ -9,6 +9,7 @@ import {
     errorResponse,
     handleOptions,
     verifyPilotToken,
+    getAuthSecret,
 } from "../_utils.js";
 import { ensureVerificationSchema } from "../_db_utils.js";
 import {
@@ -39,7 +40,7 @@ export async function onRequestPost({ request, env }) {
     const authHeader = request.headers.get("Authorization");
     if (authHeader && authHeader.startsWith("Bearer ")) {
         const token = authHeader.substring(7);
-        const verifiedToken = await verifyPilotToken(token, env.AUTH_SECRET);
+        const verifiedToken = await verifyPilotToken(token, getAuthSecret(env));
         if (verifiedToken && verifiedToken.sub) {
             pilotId = verifiedToken.sub;
         }
@@ -85,7 +86,7 @@ export async function onRequestPost({ request, env }) {
         // Generate new code and token
         const newCode = generateVerificationCode();
         const newExpiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
-        const verificationToken = await createVerificationToken(pilot.id, pilot.email, env.AUTH_SECRET);
+        const verificationToken = await createVerificationToken(pilot.id, pilot.email, getAuthSecret(env));
 
         await env.DB.prepare(
             `UPDATE pilots 

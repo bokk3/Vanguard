@@ -9,6 +9,7 @@ import {
     handleOptions,
     verifyPassword,
     createPilotToken,
+    getAuthSecret,
 } from "../_utils.js";
 import { ensureVerificationSchema, ensureRewardSchema } from "../_db_utils.js";
 
@@ -104,7 +105,7 @@ export async function onRequestPost({ request, env }) {
                 squadron: pilot.squadron,
                 email_verified: Boolean(pilot.email_verified),
             },
-            env.AUTH_SECRET
+            getAuthSecret(env)
         );
 
         return jsonResponse({
