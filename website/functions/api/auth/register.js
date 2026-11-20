@@ -56,8 +56,11 @@ export async function onRequestPost({ request, env }) {
         return errorResponse("Password must be at least 8 characters.", 400);
     }
 
-    const rank = body.rank || "FLIGHT LIEUTENANT";
-    const squadron = body.squadron || "404th Vanguard Strike Wing";
+    // Rank is assigned by the server. Squadron is free text shown on the
+    // leaderboard, so keep it to plain characters.
+    const rank = "FLIGHT LIEUTENANT";
+    const rawSquadron = typeof body.squadron === "string" ? body.squadron.trim() : "";
+    const squadron = /^[A-Za-z0-9 '._-]{2,40}$/.test(rawSquadron) ? rawSquadron : "404th Vanguard Strike Wing";
 
     try {
         // 2. Check for duplicate callsign or email

@@ -36,8 +36,20 @@ Notable changes to Project Vanguard. The format follows
   `innerHTML`, so a crafted link could run script on the site and read the
   saved login token. It now accepts only a private IPv4 host and numeric
   ports, and builds the LAN link with DOM methods.
+- Registration ignores a client-supplied `rank` and only accepts a plain
+  squadron name, and the website escapes leaderboard fields. A squadron like
+  `<img onerror=...>` previously ran script for everyone viewing the
+  leaderboard.
+- `POST /api/leaderboard` requires login and validates the mission ID,
+  accuracy and ghost key. Guests could post any callsign.
+- The email verification link logs the pilot in only on first use, and the
+  login token is passed in the URL fragment instead of the query string, so
+  it isn't sent to the server or kept in logs. The home page no longer
+  accepts `?authtoken=`.
 
 ### Fixed
+- `verify.html` wasn't in the Vite build, so on the live site verification
+  links opened the home page. It's built now, and the redirects go to `/verify`.
 - Cloud sync added the game's cumulative flight time to the stored total on
   every sync, so it grew far past the real value. It now keeps the larger of
   the two, and the highest unlocked mission can't go backwards.

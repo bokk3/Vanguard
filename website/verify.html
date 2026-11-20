@@ -159,11 +159,15 @@
   <script type="module">
     const params = new URLSearchParams(window.location.search);
     const token = params.get('token');
-    const authtoken = params.get('authtoken');
+    // The login token arrives in the URL fragment. Read it, then drop it from
+    // the address bar and history.
+    const authtoken = new URLSearchParams(window.location.hash.slice(1)).get('authtoken');
+    if (window.location.hash) {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
     const status = params.get('status');
     const callsign = params.get('callsign') || 'PILOT';
     const rank = params.get('rank') || 'LIEUTENANT';
-    const email = params.get('email') || '';
     const err = params.get('error');
 
     const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
@@ -205,12 +209,12 @@
       if (authtoken) {
         localStorage.setItem('vanguard_pilot_token', authtoken);
         try {
-          const p = {
-            callsign,
-            rank,
-            email,
-            email_verified: 1
-          };
+          const p = JSON.parse(localStorage.getItem('vanguard_pilot_profile') || '{}');
+          if (p.callsign && p.callsign.toUpperCase() !== callsign.toUpperCase()) {
+            // A different pilot was logged in here; don't keep their details.
+            for (const key of Object.keys(p)) delete p[key];
+          }
+          Object.assign(p, { callsign, rank, email_verified: 1 });
           localStorage.setItem('vanguard_pilot_profile', JSON.stringify(p));
         } catch {}
       } else {
@@ -229,7 +233,8 @@
       const btnLogin = document.getElementById('btn-verified-login');
 
       if (btnPortal) {
-        btnPortal.href = activeToken ? `/?authtoken=${encodeURIComponent(activeToken)}` : '/?action=login';
+        // The site shares localStorage with this page, so it is already logged in.
+        btnPortal.href = activeToken ? '/' : '/?action=login';
         btnPortal.textContent = '🚀 Launch Web Operations Portal';
       }
 
