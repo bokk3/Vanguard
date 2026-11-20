@@ -52,6 +52,9 @@ Notable changes to Project Vanguard. The format follows
   folder (`../`, absolute paths), checks the download's size and, when GitHub
   provides one, its SHA-256 digest, clears earlier extractions first, and
   aborts if a file can't be written. Covered by `test_updater_safety.gd`.
+- On macOS the updater copied the new `.app` into the running app's
+  `Contents/MacOS` folder, so updates never replaced the app. It now installs
+  next to the existing bundle. Not tested on a Mac.
 - The website sends a Content-Security-Policy that only allows its own
   scripts.
 

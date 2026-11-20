@@ -255,6 +255,12 @@ func _prepare_launcher_script(extracted_dir: String) -> bool:
 	var exe_path = OS.get_executable_path()
 	var install_dir = exe_path.get_base_dir()
 	var exe_name = exe_path.get_file()
+	# On macOS the binary is <dir>/<Name>.app/Contents/MacOS/<exe>, and the
+	# release zip holds <Name>.app, so it has to be copied into <dir>.
+	if OS.get_name() == "macOS":
+		var app_bundle = install_dir.get_base_dir().get_base_dir()
+		if app_bundle.ends_with(".app"):
+			install_dir = app_bundle.get_base_dir()
 	var staging_abs = ProjectSettings.globalize_path(STAGING_REL_DIR)
 	
 	var os_name = OS.get_name().to_lower()
