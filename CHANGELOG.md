@@ -25,6 +25,13 @@ Notable changes to Project Vanguard. The format follows
   lobby. The heartbeat now takes the pilot ID from the login token instead of
   trusting the request body, and limits the length of names and metadata.
 - The game and website create session IDs from a cryptographic RNG.
+- Login returns 429 after 10 failed attempts on one account or 30 from one
+  IP within 15 minutes. Five wrong email verification codes lock code entry
+  for 30 minutes. Failures are counted in a new `auth_throttle` D1 table,
+  created on first use.
+- Device link codes are `ACE-` plus 6 characters from a cryptographic RNG
+  (previously 3 characters from `Math.random`), and only the IP that requested
+  a code can collect the login token once it is approved.
 
 ### Fixed
 - Cloud sync added the game's cumulative flight time to the stored total on

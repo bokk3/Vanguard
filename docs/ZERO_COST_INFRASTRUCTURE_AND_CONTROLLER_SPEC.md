@@ -48,7 +48,7 @@ The source of truth is [`website/schema.sql`](../website/schema.sql). Tables:
 | :--- | :--- |
 | `pilots` | Accounts: callsign, email, PBKDF2 hash and salt, rank, squadron, email verification fields |
 | `pilot_records` | Per-pilot totals (sorties, kills, flight time), highest unlocked mission, Stars, saved JSON blob |
-| `device_links` | Pending and approved 6-character device link codes |
+| `device_links` | Pending and approved device link codes, with the IP of the station that asked for each |
 | `mission_leaderboards` | Submitted mission results (time, score, accuracy) |
 | `active_sessions` | Presence heartbeats for the online and lobby counters |
 
@@ -65,10 +65,10 @@ the `_*.js` files.
 | Path | Methods | Notes |
 | :--- | :--- | :--- |
 | `/api/auth/register` | POST | Creates a pilot and sends a verification email |
-| `/api/auth/login` | POST | Returns a signed bearer token |
-| `/api/auth/verify` | GET, POST | Verifies email by link token (GET) or 6-digit code (POST) |
+| `/api/auth/login` | POST | Returns a signed bearer token. After 10 failures for one account or 30 from one IP in 15 minutes it returns 429 |
+| `/api/auth/verify` | GET, POST | Verifies email by link token (GET) or 6-digit code (POST). 5 wrong codes lock code entry for 30 minutes |
 | `/api/auth/resend-verification` | POST | 90 s cooldown |
-| `/api/auth/link` | GET, POST | Device link codes: `?action=request`, `?action=approve`, poll with `?code=` |
+| `/api/auth/link` | GET, POST | Device link codes (`ACE-` plus 6 random characters): `?action=request`, `?action=approve`, poll with `?code=`. Only the requesting IP can collect the token |
 | `/api/pilot/sync` | GET, POST | Pull and push stats, progress and the save blob (bearer token) |
 | `/api/pilot/reward` | POST | `get_status`, `claim_streak`, `spin_wheel`, `buy_skin`, `equip_skin`, `buy_upgrade` |
 | `/api/leaderboard` | GET, POST | `?type=` / `?mission=` / `?limit=` to read. POST submits a result |

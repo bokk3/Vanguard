@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS pilot_records (
 
 -- 3. Device Link Sessions (QR Code / 6-digit Codes)
 CREATE TABLE IF NOT EXISTS device_links (
-    link_code TEXT PRIMARY KEY,                      -- 6-character code (e.g. "ACE-782")
+    link_code TEXT PRIMARY KEY,                      -- "ACE-" plus 6 random characters
     pilot_id TEXT,                                   -- Null until approved by pilot
     station_ip TEXT,                                 -- Requesting station IP
     approved INTEGER DEFAULT 0,                      -- 0 = pending, 1 = approved

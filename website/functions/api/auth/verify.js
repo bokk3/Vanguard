@@ -16,6 +16,10 @@ import {
 } from "../_utils.js";
 import { ensureVerificationSchema } from "../_db_utils.js";
 import { verifyVerificationToken } from "../_email.js";
+import { throttleRetryAfter, recordFailure, clearFailures, tooManyAttempts } from "../_throttle.js";
+
+const CODE_WINDOW_SEC = 30 * 60;
+const MAX_CODE_FAILS = 5;
 
 export async function onRequestOptions() {
     return handleOptions();
@@ -159,10 +163,19 @@ export async function onRequestPost({ request, env }) {
             });
         }
 
+        // A 6-digit code is guessable without a limit on attempts.
+        const throttleKey = `verify:${pilot.id}`;
+        const retryAfter = await throttleRetryAfter(env.DB, throttleKey, MAX_CODE_FAILS, CODE_WINDOW_SEC);
+        if (retryAfter > 0) {
+            return tooManyAttempts(retryAfter);
+        }
+
         // Verify code match
         if (!pilot.verification_code || pilot.verification_code !== code) {
+            await recordFailure(env.DB, [throttleKey], CODE_WINDOW_SEC);
             return errorResponse("Invalid clearance code. Please re-check your dispatch email.", 400);
         }
+        await clearFailures(env.DB, throttleKey);
 
         // Verify expiration
         if (pilot.verification_expires_at) {

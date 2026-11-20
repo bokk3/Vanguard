@@ -100,8 +100,9 @@ The game works fully offline. An account is optional:
 
 1. Register in game (login dialog) or on the website with a callsign,
    password and email.
-2. Log in from the game. Websites and phones can also be paired with a
-   6-character device link code (`/api/auth/link`).
+2. Log in from the game. The server and the website's pilot page also
+   support device link codes (`/api/auth/link`), but the game doesn't
+   request one yet.
 3. `AuthManager.sync_cloud_save()` POSTs stats and progress to
    `/api/pilot/sync`, and `GET /api/pilot/sync` pulls stats, Stars and rewards
    back down.
