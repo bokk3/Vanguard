@@ -1604,11 +1604,6 @@ func rpc_fire_missile_net() -> void:
 	if is_network_remote:
 		_fire_missile()
 
-@rpc("any_peer", "call_local", "reliable")
-func rpc_take_damage_net(dmg: float, attacker_path: String) -> void:
-	var att_node = get_node_or_null(attacker_path)
-	take_damage(dmg, att_node)
-
 func _spawn_scrape_sparks(pos: Vector3, normal: Vector3) -> void:
 	if not is_inside_tree():
 		return

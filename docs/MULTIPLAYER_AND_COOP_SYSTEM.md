@@ -111,13 +111,16 @@ One player hosts (a listen server) and the others connect to them. On a LAN no p
   global_position = global_position.lerp(net_target_pos, clamp(20.0 * delta, 0.0, 1.0))
   rotation = rotation.lerp(net_target_rot, clamp(20.0 * delta, 0.0, 1.0))
   ```
-* Weapons and damage go over reliable RPCs:
+* Weapon fire goes over reliable RPCs, and each game simulates the shots
+  itself:
   - Cannon bursts: `@rpc("any_peer", "call_local", "reliable") func rpc_fire_gun_burst()`
   - Guided missile launch: `@rpc("any_peer", "call_local", "reliable") func rpc_fire_missile_net()`
-  - Damage & Destruction: `@rpc("any_peer", "call_local", "reliable") func rpc_take_damage_net(dmg, attacker_path)`
+* Kills are reported with `rpc_report_kill` in `lan_arena.gd`. There is no
+  authoritative host, so a modified client can still fake kills.
 
 ### Internet lobbies
-* Logged-in hosts publish their lobby through `/api/network/heartbeat`.
+* Hosts publish their lobby through `/api/network/heartbeat`. Logged-in hosts
+  send their token, which marks the lobby as hosted by a verified pilot.
   Clients list lobbies with `GET /api/network/lobbies`.
 * The host tries to map UDP 7777 and 7778 with UPnP. The menu shows whether
   that worked.

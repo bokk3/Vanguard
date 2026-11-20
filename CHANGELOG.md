@@ -46,6 +46,8 @@ Notable changes to Project Vanguard. The format follows
   login token is passed in the URL fragment instead of the query string, so
   it isn't sent to the server or kept in logs. The home page no longer
   accepts `?authtoken=`.
+- Removed `rpc_take_damage_net`. Nothing called it, but any connected peer
+  could use it to deal any amount of damage.
 
 ### Fixed
 - `verify.html` wasn't in the Vite build, so on the live site verification
