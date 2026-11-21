@@ -12,9 +12,14 @@ import {
     handleOptions,
     verifyPilotToken,
     createPilotToken,
+    getAuthSecret,
 } from "../_utils.js";
 import { ensureVerificationSchema } from "../_db_utils.js";
 import { verifyVerificationToken } from "../_email.js";
+import { throttleRetryAfter, recordFailure, clearFailures, tooManyAttempts } from "../_throttle.js";
+
+const CODE_WINDOW_SEC = 30 * 60;
+const MAX_CODE_FAILS = 5;
 
 export async function onRequestOptions() {
     return handleOptions();
@@ -37,10 +42,10 @@ export async function onRequestGet({ request, env }) {
         return errorResponse("Verification token is required.", 400);
     }
 
-    const payload = await verifyVerificationToken(token, env.AUTH_SECRET);
+    const payload = await verifyVerificationToken(token, getAuthSecret(env));
     if (!payload || !payload.sub) {
         // Redirect to verify page with error
-        return Response.redirect(`${url.origin}/verify.html?error=expired_or_invalid`, 302);
+        return Response.redirect(`${url.origin}/verify?error=expired_or_invalid`, 302);
     }
 
     try {
@@ -53,7 +58,16 @@ export async function onRequestGet({ request, env }) {
             .first();
 
         if (!pilot) {
-            return Response.redirect(`${url.origin}/verify.html?error=pilot_not_found`, 302);
+            return Response.redirect(`${url.origin}/verify?error=pilot_not_found`, 302);
+        }
+
+        const landing = `${url.origin}/verify?status=verified` +
+            `&callsign=${encodeURIComponent(pilot.callsign)}&rank=${encodeURIComponent(pilot.rank)}`;
+
+        // The email link stays valid for 24 hours, so only its first use logs
+        // the pilot in. Otherwise anyone who later sees the link could mint a token.
+        if (pilot.email_verified === 1) {
+            return Response.redirect(landing, 302);
         }
 
         // Mark as verified and clear temporary code
@@ -74,17 +88,15 @@ export async function onRequestGet({ request, env }) {
                 squadron: pilot.squadron,
                 email_verified: true,
             },
-            env.AUTH_SECRET
+            getAuthSecret(env)
         );
 
-        // Redirect to successful clearance confirmation landing page with session token
-        return Response.redirect(
-            `${url.origin}/verify.html?status=verified&callsign=${encodeURIComponent(pilot.callsign)}&rank=${encodeURIComponent(pilot.rank)}&email=${encodeURIComponent(pilot.email || '')}&authtoken=${encodeURIComponent(authToken)}`,
-            302
-        );
+        // The token goes in the fragment, which browsers never send to a
+        // server, so it stays out of request logs and Referer headers.
+        return Response.redirect(`${landing}#authtoken=${encodeURIComponent(authToken)}`, 302);
     } catch (err) {
         console.error("[Verify GET Error]", err);
-        return Response.redirect(`${url.origin}/verify.html?error=database_error`, 302);
+        return Response.redirect(`${url.origin}/verify?error=database_error`, 302);
     }
 }
 
@@ -115,7 +127,7 @@ export async function onRequestPost({ request, env }) {
     const authHeader = request.headers.get("Authorization");
     if (authHeader && authHeader.startsWith("Bearer ")) {
         const token = authHeader.substring(7);
-        const verifiedToken = await verifyPilotToken(token, env.AUTH_SECRET);
+        const verifiedToken = await verifyPilotToken(token, getAuthSecret(env));
         if (verifiedToken && verifiedToken.sub) {
             pilotId = verifiedToken.sub;
         }
@@ -158,10 +170,19 @@ export async function onRequestPost({ request, env }) {
             });
         }
 
+        // A 6-digit code is guessable without a limit on attempts.
+        const throttleKey = `verify:${pilot.id}`;
+        const retryAfter = await throttleRetryAfter(env.DB, throttleKey, MAX_CODE_FAILS, CODE_WINDOW_SEC);
+        if (retryAfter > 0) {
+            return tooManyAttempts(retryAfter);
+        }
+
         // Verify code match
         if (!pilot.verification_code || pilot.verification_code !== code) {
+            await recordFailure(env.DB, [throttleKey], CODE_WINDOW_SEC);
             return errorResponse("Invalid clearance code. Please re-check your dispatch email.", 400);
         }
+        await clearFailures(env.DB, throttleKey);
 
         // Verify expiration
         if (pilot.verification_expires_at) {
@@ -187,7 +208,7 @@ export async function onRequestPost({ request, env }) {
                 squadron: pilot.squadron,
                 email_verified: true,
             },
-            env.AUTH_SECRET
+            getAuthSecret(env)
         );
 
         return jsonResponse({

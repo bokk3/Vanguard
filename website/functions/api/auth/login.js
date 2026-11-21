@@ -9,7 +9,14 @@ import {
     handleOptions,
     verifyPassword,
     createPilotToken,
+    getAuthSecret,
+    clientIpOf,
 } from "../_utils.js";
+import { throttleRetryAfter, recordFailure, clearFailures, tooManyAttempts } from "../_throttle.js";
+
+const LOGIN_WINDOW_SEC = 15 * 60;
+const MAX_FAILS_PER_ACCOUNT = 10;
+const MAX_FAILS_PER_IP = 30;
 import { ensureVerificationSchema, ensureRewardSchema } from "../_db_utils.js";
 
 export async function onRequestOptions() {
@@ -43,6 +50,16 @@ export async function onRequestPost({ request, env }) {
         await ensureVerificationSchema(env.DB);
         await ensureRewardSchema(env.DB);
 
+        const idKey = `login:id:${identifier.toLowerCase()}`;
+        const ipKey = `login:ip:${clientIpOf(request)}`;
+        const retryAfter = Math.max(
+            await throttleRetryAfter(env.DB, idKey, MAX_FAILS_PER_ACCOUNT, LOGIN_WINDOW_SEC),
+            await throttleRetryAfter(env.DB, ipKey, MAX_FAILS_PER_IP, LOGIN_WINDOW_SEC),
+        );
+        if (retryAfter > 0) {
+            return tooManyAttempts(retryAfter);
+        }
+
         // Find pilot by callsign (case-insensitive) or email
         const pilot = await env.DB.prepare(
             `SELECT id, callsign, email, password_hash, salt, rank, squadron, email_verified, created_at 
@@ -54,14 +71,17 @@ export async function onRequestPost({ request, env }) {
             .first();
 
         if (!pilot) {
+            await recordFailure(env.DB, [idKey, ipKey], LOGIN_WINDOW_SEC);
             return errorResponse("Invalid flight callsign or password.", 401);
         }
 
         // Verify password hash
         const isMatch = await verifyPassword(password, pilot.salt, pilot.password_hash);
         if (!isMatch) {
+            await recordFailure(env.DB, [idKey, ipKey], LOGIN_WINDOW_SEC);
             return errorResponse("Invalid flight callsign or password.", 401);
         }
+        await clearFailures(env.DB, idKey);
 
         // Fetch pilot combat records, stars, and save_blob
         const record = await env.DB.prepare(
@@ -104,7 +124,7 @@ export async function onRequestPost({ request, env }) {
                 squadron: pilot.squadron,
                 email_verified: Boolean(pilot.email_verified),
             },
-            env.AUTH_SECRET
+            getAuthSecret(env)
         );
 
         return jsonResponse({

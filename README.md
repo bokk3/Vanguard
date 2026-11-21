@@ -1,165 +1,135 @@
 <div align="center">
 
-<img src="docs/lore/images/vanguard_squadron_patch_cropped.png" alt="404th Vanguard Strike Wing" width="160" />
+<img src="docs/lore/images/vanguard_squadron_patch_cropped.png" alt="404th Vanguard Strike Wing patch" width="160" />
 <br/>
 <img src="docs/lore/images/project_vanguard_title_cropped.png" alt="Project Vanguard" width="580" />
 
-### Autonomous Sci-Fi 3D Asset Pipeline & Combat Flight Simulator
-**Precision CAD (Fusion 360) ➔ Blender 4.2 LTS (DCC & Shading) ➔ Godot 4 & Unreal Engine 5**
-
-*"Precision in the Void. Firepower in the Envelope."*
-
-[![Release](https://img.shields.io/badge/Release-v0.9.2-00E5FF?style=for-the-badge&logo=github)](https://github.com/bokk3/Vanguard/releases)
-[![Live Portal](https://img.shields.io/badge/Live_Portal-project--vanguard.pages.dev-00E5FF?style=for-the-badge&logo=cloudflare)](https://project-vanguard.pages.dev)
-[![Scan to Fly](https://img.shields.io/badge/Mobile_HOTAS-Scan--to--Fly_QR-FF007F?style=for-the-badge&logo=pwa)](docs/ZERO_COST_INFRASTRUCTURE_AND_CONTROLLER_SPEC.md)
-[![Multiplayer](https://img.shields.io/badge/Multiplayer-Global_P2P_%7C_Split--Screen_%7C_LAN-7C4DFF?style=for-the-badge)](docs/MULTIPLAYER_AND_COOP_SYSTEM.md)
-[![Cloud Persistence](https://img.shields.io/badge/Cloud-D1_Edge_$0_Cost-00C853?style=for-the-badge&logo=sqlite)](docs/SAVE_SYSTEM_AND_PROFILES.md)
-[![Lore Bible](https://img.shields.io/badge/Lore-Ascension_War-FFB300?style=for-the-badge)](docs/lore/README.md)
+[Releases](https://github.com/bokk3/Vanguard/releases) · [Website](https://project-vanguard.pages.dev) · [Changelog](CHANGELOG.md)
 
 </div>
 
----
+# Project Vanguard
 
-## 🌟 Overview
-**Project Vanguard** is a high-octane 3D combat flight simulator and automated end-to-end game asset pipeline connecting precision hard-surface CAD engineering with real-time game engines. 
+A sci-fi combat flight game built in Godot 4, plus the CAD-to-engine asset
+pipeline used to make its ships.
 
-Pilots fly in single-player sorties across 8 tactical missions, dynamic drop-in split-screen co-op, local head-to-head 1v1 arenas, low-latency LAN dogfights, or **Global Internet P2P Lobbies** with automated router UPnP port mapping and live round-trip latency probing. In addition to physical controllers, players can join as wingmen simply by **scanning an on-screen QR code with any smartphone camera**, transforming mobile browsers into motion-steered, haptic-feedback cockpit flight sticks with zero downloads.
+Current version: **0.9.7** (see [`VERSION`](VERSION)).
 
-All player profiles, campaign saves, and verified global leaderboards run on a **$0-cost cloud infrastructure** powered by Cloudflare Pages Functions and Cloudflare D1 (serverless SQLite at the edge).
+## What's in it
 
-```mermaid
-graph LR
-    subgraph CAD [Autodesk Fusion 360]
-        F1[Parametric Sketches] --> F2[Compound 3D Lofts]
-        F2 --> F3[STEP / STL Export]
-    end
+- **Campaign:** 8 missions (M01–M08) with cutscenes between them, a debrief
+  and score screen, and three difficulty settings (Easy, Normal, Ace).
+- **Agility mode:** 8 time trials through gates and target buoys, with a ghost
+  of your best run.
+- **Multiplayer:** drop-in split-screen co-op in the campaign, a local 1v1
+  split-screen arena, LAN matches, and internet P2P lobbies listed through the
+  website API (ENet on UDP 7777, with UPnP port mapping where the router allows it).
+- **Phone as controller:** the game shows a QR code (F3). Scanning it opens
+  `/controller` on the website, which talks to the game over a local WebSocket
+  (port 8081) and gives you a touch stick, a throttle and optional gyro steering.
+- **Accounts and progression:** optional pilot accounts with cloud save sync,
+  leaderboards, a Stars currency, badges and a daily login streak. These run on
+  Cloudflare Pages Functions and D1. The game also works offline with a local
+  JSON save.
 
-    subgraph DCC [Blender 4.2 LTS]
-        B1[Bridge Server: Port 9877] --> B2[Smart UV & Custom Normals]
-        B2 --> B3[SOCKET_ Hardpoints & UCX_ Collision]
-        B3 --> B4[glTF .glb / FBX Export]
-    end
-
-    subgraph ENGINE [Godot 4 Flight Simulator]
-        G1[glTF Native Import] --> G2[Aerodynamic Lift & Stall Physics]
-        G2 --> G3[Campaign Co-Op & LAN Dogfights]
-        G3 --> G4[Local WebSocket Server: 8080]
-    end
-
-    subgraph WEB [Cloudflare Edge & Mobile Companion]
-        W1[project-vanguard.pages.dev] --> W2[Mobile Web HOTAS /controller]
-        W1 --> W3[D1 Edge SQLite Database]
-        W2 -. "Direct LAN WebSocket" .-> G4
-    end
-
-    CAD -- "Port 9876 HTTP Bridge" --> DCC
-    DCC -- "Native glTF" --> ENGINE
-    ENGINE -. "Sortie Sync ($0)" .-> W3
-```
-
----
-
-## 📚 Technical Documentation & System Specifications
-
-Comprehensive engineering and design documents are available in the [`docs/`](docs/) directory:
-
-* 🌐 **[Zero-Cost Infrastructure & Mobile Controller Spec](docs/ZERO_COST_INFRASTRUCTURE_AND_CONTROLLER_SPEC.md)**  
-  *Complete blueprint for Cloudflare D1 relational schema, Pages Functions REST APIs, and high-frequency WebSocket protocol for the "Scan-to-Fly" mobile HOTAS.*
-* 💾 **[Save System, Sovereign Profiles & Cloud Sync](docs/SAVE_SYSTEM_AND_PROFILES.md)**  
-  *Offline-first JSON serialization, HMAC-SHA256 anti-tamper sealing, pilot registration, and client-side web dossier inspector.*
-* 🛰️ **[Multiplayer, Split-Screen & Co-Op Architecture](docs/MULTIPLAYER_AND_COOP_SYSTEM.md)**  
-  *Campaign drop-in co-op, local split-screen PvP dogfighting, LAN peer-to-peer listen servers, ENet snapshot synchronization, and mobile companion pairing.*
-* 🎮 **[Tactical HUD & Combat Telemetry](docs/HUD_AND_COMBAT_SYSTEM.md)**  
-  *Compass horizon ribbon, 350m circular radar, screen-space target lock, and nitro afterburner mechanics.*
-* ✈️ **[Flight Dynamics, Gravity & Controls Guide](docs/CONTROLS_AND_PHYSICS.md)**  
-  *Aerodynamic lift equations, stall speed mechanics, 6-DOF rotational steering, AZERTY/QWERTY detection, and mobile gyro steering.*
-* 🌌 **[Worldbuilding & Lore Bible](docs/lore/README.md)**  
-  *The Ascension War chronology, Sol Orbital Directorate vs Helion Combine, 404th Vanguard Strike Wing, and diegetic aircraft dossiers.*
-* 🎯 **[Campaign Missions (01-08)](docs/lore/CAMPAIGN_MISSIONS.md)**  
-  *Detailed combat operations, AWACS dialogue, objective design, and asset feasibility matrix across all 8 campaign missions.*
-* 🛠️ **[Multi-Engine Asset Pipeline Workflow](docs/PIPELINE_WORKFLOW.md)**  
-  *Unit scale normalization rules (mm $\rightarrow$ m $\rightarrow$ cm), coordinate mapping, modular `UCX_` collision standards, and PBR material slots.*
-* 🚀 **[Weapons, Pylons & Sockets System](docs/WEAPONS_AND_SOCKETS.md)**  
-  *CAD specifications for the Vanguard Strike Missile, wing pylon geometry, and engine socket mounting patterns.*
-
----
-
-## 🏗️ Studio Directory Structure
+## Repository layout
 
 ```text
-lucid-davinci/ (Project Vanguard)
-├── assets/                       # Official Studio Asset Repository
-│   ├── cad/                      # Parametric CAD Solid Models (.step, .stl)
-│   │   ├── vehicles/             # Spaceship interceptors, strike missiles, pylons
-│   │   └── environment/          # Modular walls, doors, airlocks, docking bays
-│   ├── meshes/                   # Game-Ready Tessellated Meshes (.fbx, .glb)
-│   │   ├── vehicles/             # UV-unwrapped fighters with UCX_ collision & sockets
-│   │   └── environment/          # 200cm modular grid snap assets
-│   └── textures/                 # PBR textures (DirectX Normals, Packed ORM)
-├── docs/                         # Technical Documentation & Architecture Manuals
-│   ├── ZERO_COST_INFRASTRUCTURE_AND_CONTROLLER_SPEC.md # D1 & Mobile HOTAS Spec
-│   ├── SAVE_SYSTEM_AND_PROFILES.md# Save system, HMAC & Cloud Sync
-│   ├── MULTIPLAYER_AND_COOP_SYSTEM.md # Co-Op, LAN Arena & QR Join
-│   └── CONTROLS_AND_PHYSICS.md   # Flight dynamics & input routing
-├── godot_project/                # Godot 4.7 Combat Flight Mechanics Testbed
-│   ├── project.godot             # Project configuration (v0.9.2)
-│   ├── main.tscn                 # Campaign sortie arena with dynamic co-op join
-│   ├── split_screen_arena.tscn   # Local 1v1 PvP dogfight arena
-│   ├── lan_arena.tscn            # LAN peer-to-peer multiplayer dogfight arena
-│   ├── spaceship_controller.gd   # 6-DOF aerodynamic flight controller
-│   ├── save_manager.gd           # Offline & cloud save state manager
-│   └── network_manager.gd        # ENet multiplayer peer & UDP discovery beacons
-├── website/                      # Official Web Operations Center (Cloudflare Pages)
-│   ├── functions/api/            # Edge API (Auth, Pilot Dossier, Leaderboards)
-│   ├── src/                      # Vite 6 + Tailwind CSS frontend
-│   ├── controller.html           # "Scan-to-Fly" Mobile Web HOTAS companion
-│   └── schema.sql                # Cloudflare D1 serverless SQLite schema
-├── tools/                        # Automation & CAD Bridge Tool Suite
-│   ├── asset_factory.py          # Master end-to-end pipeline orchestrator
-│   ├── fusion_client.py          # Autodesk Fusion 360 bridge client CLI
-│   └── blender_client.py         # Blender 4.2 LTS live bridge client CLI
-└── data/                         # Studio Data, Mission Manifests & Levels
+godot_project/     The game (Godot 4.7). Entry scene: home_menu.tscn
+  test_*.gd        Headless test scripts (see "Running tests")
+website/           Vite + Tailwind site, phone controller page, and the
+                   Cloudflare Pages Functions API (functions/api/), D1 schema
+tools/             Python asset tooling: CAD pipeline, Blender/Fusion/UE5
+                   bridge clients, audio, texture and image generators
+blender_addon/     Blender bridge (HTTP server on 127.0.0.1:9877)
+fusion_addin/      Fusion 360 bridge add-in (HTTP server on 127.0.0.1:9876)
+scripts/models/    Fusion 360 scripts that generate the ship models
+scripts/unreal/    Unreal Engine helper scripts
+assets/            Source CAD, meshes, textures, staging exports
+data/              Asset and campaign manifests, level data
+docs/              Design and technical notes; docs/lore/ holds the setting
+archive/           Snapshot of older models kept for reference
 ```
 
----
+## Running the game
 
-## 🎮 Playable Flight Controls (Godot 4)
+1. Install [Godot 4.7](https://godotengine.org/download) (CI builds with 4.7.2 stable).
+2. Open `godot_project/project.godot` and press Play.
 
-Project Vanguard supports multiple simultaneous control schemes, automatically switching between **AZERTY** and **QWERTY** layouts:
+Release builds for Windows, Linux and macOS come from
+[`.github/workflows/build.yml`](.github/workflows/build.yml) on every `v*` tag.
 
-| Action | Primary (P1) | Wingman (P2 Split-Screen) | Mobile Web HOTAS (QR Scan) |
+### Default controls
+
+Keyboard defaults depend on the layout (F1 switches between them). All keys can
+be rebound in Settings.
+
+| Action | QWERTY | AZERTY | Gamepad |
 | :--- | :--- | :--- | :--- |
-| **Steering (Pitch / Roll)** | Mouse or `W`/`S` + `A`/`D` | `NumPad 8/2` + `4/6` or `I/K` + `J/L` | Virtual Thumbstick / Gyro Tilt |
-| **Throttle / Airbrake** | `Z`/`S` (AZERTY) or `W`/`S` | `Y` (Throttle) / `H` (Airbrake) | Continuous Throttle Slider |
-| **Afterburner Nitro** | `Left Shift` | `N` or `NumPad 0` | Boost Detent Button |
-| **Rudder / Yaw** | `A`/`E` (AZERTY) or `Q`/`E` | `U` (Rudder L) / `O` (Rudder R) | On-Screen Rudder Bar |
-| **Fire Machine Gun** | `Space` / Left Mouse Button | `Enter` / `NumPad Enter` or `M` | Primary Fire Trigger (Haptic) |
-| **Fire Strike Missile** | `R` / Right Mouse Button | `P` or `NumPad +` | Missile Release Button |
-| **Switch AZERTY/QWERTY**| `F1` | `F1` | Automatic |
-| **Toggle Split Layout** | `F2` (Horizontal $\leftrightarrow$ Vertical) | `F2` | Automatic |
+| Pitch | ↑ / ↓ | ↑ / ↓ | Left stick Y |
+| Roll | A / D | Q / D | Left stick X |
+| Yaw | ← / → | ← / → | LB / RB, right stick X |
+| Throttle up / down | W / S | Z / S | RT / LT |
+| Afterburner | Shift | Shift | L3 or Y |
+| Gun | F or left mouse | F or left mouse | A or R3 |
+| Missile | Space, Enter or right mouse | Space, Enter or right mouse | B |
+| Radar | R | R | X |
 
----
+Hotkeys: **F1** switches the keyboard layout, **F2** switches between
+horizontal and vertical split during co-op, and **F3** shows the phone
+controller QR code.
 
-## 📱 "Scan-to-Fly" Mobile Cockpit Companion
+Player 2 on the same keyboard uses `I/K` pitch, `J/L` roll, `U/O` yaw,
+`Y/H` throttle, `N` boost, `Enter` gun and `M` missile, or the matching numpad
+keys. The full map is in
+[`config_manager.gd`](godot_project/config_manager.gd).
 
-Friends can join local co-op or dogfights without needing a second physical controller:
-1. Start a sortie or open the LAN arena.
-2. The game displays a dynamic QR code on screen.
-3. Your friend points their phone camera at the screen and taps the link to open `https://project-vanguard.pages.dev/controller`.
-4. The mobile browser connects directly to your PC over local WiFi with **sub-5ms response time**.
-5. The phone screen turns into a sci-fi cockpit HOTAS with motion steering and haptic vibrations!
+### Running tests
 
----
+The `test_*.gd` scripts in `godot_project/` are headless `SceneTree` scripts:
 
-## 🛸 Highlight Assets
+```sh
+godot --headless --path godot_project -s test_campaign_headless.gd
+```
 
-### 1. Spaceship Sculpted V-Hull
-* **Dimensions:** Length: $10.30\text{m}$ | Wingspan: $9.78\text{m}$ | Height: $2.70\text{m}$
-* **Hull Design:** 7-Station Transverse 3D Lofting with compound V-Keel and twin-engine ventral weapons tunnel (0% flat underside).
-* **Armament:** 4x Wing Pylons equipped with Vanguard Strike Missiles.
-* **Avionics:** Dual forward projector headlights + Ventral FLIR/EOTS Diamond Targeting Pod + Faceted Canopy.
+## Website and API
 
-### 2. Vanguard Precision Strike Missile
-* **Dimensions:** Length: $2.35\text{m}$ | Body Diameter: $18\text{cm}$ | Fin Span: $53\text{cm}$
-* **Aerodynamics:** Tangent ogive radome, cruciform supersonic stabilization fins, forward canard guidance fins.
-* **Mounting:** Aerodynamic swept pylon adapter flush with wing dihedral.
+See [`website/README.md`](website/README.md) for local development and
+[`website/CLOUDFLARE_WRANGLER_GUIDE.md`](website/CLOUDFLARE_WRANGLER_GUIDE.md)
+for deploying to Cloudflare Pages. The D1 schema is in
+[`website/schema.sql`](website/schema.sql).
+
+Run `npm run setup-hooks` in `website/` to enable the repo's git hooks. They
+build the website before commits that touch `website/` and before every push.
+
+## Asset pipeline
+
+Ships are modeled as parametric CAD in Fusion 360, cleaned up in Blender
+(UVs, `SOCKET_` hardpoints, `UCX_` collision), and exported as glTF for Godot
+or FBX for Unreal. The bridges let the Python tools in `tools/` run scripts
+inside each application:
+
+```sh
+python tools/fusion_client.py --ping
+python tools/fusion_client.py --file scripts/models/spaceship_v_hull_sculpted.py
+python tools/blender_client.py --file tools/mount_weapons_blender.py
+```
+
+Scripts resolve paths relative to the repo. Set `VANGUARD_ROOT` if you run them
+from somewhere else, and `BLENDER_EXE` if Blender isn't on your `PATH`. Details
+are in [`docs/PIPELINE_WORKFLOW.md`](docs/PIPELINE_WORKFLOW.md) and
+[`docs/ASSET_GENERATION_AND_MISSION_SPECIFICATION.md`](docs/ASSET_GENERATION_AND_MISSION_SPECIFICATION.md).
+
+## Documentation
+
+| Topic | Document |
+| :--- | :--- |
+| Flight model and input | [CONTROLS_AND_PHYSICS.md](docs/CONTROLS_AND_PHYSICS.md) |
+| HUD, radar, targeting | [HUD_AND_COMBAT_SYSTEM.md](docs/HUD_AND_COMBAT_SYSTEM.md) |
+| Weapons and sockets | [WEAPONS_AND_SOCKETS.md](docs/WEAPONS_AND_SOCKETS.md) |
+| Multiplayer and co-op | [MULTIPLAYER_AND_COOP_SYSTEM.md](docs/MULTIPLAYER_AND_COOP_SYSTEM.md) |
+| Saves, profiles, cloud sync | [SAVE_SYSTEM_AND_PROFILES.md](docs/SAVE_SYSTEM_AND_PROFILES.md) |
+| Backend and phone controller | [ZERO_COST_INFRASTRUCTURE_AND_CONTROLLER_SPEC.md](docs/ZERO_COST_INFRASTRUCTURE_AND_CONTROLLER_SPEC.md) |
+| Asset pipeline | [PIPELINE_WORKFLOW.md](docs/PIPELINE_WORKFLOW.md) |
+| Feature list and UE5 port notes | [FEATURE_LIST_AND_UE5_PORT_GUIDE.md](docs/FEATURE_LIST_AND_UE5_PORT_GUIDE.md) |
+| Setting, factions, missions | [docs/lore/](docs/lore/README.md) |

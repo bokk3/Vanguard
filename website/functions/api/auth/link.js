@@ -10,17 +10,23 @@ import {
     handleOptions,
     getAuthenticatedPilot,
     createPilotToken,
+    getAuthSecret,
+    clientIpOf,
 } from "../_utils.js";
 
 export async function onRequestOptions() {
     return handleOptions();
 }
 
+// 32 symbols without the ambiguous I, O, 0 and 1, so each byte maps evenly.
+const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const CODE_LENGTH = 6;
+
 function generateCode() {
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Removed ambiguous I, O, 0, 1
+    const bytes = crypto.getRandomValues(new Uint8Array(CODE_LENGTH));
     let code = "ACE-";
-    for (let i = 0; i < 3; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    for (const b of bytes) {
+        code += CODE_CHARS[b % CODE_CHARS.length];
     }
     return code;
 }
@@ -39,7 +45,7 @@ export async function onRequestGet({ request, env }) {
 
     try {
         const link = await env.DB.prepare(
-            `SELECT link_code, pilot_id, approved, token, expires_at 
+            `SELECT link_code, pilot_id, station_ip, approved, token, expires_at 
              FROM device_links 
              WHERE link_code = ? 
              LIMIT 1`
@@ -57,6 +63,12 @@ export async function onRequestGet({ request, env }) {
         if (now > expiresAt) {
             await env.DB.prepare("DELETE FROM device_links WHERE link_code = ?").bind(code).run();
             return jsonResponse({ success: false, status: "expired" }, 410);
+        }
+
+        // Only the station that asked for the code can collect the token, so
+        // guessing or reading someone else's code over their shoulder isn't enough.
+        if (link.station_ip && link.station_ip !== clientIpOf(request)) {
+            return errorResponse("Link session not found or expired.", 404);
         }
 
         if (link.approved === 1 && link.token) {
@@ -99,10 +111,10 @@ export async function onRequestPost({ request, env }) {
             const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
 
             await env.DB.prepare(
-                `INSERT INTO device_links (link_code, approved, expires_at) 
-                 VALUES (?, 0, ?)`
+                `INSERT INTO device_links (link_code, station_ip, approved, expires_at) 
+                 VALUES (?, ?, 0, ?)`
             )
-                .bind(linkCode, expiresAt)
+                .bind(linkCode, clientIpOf(request), expiresAt)
                 .run();
 
             return jsonResponse(
@@ -162,7 +174,7 @@ export async function onRequestPost({ request, env }) {
                     rank: auth.rank,
                     device: "game_station",
                 },
-                env.AUTH_SECRET,
+                getAuthSecret(env),
                 86400 * 90 // 90 days validity on game station
             );
 

@@ -1,10 +1,10 @@
-# 🎯 Project Vanguard: 4-Mission Campaign Plan
+# Chapter 1: Missions 01–04
 
-A fully realized, production-ready mission campaign designed around **strictly existing and parametrically generated assets**. Every airframe, weapon, HUD element, and environment structure references real models, scripts, and shaders already present in the Vanguard repository.
+Mission design for Chapter 1. Every mission was planned around assets that already existed in the repo when it was written. Chapter 2 (M05–M08) is in [CAMPAIGN_CHAPTER_2.md](CAMPAIGN_CHAPTER_2.md).
 
 ---
 
-## 🗺️ Campaign Architecture & Asset Feasibility Matrix
+## Mission Flow and Asset Sources
 
 ```mermaid
 graph LR
@@ -13,9 +13,9 @@ graph LR
     M3 --> M4[Mission 04: Operation STRATOSPHERE ZERO<br/>High-Apogee Ace Interception]
 ```
 
-### Studio Asset Feasibility Guarantee
+### Assets used
 
-| Asset Required | Source in Repository | Production Status |
+| Asset | Source | Status (at time of writing) |
 | :--- | :--- | :--- |
 | **Player Interceptor** | `godot_project/Spaceship_Sculpted_V_Hull.glb` | **Ready** (Rigged, Collisions, Sockets, PBR Materials) |
 | **Strike Missile** | `godot_project/Vanguard_Strike_Missile.fbx` | **Ready** (4x Pylons mounted on fighter) |
@@ -23,12 +23,12 @@ graph LR
 | **Enemy Drone Swarm** | `godot_project/target_drone.gd` | **Ready** (6-DOF evasion AI, hitboxes, radar blips) |
 | **Enemy Ace Boss** | `assets/meshes/vehicles/Spaceship_Viper_Supreme_HD.fbx` with Crimson PBR override | **Ready** (Uses existing airframe in adversary livery) |
 | **Ground Jamming Relays** | `assets/meshes/environment/Modular_SciFi_Wall_01_game_ready.fbx` + Panels | **Ready** (Modular 200cm snap assets assembled into antenna towers) |
-| **Skyboxes & Atmospheres**| Godot 4 `ProceduralSkyMaterial` presets (Overcast, Dusk, Stratosphere) | **Ready** (Pure engine shaders, zero download cost) |
+| **Skyboxes & Atmospheres**| Godot 4 `ProceduralSkyMaterial` presets (Overcast, Dusk, Stratosphere) | **Ready** (built-in engine sky) |
 | **Combat Telemetry & HUD** | `godot_project/hud.gd` + `godot_project/combat_telemetry.gd` | **Ready** (Radar, Compass tape, Lock brackets, Shield/Hull vitals) |
 
 ---
 
-## ⚡ Mission 01: Operation "CLOUDBURST"
+## Mission 01: Operation "CLOUDBURST"
 
 ```text
 THEATER: Sub-Cloud Interception Sector 07 (Ascension Outpost Apex-Zero)
@@ -61,7 +61,7 @@ At dawn, sensor arrays at high-altitude launch base *Apex-Zero* detect unauthori
 
 ---
 
-## ⚡ Mission 02: Operation "IRON CANYON"
+## Mission 02: Operation "IRON CANYON"
 
 ```text
 THEATER: The Red Sinks (Canyon Rift Complex, Sector 12)
@@ -93,7 +93,7 @@ The reconnaissance drones from Mission 01 successfully deployed ground-based jam
 
 ---
 
-## ⚡ Mission 03: Operation "APEX LIFTOFF"
+## Mission 03: Operation "APEX LIFTOFF"
 
 ```text
 THEATER: Equatorial Ascension Catapult Corridor
@@ -128,7 +128,7 @@ The heavy orbital transport *Olympus-4*—carrying key satellite navigation core
 
 ---
 
-## ⚡ Mission 04: Operation "STRATOSPHERE ZERO"
+## Mission 04: Operation "STRATOSPHERE ZERO"
 
 ```text
 THEATER: The Karman Boundary (Altitude: 42,000m - 55,000m)
@@ -164,7 +164,7 @@ Following the failed ambush on *Olympus-4*, telemetry traces reveal the swarm's 
 
 ---
 
-## 🗂️ Campaign Progression Summary
+## Campaign Progression Summary
 
 | Mission | Name | Key Mechanics Learned | Primary Environment | Primary Threat |
 | :--- | :--- | :--- | :--- | :--- |

@@ -1938,7 +1938,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // ============================================================================
   // Live Fleet Radar & Operational Presence Engine
   // ============================================================================
-  const webSessionId = "web-" + Math.random().toString(36).substring(2, 10);
+  const webSessionId = "web-" + crypto.randomUUID();
 
   async function fetchNetworkStats() {
     try {
@@ -1949,7 +1949,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const onlineCount = data.online_pilots || 1;
       const lobbyCount = data.active_lobbies || 0;
-      const rosterCount = (data.registered_pilots || 1420).toLocaleString();
+      const rosterCount = (data.registered_pilots ?? 0).toLocaleString();
 
       // Top Ticker Elements
       const tickerOnline = document.getElementById('ticker-online-pilots');
@@ -1974,22 +1974,24 @@ document.addEventListener('DOMContentLoaded', () => {
   async function sendWebHeartbeat() {
     try {
       let callsign = 'WEB-PILOT';
-      let pilotId = null;
       try {
         const profile = JSON.parse(localStorage.getItem('vanguard_pilot_profile') || '{}');
         if (profile.callsign) callsign = profile.callsign;
-        if (profile.id) pilotId = profile.id;
       } catch {
         // Fallback default
       }
 
+      // The server takes the pilot ID from the token, not the body.
+      const headers = { 'Content-Type': 'application/json' };
+      const token = localStorage.getItem('vanguard_pilot_token');
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       await fetch('/api/network/heartbeat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           session_id: webSessionId,
           callsign: callsign,
-          pilot_id: pilotId,
           session_type: 'PILOT',
           metadata: { client: 'website_portal' }
         })
@@ -2070,12 +2072,17 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchLeaderboard(currentLeaderboardCategory);
   }
 
+  // Leaderboard fields come from other players, so escape them before they go into innerHTML.
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
   async function fetchLeaderboard(category) {
     if (!lbTbody) return;
     lbTbody.innerHTML = `
       <tr>
         <td colspan="7" class="py-12 text-center text-slate-400 font-mono text-xs animate-pulse">
-          <span class="inline-block mr-2">⚡</span> QUERYING CLOUDFLARE D1 FLEET ARCHIVES [CAT: ${category.toUpperCase()}]...
+          <span class="inline-block mr-2">⚡</span> QUERYING CLOUDFLARE D1 FLEET ARCHIVES [CAT: ${escapeHtml(category.toUpperCase())}]...
         </td>
       </tr>
     `;
@@ -2227,14 +2234,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const score = (entry.score || entry.total_score || 0).toLocaleString();
         const kills = (entry.total_kills || entry.kills || 0).toLocaleString();
         const sorties = (entry.total_sorties || entry.sorties || 0).toLocaleString();
-        const callsignMarkup = isCurrentPilot ? `${entry.callsign} <span class="text-[10px] text-vanguard-gold font-bold ml-1">(YOU)</span>` : (entry.callsign || 'PILOT');
+        const callsignMarkup = isCurrentPilot ? `${escapeHtml(entry.callsign)} <span class="text-[10px] text-vanguard-gold font-bold ml-1">(YOU)</span>` : escapeHtml(entry.callsign || 'PILOT');
 
         return `
           <tr class="${rowClass}">
             <td class="py-3 px-4 font-bold ${rankNum <= 3 ? 'text-vanguard-gold' : 'text-slate-400'}">${rankBadge}</td>
-            <td class="py-3 px-4 text-slate-200">${entry.pilot || entry.rank_title || 'LIEUTENANT'}</td>
+            <td class="py-3 px-4 text-slate-200">${escapeHtml(entry.pilot || entry.rank_title || 'LIEUTENANT')}</td>
             <td class="py-3 px-4 text-vanguard-cyan font-bold">${callsignMarkup}</td>
-            <td class="py-3 px-4 text-slate-400 text-[11px]">${entry.squadron || '404th Vanguard Wing'}</td>
+            <td class="py-3 px-4 text-slate-400 text-[11px]">${escapeHtml(entry.squadron || '404th Vanguard Wing')}</td>
             <td class="py-3 px-4 text-center text-amber-300">${sorties}</td>
             <td class="py-3 px-4 text-center text-emerald-300">${kills}</td>
             <td class="py-3 px-4 text-right text-vanguard-cyan font-bold">${score}</td>
@@ -2246,7 +2253,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const mins = Math.floor(durationSec / 60);
         const secs = (durationSec % 60).toFixed(1);
         const timeFormatted = durationSec > 0 ? `${mins}m ${secs < 10 ? '0' : ''}${secs}s` : '--';
-        const callsignMarkup = isCurrentPilot ? `${entry.callsign} <span class="text-[10px] text-vanguard-gold font-bold ml-1">(YOU)</span>` : (entry.callsign || 'PILOT');
+        const callsignMarkup = isCurrentPilot ? `${escapeHtml(entry.callsign)} <span class="text-[10px] text-vanguard-gold font-bold ml-1">(YOU)</span>` : escapeHtml(entry.callsign || 'PILOT');
         const diff = entry.difficulty || 'REGULAR';
         const dateStr = entry.date ? new Date(entry.date).toLocaleDateString() : 'RECENT';
 
@@ -2254,10 +2261,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <tr class="${rowClass}">
             <td class="py-3 px-4 font-bold ${rankNum <= 3 ? 'text-vanguard-gold' : 'text-slate-400'}">${rankBadge}</td>
             <td class="py-3 px-4 text-vanguard-cyan font-bold">${callsignMarkup}</td>
-            <td class="py-3 px-4 text-slate-400 text-[11px]">${entry.squadron || '404th Vanguard Wing'}</td>
+            <td class="py-3 px-4 text-slate-400 text-[11px]">${escapeHtml(entry.squadron || '404th Vanguard Wing')}</td>
             <td class="py-3 px-4 text-right text-vanguard-cyan font-bold">${score}</td>
             <td class="py-3 px-4 text-center text-amber-300">${timeFormatted}</td>
-            <td class="py-3 px-4 text-center"><span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">${diff}</span></td>
+            <td class="py-3 px-4 text-center"><span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">${escapeHtml(diff)}</span></td>
             <td class="py-3 px-4 text-right text-slate-500 text-[11px]">${dateStr}</td>
           </tr>
         `;
@@ -2297,23 +2304,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Tactical Deep Link & Verification Auto-Login Resolver
   const urlParams = new URLSearchParams(window.location.search);
   const actionParam = urlParams.get('action');
-  const authtokenParam = urlParams.get('authtoken');
 
-  if (authtokenParam) {
-    localStorage.setItem('vanguard_pilot_token', authtokenParam);
-    const callsignParam = urlParams.get('callsign');
-    const rankParam = urlParams.get('rank');
-    const emailParam = urlParams.get('email');
-    try {
-      const existing = JSON.parse(localStorage.getItem('vanguard_pilot_profile') || '{}');
-      if (callsignParam) existing.callsign = callsignParam;
-      if (rankParam) existing.rank = rankParam;
-      if (emailParam) existing.email = emailParam;
-      existing.email_verified = 1;
-      localStorage.setItem('vanguard_pilot_profile', JSON.stringify(existing));
-    } catch {}
-    updateAuthUI();
-    syncStatsFromCloud(false);
+  // Older verification links passed ?authtoken= here. Logging in from a URL
+  // lets a link sign someone into another account, so just strip it.
+  if (urlParams.has('authtoken')) {
+    urlParams.delete('authtoken');
+    const rest = urlParams.toString();
+    history.replaceState(null, '', window.location.pathname + (rest ? `?${rest}` : '') + window.location.hash);
   }
 
   const isMobile = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;

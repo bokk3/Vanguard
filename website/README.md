@@ -1,96 +1,74 @@
-# Project Vanguard Web Portal 🚀🌐
+# Project Vanguard website
 
-Official web application, pilot operations center, and mobile flight companion for **Project Vanguard**, hosted globally on **Cloudflare Pages**.
+The site at <https://project-vanguard.pages.dev>. It contains:
 
-* **Live Production Portal**: [`https://project-vanguard.pages.dev`](https://project-vanguard.pages.dev)
-* **Status**: Combat Ready (v0.8.0)
-* **Architecture**: Vite 6 + Tailwind CSS + Cloudflare Pages Functions + Cloudflare D1 (Serverless SQLite)
+- **Landing page** (`index.html`, `src/main.js`): missions, downloads (pulled
+  from the latest GitHub release), leaderboards, pilot login and rewards.
+- **Phone controller** (`controller.html`, `src/controller.js`): the page the
+  in-game QR code opens. See
+  [`docs/ZERO_COST_INFRASTRUCTURE_AND_CONTROLLER_SPEC.md`](../docs/ZERO_COST_INFRASTRUCTURE_AND_CONTROLLER_SPEC.md).
+- **Email verification page** (`verify.html`).
+- **API** (`functions/api/`): Cloudflare Pages Functions backed by D1. Covers
+  auth, sync, leaderboards, lobbies, presence and rewards.
 
----
+Built with Vite 6 and Tailwind CSS 3.
 
-## 🌟 Core Modules
+## Local development
 
-### 1. Tactical Flight Operations Portal (`/`)
-* **Mission Recon Dossier**: Interactive orbital recon cards, theater briefings, and combat directives for all 8 campaign missions.
-* **Release Synchronization**: Auto-syncs latest release tags, changelogs, and binary downloads directly from GitHub (`bokk3/Vanguard`) with client-side caching.
-* **HUD Audio Synthesizer**: Zero-dependency Web Audio API procedural sound effects (radar lock blips, weapon charge, comms clicks).
-* **Save File Dossier Inspector**: Client-side drag-and-drop tool that parses `vanguard_savegame.json` using the browser's `FileReader` API (100% free, 0 server compute).
-
-### 2. "Scan-to-Fly" Mobile Web Controller (`/controller`)
-* **Zero-Download Phone HOTAS**: Any smartphone camera scanning an in-game QR code instantly launches the controller.
-* **Touch & Gyroscope Flight**: Dual virtual thumbstick, continuous throttle slider, and optional `DeviceOrientationEvent` gyroscope tilt steering.
-* **Tactile Haptic Feedback**: Vibrates phone hardware (`navigator.vibrate`) upon photon laser discharge and missile lock-on.
-* **Direct LAN WebSocket Bridge**: Connects directly to the host PC (`ws://<local_ip>:8080`) for sub-5ms control latency.
-
-### 3. Sovereign Pilot Cloud Backend (`/functions/api/`)
-* **$0 Infrastructure Cost**: Leverages Cloudflare Pages Functions and Cloudflare D1 (edge SQLite) with 5,000,000 reads/day and 100,000 writes/day free.
-* **Pilot Authentication**: PBKDF2 password hashing, secure token generation, and device QR link authorization.
-* **Verified Leaderboards**: Global mission rankings with client-side cryptographic HMAC validation.
-
----
-
-## 🚀 Local Development
-
-```bash
-# 1. Navigate to website directory
+```sh
 cd website
-
-# 2. Install dependencies
 npm install
-
-# 3. Start local development server with Vite HMR
-npm run dev
-
-# 4. Compile static production build
-npm run build
-
-# 5. Preview production build locally
-npm run preview
+npm run dev        # Vite dev server
+npm run build      # production build into dist/, plus the standalone controller
+npm run preview    # serve dist/
 ```
 
----
+`npm run build` also runs `scripts/bundle-standalone-controller.js`, which
+inlines the controller into a single HTML file. The game serves that copy
+itself on port 8080.
 
-## ☁️ Cloudflare Pages & D1 Deployment
+To run the API locally against a local D1, copy `.dev.vars.example` to
+`.dev.vars` (git-ignored), fill in `AUTH_SECRET`, then:
 
-### Cloudflare Pages Git Integration
-1. Cloudflare Pages is connected to `bokk3/Vanguard` on branch `main`.
-2. Every push automatically triggers a build (`npm run build`, output: `dist`).
-3. Pages Functions inside `functions/` are automatically packaged into edge Workers.
-
-### Managing D1 Database via Wrangler
-```bash
-# Authenticate Wrangler with Cloudflare
-npx wrangler login
-
-# Create D1 database for Project Vanguard
-npx wrangler d1 create vanguard-db
-
-# Execute schema migration on production D1
-npx wrangler d1 execute vanguard-db --file=./schema.sql
+```sh
+npx wrangler d1 execute vanguard-db --local --file=./schema.sql
+npx wrangler pages dev dist
 ```
 
----
+## Configuration
 
-## 📁 Repository Structure
+`wrangler.toml` defines the D1 binding (`DB`) and plain vars. The functions
+also read:
+
+| Variable | Used for |
+| :--- | :--- |
+| `AUTH_SECRET` | Signing login and email tokens. At least 32 random characters, set as a secret (`npx wrangler pages secret put AUTH_SECRET`). Auth requests fail with a server error if it's missing |
+| `BREVO_API_KEY` | Sending verification emails |
+| `DIAG_TOKEN` | Optional secret (16+ characters) that enables `/api/diag`. Leave unset to keep it off |
+| `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME` | Email sender |
+
+## Deployment
+
+Cloudflare Pages builds `main` from `bokk3/Vanguard` (`npm run build`, output
+`dist`). The `functions/` directory deploys as Pages Functions. For manual
+deploys and the D1 setup, see
+[`CLOUDFLARE_WRANGLER_GUIDE.md`](CLOUDFLARE_WRANGLER_GUIDE.md).
+
+The GitHub workflow [`.github/workflows/website.yml`](../.github/workflows/website.yml)
+builds the site on pushes and pull requests to catch build errors. It doesn't
+deploy.
+
+## Layout
 
 ```text
 website/
-├── functions/                    # Cloudflare Pages Serverless API Functions
-│   └── api/                      # Edge REST endpoints
-│       ├── auth/                 # /api/auth (register, login, link)
-│       ├── pilot/                # /api/pilot (profile, savegame sync)
-│       └── leaderboard/          # /api/leaderboard (top sorties)
-├── public/                       # Static public assets
-│   ├── _headers                  # Security headers & cache control
-│   └── images/                   # High-res blueprints & mission recon cards
-├── src/                          # Frontend source code
-│   ├── main.js                   # Landing page logic & GitHub API sync
-│   ├── missions.js               # Structured campaign mission metadata
-│   ├── controller.js             # Mobile HOTAS touch/gyro controller engine
-│   └── style.css                 # Tailwind CSS directives & HUD theme
-├── index.html                    # Tactical operations landing page
-├── controller.html               # Mobile HOTAS cockpit web companion
-├── schema.sql                    # Cloudflare D1 database schema
-├── wrangler.toml                 # Cloudflare Wrangler configuration
-└── vite.config.js                # Vite 6 bundler configuration
+├── functions/api/   Pages Functions (auth, pilot, leaderboard, network, diag)
+├── public/          Static files copied as-is (_headers, images, audio, video)
+├── scripts/         Build helpers
+├── src/             main.js, missions.js, controller.js, style.css
+├── index.html       Landing page
+├── controller.html  Phone controller
+├── verify.html      Email verification landing page
+├── schema.sql       D1 schema
+└── wrangler.toml    Cloudflare config
 ```

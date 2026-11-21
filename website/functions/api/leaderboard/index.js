@@ -152,8 +152,12 @@ export async function onRequestPost({ request, env }) {
         return errorResponse("Database binding (DB) is not configured.", 500);
     }
 
-    // Optional authentication: authenticated pilots link directly to their profile
+    // Only logged-in pilots can submit, so the callsign comes from the token
+    // and was validated at registration.
     const auth = await getAuthenticatedPilot(request, env);
+    if (!auth) {
+        return errorResponse("Unauthorized: log in to submit a score.", 401);
+    }
 
     let body;
     try {
@@ -162,19 +166,25 @@ export async function onRequestPost({ request, env }) {
         return errorResponse("Invalid JSON payload.", 400);
     }
 
-    const missionId = (body.mission_id || "M01").toUpperCase();
-    const callsign = (auth ? auth.callsign : (body.callsign || "VANGUARD-PILOT")).trim().toUpperCase();
-    const pilotId = auth ? auth.sub : "guest";
+    const missionId = String(body.mission_id || "M01").trim().toUpperCase();
+    if (!/^M\d{2}$/.test(missionId)) {
+        return errorResponse("Invalid mission_id.", 400);
+    }
+    const callsign = String(auth.callsign).toUpperCase();
+    const pilotId = auth.sub;
     const score = parseInt(body.score, 10);
     const completionTime = parseFloat(body.completion_time_sec || body.completion_time);
-    const accuracy = Math.min(Math.max(parseFloat(body.accuracy_pct || 0.0), 0.0), 100.0);
-    const ghostKey = body.ghost_r2_key || null;
+    const rawAccuracy = parseFloat(body.accuracy_pct);
+    const accuracy = Number.isFinite(rawAccuracy) ? Math.min(Math.max(rawAccuracy, 0.0), 100.0) : 0.0;
+    const ghostKey = typeof body.ghost_r2_key === "string" && /^[A-Za-z0-9/_.-]{1,128}$/.test(body.ghost_r2_key)
+        ? body.ghost_r2_key
+        : null;
 
     // Sanity / Heuristic Checks (Anti-Cheat baseline)
     if (isNaN(score) || score <= 0 || score > 2000000) {
         return errorResponse("Invalid score value.", 400);
     }
-    if (isNaN(completionTime) || completionTime < 5.0) {
+    if (!Number.isFinite(completionTime) || completionTime < 5.0 || completionTime > 86400) {
         return errorResponse("Sortie completion time is impossibly low.", 400);
     }
 
@@ -198,8 +208,8 @@ export async function onRequestPost({ request, env }) {
 
         const currentRank = (rankQuery ? rankQuery.better_count : 0) + 1;
 
-        // If authenticated, also bump their total sorties
-        if (auth) {
+        // Also bump their total sorties
+        {
             await env.DB.prepare(
                 `UPDATE pilot_records 
                  SET total_sorties = total_sorties + 1, updated_at = CURRENT_TIMESTAMP 

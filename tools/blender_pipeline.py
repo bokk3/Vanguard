@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Blender Pipeline Automation Tool for Antigravity & Unreal Engine 5.
+Blender pipeline automation for Project Vanguard and Unreal Engine 5.
 Automates mesh import from Fusion 360, UV unwrapping, LOD generation,
 collision hull creation, and game-ready FBX export.
 """
@@ -157,7 +157,7 @@ def process_asset(input_file, output_file=None, uv=True, lods=False, collision=T
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Antigravity Blender Automation Pipeline")
+    parser = argparse.ArgumentParser(description="Vanguard Blender automation pipeline")
     parser.add_argument("--input", "-i", required=True, help="Input mesh file (OBJ, STL, FBX)")
     parser.add_argument("--output", "-o", help="Output FBX path for UE5")
     parser.add_argument("--no-uv", action="store_true", help="Skip automatic UV unwrapping")

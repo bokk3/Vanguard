@@ -4,10 +4,11 @@ pages_build_output_dir = "dist"
 
 [vars]
 ENVIRONMENT = "production"
-VERSION = "0.9.3"
+VERSION = "0.9.7"
 GAME_TITLE = "Project Vanguard"
 REPOSITORY = "https://github.com/bokk3/Vanguard"
-AUTH_SECRET = "vanguard-strike-wing-404th-secret-key-2026"
+# Secrets (AUTH_SECRET, BREVO_API_KEY) are not set here. Use
+# `npx wrangler pages secret put <NAME>` for production and .dev.vars locally.
 
 [[d1_databases]]
 binding = "DB"

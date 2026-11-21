@@ -167,7 +167,8 @@ export async function onRequestPost({ request, env }) {
         const sorties = parseInt(payload.total_sorties, 10) || 0;
         const kills = parseInt(payload.total_kills, 10) || 0;
         const flightTime = parseFloat(payload.total_flight_time_sec) || 0.0;
-        const highestMission = (payload.highest_mission_unlocked || "M01").trim();
+        const rawMission = String(payload.highest_mission_unlocked || "M01").trim().toUpperCase();
+        const highestMission = /^M\d{2}$/.test(rawMission) ? rawMission : "M01";
 
         await env.DB.prepare(
             `INSERT INTO pilot_records (
@@ -177,8 +178,8 @@ export async function onRequestPost({ request, env }) {
             ON CONFLICT(pilot_id) DO UPDATE SET
                 total_sorties = MAX(total_sorties, excluded.total_sorties),
                 total_kills = MAX(total_kills, excluded.total_kills),
-                total_flight_time_sec = total_flight_time_sec + excluded.total_flight_time_sec,
-                highest_mission_unlocked = excluded.highest_mission_unlocked,
+                total_flight_time_sec = MAX(total_flight_time_sec, excluded.total_flight_time_sec),
+                highest_mission_unlocked = MAX(COALESCE(highest_mission_unlocked, 'M01'), excluded.highest_mission_unlocked),
                 stars = excluded.stars,
                 save_blob = excluded.save_blob,
                 checksum_sha256 = COALESCE(excluded.checksum_sha256, checksum_sha256),

@@ -20,7 +20,8 @@ export function generateVerificationCode() {
 /**
  * Creates an HMAC-SHA256 signed stateless verification token (24-hour expiration)
  */
-export async function createVerificationToken(pilotId, email, secret = "vanguard-strike-wing-404th-secret-key-2026") {
+export async function createVerificationToken(pilotId, email, secret) {
+    if (!secret) throw new Error("createVerificationToken: secret is required");
     const expiresAt = Math.floor(Date.now() / 1000) + 86400; // 24 hours
     const payload = JSON.stringify({ sub: pilotId, email, exp: expiresAt });
     const encodedPayload = btoa(payload).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
@@ -46,7 +47,8 @@ export async function createVerificationToken(pilotId, email, secret = "vanguard
 /**
  * Verifies an HMAC-SHA256 signed verification token
  */
-export async function verifyVerificationToken(token, secret = "vanguard-strike-wing-404th-secret-key-2026") {
+export async function verifyVerificationToken(token, secret) {
+    if (!secret) throw new Error("verifyVerificationToken: secret is required");
     if (!token || typeof token !== "string") return null;
     const parts = token.split(".");
     if (parts.length !== 2) return null;

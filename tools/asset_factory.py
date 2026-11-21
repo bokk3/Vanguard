@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Unified Asset Factory for Antigravity Game Studio.
+Unified asset factory for Project Vanguard.
 Orchestrates the complete pipeline: Fusion 360 -> Blender -> UE5 -> Manifest.
 """
 
@@ -93,7 +93,7 @@ class AssetFactory:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Antigravity Unified Asset Factory")
+    parser = argparse.ArgumentParser(description="Vanguard unified asset factory")
     parser.add_argument("--name", "-n", required=True, help="Asset name (e.g. Modular_Door_01)")
     parser.add_argument("--mesh", "-m", help="Path to raw input mesh (OBJ, STL, FBX)")
     parser.add_argument("--step", help="Path to original STEP CAD file (optional)")

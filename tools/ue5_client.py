@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Unreal Engine 5 Remote Execution Client & Script Generator.
-Enables Antigravity to communicate with a running Unreal Editor instance via Python Remote Execution,
+Lets the Vanguard tools communicate with a running Unreal Editor instance via Python Remote Execution,
 or generate turnkey Python scripts for asset importing, Nanite configuration, and level assembly.
 """
 

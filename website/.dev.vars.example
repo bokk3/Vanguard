@@ -1,0 +1,6 @@
+# Copy to .dev.vars for `npx wrangler pages dev`. Never commit .dev.vars.
+# Generate a secret with: node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+AUTH_SECRET=
+BREVO_API_KEY=
+# Optional: enables /api/diag for requests that send "Authorization: Bearer <DIAG_TOKEN>"
+DIAG_TOKEN=

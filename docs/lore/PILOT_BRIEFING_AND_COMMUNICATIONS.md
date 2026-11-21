@@ -1,4 +1,4 @@
-# 📻 Pilot Briefing, Avionics & Brevity Protocol
+# Pilot Briefing, Avionics & Brevity Protocol
 
 Standard operating procedure for the 404th Vanguard Strike Wing. Matches the diegetic HUD and combat telemetry systems in-game.
 
@@ -48,7 +48,7 @@ The onboard flight computer utilizes an authoritative, calm synthetic voice (oft
 
 ## 4. Local Vocal Generation Pipeline (Zero Cloud Cost)
 
-All mission dialogue, AWACS comms, and cockpit AI voice lines are generated via local automation using [`tools/generate_vocals.py`](file:///c:/Users/Boris/Documents/antigravity/lucid-davinci/tools/generate_vocals.py).
+All mission dialogue, AWACS comms, and cockpit AI voice lines are generated via local automation using [`tools/generate_vocals.py`](../../tools/generate_vocals.py).
 
 ### Voice Cast Manifest
 | Character | Role | Voice Profile | Technical Parameters |

@@ -4,12 +4,64 @@
  * Zero external npm dependencies — runs natively in Cloudflare Workers / Pages runtime.
  */
 
-const DEFAULT_AUTH_SECRET = "vanguard-strike-wing-404th-secret-key-2026";
 const PBKDF2_ITERATIONS = 100000;
+
+// ============================================================================
+// 0. Token Signing Secret
+// ============================================================================
+
+// AUTH_SECRET signs login and email-verification tokens. It must be set as a
+// Pages secret (`npx wrangler pages secret put AUTH_SECRET`), never in
+// wrangler.toml or in code. The value below was committed to the repo in the
+// past, so anyone could forge tokens with it; it is refused outright.
+const LEAKED_AUTH_SECRETS = new Set(["vanguard-strike-wing-404th-secret-key-2026"]);
+const MIN_AUTH_SECRET_LENGTH = 32;
+
+export class AuthConfigError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = "AuthConfigError";
+    }
+}
+
+/**
+ * Returns env.AUTH_SECRET, or throws AuthConfigError if it is missing, shorter
+ * than 32 characters, or a known leaked value. Auth fails closed.
+ */
+export function getAuthSecret(env) {
+    const secret = env ? env.AUTH_SECRET : undefined;
+    if (typeof secret !== "string" || secret.length < MIN_AUTH_SECRET_LENGTH) {
+        throw new AuthConfigError(
+            `AUTH_SECRET is not configured (needs at least ${MIN_AUTH_SECRET_LENGTH} characters). ` +
+            "Set it with `npx wrangler pages secret put AUTH_SECRET`."
+        );
+    }
+    if (LEAKED_AUTH_SECRETS.has(secret)) {
+        throw new AuthConfigError("AUTH_SECRET is set to a value that was published in the repo. Rotate it.");
+    }
+    return secret;
+}
+
+function requireSecret(secret) {
+    if (typeof secret !== "string" || secret.length === 0) {
+        throw new AuthConfigError("Token signing secret was not provided.");
+    }
+    return secret;
+}
 
 // ============================================================================
 // 1. CORS & Response Helpers
 // ============================================================================
+
+/**
+ * The caller's public IP as Cloudflare sees it.
+ */
+export function clientIpOf(request) {
+    return request.headers.get("cf-connecting-ip") ||
+        request.headers.get("x-real-ip") ||
+        (request.headers.get("x-forwarded-for") || "").split(",")[0].trim() ||
+        "127.0.0.1";
+}
 
 export function corsHeaders() {
     return {
@@ -118,7 +170,8 @@ function base64UrlDecode(str) {
     return atob(str);
 }
 
-export async function createPilotToken(payload, secret = DEFAULT_AUTH_SECRET, expiresInSec = 86400 * 30) {
+export async function createPilotToken(payload, secret, expiresInSec = 86400 * 30) {
+    requireSecret(secret);
     const header = { alg: "HS256", typ: "JWT" };
     const now = Math.floor(Date.now() / 1000);
     const exp = now + expiresInSec;
@@ -148,7 +201,8 @@ export async function createPilotToken(payload, secret = DEFAULT_AUTH_SECRET, ex
     return `${message}.${encodedSignature}`;
 }
 
-export async function verifyPilotToken(token, secret = DEFAULT_AUTH_SECRET) {
+export async function verifyPilotToken(token, secret) {
+    requireSecret(secret);
     if (!token || typeof token !== "string") return null;
 
     const parts = token.split(".");
@@ -201,6 +255,5 @@ export async function getAuthenticatedPilot(request, env) {
     }
 
     const token = authHeader.substring(7).trim();
-    const secret = env.AUTH_SECRET || DEFAULT_AUTH_SECRET;
-    return await verifyPilotToken(token, secret);
+    return await verifyPilotToken(token, getAuthSecret(env));
 }

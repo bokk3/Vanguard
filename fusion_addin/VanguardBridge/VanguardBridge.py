@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Antigravity Bridge Add-In for Autodesk Fusion 360
+Vanguard bridge add-in for Autodesk Fusion 360
 Enables real-time remote modeling, programmatic scene generation, and asset export.
 """
 
@@ -29,7 +29,7 @@ _requests_lock = threading.Lock()
 
 BRIDGE_HOST = '127.0.0.1'
 BRIDGE_PORT = 9876
-CUSTOM_EVENT_ID = 'AntigravityBridgeExecuteEvent'
+CUSTOM_EVENT_ID = 'VanguardBridgeExecuteEvent'
 
 
 class BridgeCustomEventHandler(adsk.core.CustomEventHandler):
@@ -118,7 +118,7 @@ class BridgeCustomEventHandler(adsk.core.CustomEventHandler):
 
 
 class BridgeRequestHandler(BaseHTTPRequestHandler):
-    """HTTP handler to receive commands from Antigravity."""
+    """HTTP handler that receives commands from the Vanguard tool clients."""
 
     def log_message(self, format, *args):
         # Silence default HTTP server console logging to avoid clutter
@@ -230,7 +230,7 @@ def start_server():
         _httpd.serve_forever()
     except Exception as e:
         if _ui:
-            _ui.messageBox(f"Antigravity Bridge HTTP Server error: {e}")
+            _ui.messageBox(f"Vanguard Bridge HTTP Server error: {e}")
 
 
 def run(context):
@@ -253,14 +253,14 @@ def run(context):
         # Display non-blocking notification in Fusion
         if _ui:
             _ui.messageBox(
-                f"Antigravity Bridge started successfully!\n\n"
+                f"Vanguard Bridge started successfully!\n\n"
                 f"Listening for modeling instructions at:\nhttp://{BRIDGE_HOST}:{BRIDGE_PORT}\n\n"
                 f"Status: Ready to receive commands."
             )
 
     except Exception:
         if _ui:
-            _ui.messageBox(f"Failed to start Antigravity Bridge:\n{traceback.format_exc()}")
+            _ui.messageBox(f"Failed to start Vanguard Bridge:\n{traceback.format_exc()}")
 
 
 def stop(context):
@@ -282,8 +282,8 @@ def stop(context):
         _handlers.clear()
 
         if _ui:
-            _ui.messageBox("Antigravity Bridge has been stopped.")
+            _ui.messageBox("Vanguard Bridge has been stopped.")
 
     except Exception:
         if _ui:
-            _ui.messageBox(f"Failed to stop Antigravity Bridge:\n{traceback.format_exc()}")
+            _ui.messageBox(f"Failed to stop Vanguard Bridge:\n{traceback.format_exc()}")

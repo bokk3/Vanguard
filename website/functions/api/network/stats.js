@@ -17,7 +17,7 @@ export async function onRequestGet({ env }) {
     if (!env.DB) {
         return jsonResponse({
             success: true,
-            registered_pilots: 1420,
+            registered_pilots: 0,
             online_pilots: 1,
             active_lobbies: 0,
             lobbies: [],
@@ -41,7 +41,7 @@ export async function onRequestGet({ env }) {
         ]);
 
         const rawRegistered = regBatch?.results?.[0]?.count || 0;
-        const registeredPilots = 1420 + rawRegistered;
+        const registeredPilots = rawRegistered;
 
         const onlinePilots = Math.max(onlineBatch?.results?.[0]?.count || 0, 1);
         const lobbyRows = lobbyBatch?.results || [];
@@ -84,7 +84,7 @@ export async function onRequestGet({ env }) {
     } catch (err) {
         return jsonResponse({
             success: true,
-            registered_pilots: 1420,
+            registered_pilots: 0,
             online_pilots: 1,
             active_lobbies: 0,
             lobbies: [],

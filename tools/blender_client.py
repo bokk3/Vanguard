@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Blender Live Bridge Client for Antigravity.
+Client for the Vanguard Blender live bridge.
 Connects to Blender's embedded HTTP server on port 9877.
 """
 
@@ -54,11 +54,14 @@ class BlenderBridgeClient:
             return {"success": False, "error": f"File not found: {file_path}"}
         with open(file_path, "r", encoding="utf-8") as f:
             code = f.read()
+        # The bridge exec()s the code, so give it a real __file__ and
+        # repo-relative paths inside the script keep working.
+        code = f"__file__ = {os.path.abspath(file_path)!r}\n" + code
         return self.execute_code(code, timeout=timeout)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Antigravity Blender Bridge Client")
+    parser = argparse.ArgumentParser(description="Vanguard Blender bridge client")
     parser.add_argument("--ping", action="store_true", help="Ping Blender bridge server")
     parser.add_argument("--code", "-c", help="Execute inline Python string in Blender")
     parser.add_argument("--file", "-f", help="Execute Python script file in Blender")

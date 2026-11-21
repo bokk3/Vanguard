@@ -26,6 +26,7 @@ export default defineConfig({
       input: {
         main: path.resolve(__dirname, 'index.html'),
         controller: path.resolve(__dirname, 'controller.html'),
+        verify: path.resolve(__dirname, 'verify.html'),
       }
     }
   },

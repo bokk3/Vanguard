@@ -20,7 +20,20 @@ var tcp_server: TCPServer = null # WebSocket TCPServer
 var http_clients: Array[Dictionary] = [] # Array of { tcp: StreamPeerTCP, time: int }
 var html_bytes: PackedByteArray = PackedByteArray()
 
-var session_room_code: String = "VNG-77"
+## Phones must send this code in their handshake before any input is accepted.
+## It is embedded in the QR URL and shown in the pairing dialog.
+const ROOM_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789" # 32 symbols, no 0/O/1/I
+const ROOM_CODE_LENGTH = 6 # 32^6 ≈ 1.07 billion codes
+const HANDSHAKE_TIMEOUT_SEC = 5.0
+const CLOSE_INVALID_ROOM = 4001
+const CLOSE_HANDSHAKE_TIMEOUT = 4002
+
+var session_room_code: String = ""
+## Sockets that have connected but not yet sent a valid handshake. Nothing they
+## send reaches a ship, and they don't count as connected controllers.
+var pending_clients: Array[Dictionary] = [] # { peer, tcp, connected_at }
+## Rejected sockets kept briefly so the close frame (and its code) reaches the phone.
+var closing_peers: Array[Dictionary] = [] # { peer, deadline }
 var connected_clients: Array[Dictionary] = [] # Array of { peer: WebSocketPeer, tcp: StreamPeerTCP, callsign: String, player_id: int, last_seen: float }
 
 var target_ships: Dictionary = {} # player_id -> SpaceshipController
@@ -40,16 +53,30 @@ func notify_combat_event(player_id: int, event_name: String) -> void:
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_generate_room_code()
+	_ensure_room_code()
 	_load_standalone_html()
 	start_server()
 
+## Generates the room code once per session; later calls keep it, so QR codes
+## that are already on screen stay valid.
+func _ensure_room_code() -> void:
+	if session_room_code.is_empty():
+		_generate_room_code()
+
 func _generate_room_code() -> void:
-	var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-	session_room_code = "VNG-"
-	for i in range(2):
-		session_room_code += chars[randi() % chars.length()]
-	session_room_code += str(randi_range(10, 99))
+	# Cryptographic RNG; 256 is a multiple of 32, so the modulo has no bias.
+	var bytes := Crypto.new().generate_random_bytes(ROOM_CODE_LENGTH)
+	var code := "VNG-"
+	for b in bytes:
+		code += ROOM_CODE_ALPHABET[b % ROOM_CODE_ALPHABET.length()]
+	session_room_code = code
+
+## True if a phone's handshake token matches this session's room code
+## (case-insensitive, surrounding whitespace ignored).
+func is_valid_room_code(token: Variant) -> bool:
+	if typeof(token) != TYPE_STRING or session_room_code.is_empty():
+		return false
+	return str(token).strip_edges().to_upper() == session_room_code
 
 func _load_standalone_html() -> void:
 	if not html_bytes.is_empty():
@@ -69,6 +96,7 @@ func start_server(desired_http_port: int = DEFAULT_HTTP_PORT, desired_ws_port: i
 	if is_active:
 		return true
 
+	_ensure_room_code()
 	_load_standalone_html()
 
 	# 1. Bind HTTP Web Server (default 8080)
@@ -119,11 +147,13 @@ func start_server(desired_http_port: int = DEFAULT_HTTP_PORT, desired_ws_port: i
 
 ## Stops both servers and disconnects any connected mobile controllers
 func stop_server() -> void:
-	for client in connected_clients:
+	for client in connected_clients + pending_clients:
 		var peer: WebSocketPeer = client.get("peer")
 		if peer:
 			peer.close(1000, "Server stopping")
 	connected_clients.clear()
+	pending_clients.clear()
+	closing_peers.clear()
 
 	for item in http_clients:
 		var conn: StreamPeerTCP = item.get("tcp")
@@ -156,6 +186,7 @@ func get_local_ip() -> String:
 
 ## Formats the exact URL to encode in the QR code
 func get_controller_url(target_pid: int = 1, role_name: String = "pilot", gateway_mode: Variant = null) -> String:
+	_ensure_room_code()
 	var use_gw = use_web_gateway if gateway_mode == null else bool(gateway_mode)
 	var auth_mgr = get_node_or_null("/root/AuthManager") if is_inside_tree() else null
 	var host_callsign = auth_mgr.callsign if (auth_mgr and not auth_mgr.callsign.is_empty()) else "LEAD"
@@ -254,19 +285,23 @@ func _process(delta: float) -> void:
 			var ws = WebSocketPeer.new()
 			var err = ws.accept_stream(conn)
 			if err == OK:
-				var new_client = {
+				pending_clients.append({
 					"peer": ws,
 					"tcp": conn,
 					"callsign": "GUEST-PILOT",
 					"player_id": default_player_id, # Defaults to Player 1 (Controller 1)
+					"connected_at": Time.get_ticks_msec() / 1000.0,
 					"last_seen": Time.get_ticks_msec() / 1000.0,
-				}
-				connected_clients.append(new_client)
-				print("[NetworkControllerServer] New mobile connection accepted from %s (Assigned to Controller %d)." % [conn.get_connected_host(), default_player_id])
+				})
+				print("[NetworkControllerServer] Mobile connection from %s, waiting for room code." % conn.get_connected_host())
 			else:
 				print("[NetworkControllerServer] WebSocket handshake failed: ", err)
 
-	# 3. Process connected WebSocket clients
+	# 3. Admit pending clients that present the right room code
+	_process_pending_clients()
+	_process_closing_peers()
+
+	# 4. Process connected WebSocket clients
 	var to_remove = []
 	for client in connected_clients:
 		var peer: WebSocketPeer = client.get("peer")
@@ -296,11 +331,81 @@ func _process(delta: float) -> void:
 		print("[NetworkControllerServer] Mobile pilot %s (Player %d) disconnected." % [cs, pid])
 		pilot_disconnected.emit(cs, pid)
 
-	# 4. 10Hz Reverse Telemetry Broadcast (Phone Instrument HUD)
+	# 5. 10Hz Reverse Telemetry Broadcast (Phone Instrument HUD)
 	telemetry_timer += delta
 	if telemetry_timer >= 0.10: # 100ms
 		telemetry_timer = 0.0
 		_broadcast_telemetry_to_phones()
+
+## Waits for each new socket's handshake. A matching room code promotes it to
+## connected_clients; a wrong code, or no handshake within
+## HANDSHAKE_TIMEOUT_SEC, closes it. Control packets sent before the handshake
+## are dropped.
+func _process_pending_clients() -> void:
+	if pending_clients.is_empty():
+		return
+
+	var now = Time.get_ticks_msec() / 1000.0
+	var still_pending: Array[Dictionary] = []
+	for client in pending_clients:
+		var peer: WebSocketPeer = client.get("peer")
+		if not peer:
+			continue
+		peer.poll()
+		var state = peer.get_ready_state()
+		if state == WebSocketPeer.STATE_CLOSING or state == WebSocketPeer.STATE_CLOSED:
+			continue
+
+		var host = (client.get("tcp") as StreamPeerTCP).get_connected_host() if client.get("tcp") else "?"
+		var verdict := "" # "", "accept" or "reject"
+		var handshake_json := ""
+		if state == WebSocketPeer.STATE_OPEN:
+			while peer.get_available_packet_count() > 0:
+				var packet = peer.get_packet()
+				if packet.size() == 16:
+					continue # binary control frame before handshake: drop
+				var raw = packet.get_string_from_utf8()
+				var parsed = JSON.parse_string(raw)
+				if typeof(parsed) != TYPE_DICTIONARY or parsed.get("type") != "handshake":
+					continue
+				verdict = "accept" if is_valid_room_code(parsed.get("token")) else "reject"
+				handshake_json = raw
+				break
+
+		if verdict == "accept":
+			client["last_seen"] = now
+			connected_clients.append(client)
+			_handle_packet(client, handshake_json) # sets callsign / player_id, emits pilot_connected
+			continue
+		if verdict == "reject":
+			print("[NetworkControllerServer] Rejected mobile connection from %s: wrong room code." % host)
+			_close_with_code(peer, CLOSE_INVALID_ROOM, "Invalid room code", now)
+			continue
+		if now - float(client.get("connected_at", now)) > HANDSHAKE_TIMEOUT_SEC:
+			print("[NetworkControllerServer] Dropped mobile connection from %s: no handshake." % host)
+			_close_with_code(peer, CLOSE_HANDSHAKE_TIMEOUT, "Handshake timeout", now)
+			continue
+		still_pending.append(client)
+	pending_clients = still_pending
+
+func _close_with_code(peer: WebSocketPeer, code: int, reason: String, now: float) -> void:
+	peer.close(code, reason)
+	closing_peers.append({"peer": peer, "deadline": now + 2.0})
+
+## Polls rejected sockets until their close handshake finishes (or 2 s pass).
+func _process_closing_peers() -> void:
+	if closing_peers.is_empty():
+		return
+	var now = Time.get_ticks_msec() / 1000.0
+	var remaining: Array[Dictionary] = []
+	for item in closing_peers:
+		var peer: WebSocketPeer = item.get("peer")
+		if not peer:
+			continue
+		peer.poll()
+		if peer.get_ready_state() != WebSocketPeer.STATE_CLOSED and now < float(item.get("deadline", 0.0)):
+			remaining.append(item)
+	closing_peers = remaining
 
 func _handle_packet(client: Dictionary, raw_json: String) -> void:
 	if raw_json.is_empty():

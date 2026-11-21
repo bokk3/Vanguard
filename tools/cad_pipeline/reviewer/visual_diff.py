@@ -27,9 +27,9 @@ REPORT_MD = os.path.join(STAGING_DIR, "socket_test_report.md")
 
 def find_blender():
     candidates = [
+        os.environ.get("BLENDER_EXE"),
         shutil.which("blender"),
         os.path.expandvars(r"%USERPROFILE%\tools\blender\blender.exe"),
-        r"C:\Users\Boris\tools\blender\blender.exe",
         r"C:\Program Files\Blender Foundation\Blender 4.2\blender.exe",
     ]
     for c in candidates:

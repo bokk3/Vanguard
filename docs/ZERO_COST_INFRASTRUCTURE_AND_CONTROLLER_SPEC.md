@@ -1,178 +1,137 @@
-# Project Vanguard: Zero-Cost Cloud Infrastructure & Mobile Web Controller Specification 🌐📱
+# Backend and Phone Controller
 
-## 1. Executive Summary
+This doc covers two pieces:
 
-This specification defines two interconnected, high-leverage architectural systems for **Project Vanguard** that operate at **$0.00 infrastructure cost**:
-1. **The Sovereign Pilot Cloud Backend**: Zero-cost pilot registration, authentication, cross-PC campaign saves, and verified global leaderboards powered by Cloudflare Pages Functions and Cloudflare D1 (edge SQLite).
-2. **The "Scan-to-Fly" Mobile Web Controller (HOTAS Companion)**: Friction-free local multiplayer companion app requiring **no mobile builds or app store downloads**. Players join local split-screen co-op or LAN dogfights simply by scanning an on-screen QR code with any smartphone camera, transforming their mobile browser into a motion-steered, haptic-feedback cockpit flight stick.
+1. **Backend:** accounts, cloud saves, leaderboards, lobbies and rewards on
+   Cloudflare Pages Functions and D1. Everything fits in Cloudflare's free tier.
+2. **Phone controller:** a web page that turns a phone into a gamepad. It's
+   opened by scanning a QR code in the game, and nothing needs to be installed.
 
 ---
 
-## 2. Infrastructure Topology ($0 Operating Budget)
+## 1. Topology
 
 ```mermaid
 graph TD
-    subgraph STATIONS [Game Stations]
-        PC1[Host PC / Game Station: Godot 4.7]
-        QR[On-Screen Dynamic QR Code]
-        WS[Local WebSocket Server: Port 8080]
-        PC1 --> QR
-        PC1 --> WS
+    subgraph PC [Game PC]
+        Game[Godot game]
+        QR[QR code on screen]
+        WS[HTTP :8080 / WebSocket :8081]
+        Game --> QR
+        Game --> WS
     end
 
-    subgraph SMARTPHONES [Mobile Web Companion]
-        Phone[Pilot Smartphone: Safari / Chrome]
-        Camera[Camera App: Scans QR]
-        WebCtrl[PWA Controller: project-vanguard.pages.dev/controller]
-        Camera -->|Instant Launch| WebCtrl
-        WebCtrl == "Direct LAN WebSocket (<3ms latency)" ==> WS
+    subgraph Phone
+        Camera[Camera app] -->|opens link| Ctrl[/controller page/]
+        Ctrl == "WebSocket over LAN" ==> WS
     end
 
-    subgraph CLOUDFLARE [Cloudflare Free Edge Ecosystem]
-        Pages[project-vanguard.pages.dev]
-        Functions["Pages Functions: /api/auth/* & /api/leaderboard/*"]
-        D1[("Cloudflare D1: SQLite Edge DB\n5M reads/day | 100k writes/day\n5 GB Storage ($0)")]
-        R2[("Cloudflare R2: Ghost Flight Recordings\n10 GB Storage | $0 Egress")]
-        Pages --> Functions
-        Functions --> D1
-        Functions --> R2
+    subgraph Cloudflare [project-vanguard.pages.dev]
+        Pages[Static site]
+        Functions[Pages Functions: /api/*]
+        D1[(D1)]
+        Pages --> Functions --> D1
     end
 
-    PC1 -. "REST HTTPRequest (Debrief Sync)" .-> Functions
-    WebCtrl -. "Auth Token Verification" .-> Functions
+    Game -. "HTTPS: auth, sync, leaderboards, lobbies" .-> Functions
 ```
 
 ---
 
-## 3. Sovereign Pilot Cloud Backend (Cloudflare D1 + Pages Functions)
+## 2. Backend
 
-### 3.1 D1 Relational Schema (`schema.sql`)
+### 2.1 D1 schema
 
-The database runs on Cloudflare D1 serverless SQLite at the edge:
+The source of truth is [`website/schema.sql`](../website/schema.sql). Tables:
 
-```sql
--- Pilots Registry (Authentication & Profile)
-CREATE TABLE pilots (
-    id TEXT PRIMARY KEY,                       -- UUID v4
-    callsign TEXT UNIQUE NOT NULL COLLATE NOCASE, -- e.g. "VANGUARD-LEAD", "VIPER"
-    email TEXT UNIQUE NOT NULL COLLATE NOCASE,
-    password_hash TEXT NOT NULL,               -- Web Crypto PBKDF2 with SHA-256
-    salt TEXT NOT NULL,
-    rank TEXT DEFAULT 'FLIGHT LIEUTENANT',
-    squadron TEXT DEFAULT '404th Vanguard Strike Wing',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+| Table | Purpose |
+| :--- | :--- |
+| `pilots` | Accounts: callsign, email, PBKDF2 hash and salt, rank, squadron, email verification fields |
+| `pilot_records` | Per-pilot totals (sorties, kills, flight time), highest unlocked mission, Stars, saved JSON blob |
+| `device_links` | Pending and approved device link codes, with the IP of the station that asked for each |
+| `mission_leaderboards` | Submitted mission results (time, score, accuracy) |
+| `active_sessions` | Presence heartbeats for the online and lobby counters |
 
--- Active Device Link Sessions (QR Login / 6-digit Codes)
-CREATE TABLE device_links (
-    link_code TEXT PRIMARY KEY,                -- 6-character code (e.g. "ACE-782")
-    pilot_id TEXT,                             -- Null until approved by pilot
-    station_ip TEXT,                           -- Requesting station IP
-    approved INTEGER DEFAULT 0,                -- 0 = pending, 1 = approved
-    expires_at DATETIME NOT NULL,
-    FOREIGN KEY(pilot_id) REFERENCES pilots(id)
-);
+`pilot_records.checksum_sha256` and `mission_leaderboards.ghost_r2_key` are
+stored when the client sends them, but nothing checks them, and there is no R2
+bucket.
 
--- Cloud Save Blobs & Pilot Service Record
-CREATE TABLE pilot_records (
-    pilot_id TEXT PRIMARY KEY,
-    total_sorties INTEGER DEFAULT 0,
-    total_kills INTEGER DEFAULT 0,
-    total_flight_time_sec REAL DEFAULT 0.0,
-    highest_mission_unlocked TEXT DEFAULT 'M01',
-    save_blob JSON,                            -- Full vanguard_savegame.json
-    checksum_sha256 TEXT,                      -- Client HMAC seal
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(pilot_id) REFERENCES pilots(id)
-);
+### 2.2 Endpoints
 
--- Verified Mission Leaderboards
-CREATE TABLE mission_leaderboards (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    mission_id TEXT NOT NULL,                  -- 'M01' through 'M08'
-    pilot_id TEXT NOT NULL,
-    callsign TEXT NOT NULL,
-    completion_time_sec REAL NOT NULL,
-    score INTEGER NOT NULL,
-    accuracy_pct REAL NOT NULL,
-    ghost_r2_key TEXT,                         -- Optional R2 object key for ghost flight replay
-    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(pilot_id) REFERENCES pilots(id)
-);
+All handlers are in [`website/functions/api/`](../website/functions/api/).
+Shared helpers (PBKDF2 hashing, HMAC-signed tokens, CORS, D1 helpers) are in
+the `_*.js` files.
 
-CREATE INDEX idx_leaderboards_mission_score ON mission_leaderboards(mission_id, score DESC);
-```
+| Path | Methods | Notes |
+| :--- | :--- | :--- |
+| `/api/auth/register` | POST | Creates a pilot and sends a verification email |
+| `/api/auth/login` | POST | Returns a signed bearer token. After 10 failures for one account or 30 from one IP in 15 minutes it returns 429 |
+| `/api/auth/verify` | GET, POST | Verifies email by link token (GET) or 6-digit code (POST). 5 wrong codes lock code entry for 30 minutes |
+| `/api/auth/resend-verification` | POST | 90 s cooldown |
+| `/api/auth/link` | GET, POST | Device link codes (`ACE-` plus 6 random characters): `?action=request`, `?action=approve`, poll with `?code=`. Only the requesting IP can collect the token |
+| `/api/pilot/sync` | GET, POST | Pull and push stats, progress and the save blob (bearer token) |
+| `/api/pilot/reward` | POST | `get_status`, `claim_streak`, `spin_wheel`, `buy_skin`, `equip_skin`, `buy_upgrade` |
+| `/api/leaderboard` | GET, POST | `?type=` / `?mission=` / `?limit=` to read. POST submits a result |
+| `/api/network/lobbies` | GET | Public P2P lobbies |
+| `/api/network/heartbeat` | POST | Presence and lobby heartbeat. A session belongs to the IP that created it; other IPs get 409 until it expires (5 min). The pilot ID comes from the Bearer token, if sent |
+| `/api/network/leave` | POST | `session_id` in the body or query. Only the owning IP can remove a session |
+| `/api/network/stats` | GET | Online, lobby and registered counts |
+| `/api/diag` | GET | Email and auth configuration check (`?test_to=` sends a test email). Needs `Authorization: Bearer <DIAG_TOKEN>`; returns 404 otherwise or when `DIAG_TOKEN` isn't set |
 
-### 3.2 Pages Functions REST API Endpoints
+### 2.3 What's validated
 
-All endpoints are hosted within `website/functions/api/`:
-
-| Method | Path | Function | Auth Required |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/api/auth/register` | Creates pilot record, computes PBKDF2 hash, issues session JWT | No |
-| `POST` | `/api/auth/login` | Validates credentials, returns Pilot Bearer Token | No |
-| `POST` | `/api/auth/link-request` | Generates a 6-character code for game client | No |
-| `POST` | `/api/auth/link-approve` | Web-based pilot approves a game station link code | Yes (Bearer) |
-| `GET` | `/api/auth/link-poll/:code` | Game station polls until pilot approves on phone/web | No |
-| `GET` | `/api/pilot/profile` | Fetches pilot dossier, combat medals, and stats | Yes (Bearer) |
-| `POST` | `/api/pilot/sync` | Uploads encrypted campaign savegame blob to cloud | Yes (Bearer) |
-| `GET` | `/api/leaderboard/:mission` | Returns top 100 verified pilot scores for mission | No |
-| `POST` | `/api/leaderboard/submit` | Submits sortie score with client telemetry signature | Yes (Bearer) |
+* Passwords: PBKDF2-SHA256 with 100,000 iterations and a per-user salt.
+* Tokens: HMAC-SHA256 signed with `AUTH_SECRET`, which must be a Pages
+  secret of at least 32 characters. If it is missing, too short or the old
+  published value, auth requests fail with a server error (500 or 503) that
+  names the problem, rather than falling back to a default.
+* Leaderboard submissions: score must be in `(0, 2,000,000]` and completion
+  time at least 5 s. Anything else is taken on trust from the client, so treat
+  the leaderboards as casual.
 
 ---
 
-## 4. "Scan-to-Fly" Mobile Web Controller
+## 3. Phone Controller
 
-### 4.1 System Overview
-The Mobile Web Controller runs entirely inside standard mobile browsers (iOS Safari, Android Chrome) at:  
-`https://project-vanguard.pages.dev/controller`
+### 3.1 How it connects
 
-* **No native build required**: Avoids Apple/Google store fees ($99/yr), review queues, and packaging pipelines.
-* **Direct LAN Communication**: Avoids public cloud latency. Controller commands travel directly over home WiFi (`ws://<host-ip>:8080`) with **1ms to 3ms response times**.
+1. The game starts `network_controller_server.gd`, which runs an HTTP server
+   on port 8080, which serves a bundled copy of the controller page, and a
+   WebSocket server on port 8081.
+2. The QR code holds a URL with the host's LAN IP, ports, the session's room
+   code (`VNG-` plus 6 random characters), the player's callsign and the
+   player slot.
+3. The phone opens the page and connects straight to `ws://<host-ip>:8081`.
+   Input never goes through Cloudflare.
 
-### 4.2 Browser APIs Utilized
+The phone's first message must be a handshake whose `token` matches the room
+code (case doesn't matter). Until then nothing it sends reaches a ship, and it
+doesn't count as a connected controller. A wrong code closes the socket with
+code 4001. No handshake within 5 seconds closes it with 4002. The phone shows
+which one happened.
 
-```text
-+-----------------------------------------------------------------+
-| Mobile Web Browser (Safari / Chrome)                             |
-|                                                                 |
-| [ TouchEvents API ]      --> Multi-touch thumbstick & triggers  |
-| [ DeviceOrientationEvent] --> Gyroscope roll & pitch tilt       |
-| [ Vibration API ]        --> Haptic feedback on fire/recoil     |
-| [ Screen Wake Lock API ] --> Prevents display dimming in flight |
-| [ WebSocket API ]        --> High-frequency state streaming      |
-+-----------------------------------------------------------------+
-```
+### 3.2 Browser APIs
 
-### 4.3 High-Frequency WebSocket Packet Protocol (30Hz)
+* Touch events: stick, throttle and buttons
+* `DeviceOrientationEvent`: gyro steering
+* Vibration API: haptics on fire and on hits
+* Screen Wake Lock: keeps the screen on
+* WebSocket: input and telemetry
 
-To maintain instantaneous responsiveness, the mobile controller streams compact JSON or binary state packets at 30Hz:
+### 3.3 Phone → game (binary, about 30 Hz)
 
-```json
-{
-  "t": 1727265000123,
-  "pitch": -0.42,
-  "roll": 0.85,
-  "yaw": 0.0,
-  "throttle": 0.75,
-  "boost": false,
-  "fire_primary": true,
-  "fire_missile": false,
-  "target_lock": false
-}
-```
+Each packet is 16 bytes, little-endian:
 
-#### Field Normalization Rules:
-* `pitch`: Float `[-1.0, 1.0]` (Negative = Nose Down, Positive = Nose Up).
-* `roll`: Float `[-1.0, 1.0]` (Negative = Bank Left, Positive = Bank Right).
-* `yaw`: Float `[-1.0, 1.0]` (Negative = Rudder Left, Positive = Rudder Right).
-* `throttle`: Float `[0.0, 1.0]` (0% idle to 100% full military power).
-* `boost`: Boolean (Afterburner active).
-* `fire_primary`: Boolean (Continuous photon cannon salvo).
-* `fire_missile`: Edge-triggered boolean (Vanguard Strike Missile launch).
+| Bytes | Type | Field |
+| :--- | :--- | :--- |
+| 0–3 | float32 | pitch, −1…1 |
+| 4–7 | float32 | roll, −1…1 |
+| 8–11 | float32 | throttle, 0…1 |
+| 12–13 | int16 | yaw × 32767 |
+| 14 | uint8 | flags: 1 = gun, 2 = boost, 4 = missile, bits 3–4 = power divert (0 balanced, 1 engines, 2 shields, 3 weapons), 32 = lock, 64 = re-centre |
+| 15 | uint8 | sequence number |
 
-### 4.4 Telemetry Feedback to Phone (PC $\rightarrow$ Phone, 10Hz)
-The Godot host sends back aircraft vitals so the phone functions as a **secondary cockpit instrument display**:
+### 3.4 Game → phone (JSON, 10 Hz)
 
 ```json
 {
@@ -181,30 +140,23 @@ The Godot host sends back aircraft vitals so the phone functions as a **secondar
   "speed": 142.5,
   "missiles": 3,
   "target_locked": true,
-  "under_fire": false
+  "under_fire": false,
+  "power_mode": "BALANCED",
+  "events": []
 }
 ```
-* **Haptics Triggering**: When `under_fire: true` or `target_locked: true`, the web app executes `navigator.vibrate([15, 30, 15])` to vibrate the physical phone in the player's hands.
+
+The phone vibrates on `under_fire`, on lock, and on queued combat events.
 
 ---
 
-## 5. Security & Anti-Cheat on a $0 Budget
+## 4. Files
 
-1. **HMAC-SHA256 Client Signature**:
-   - Save files and leaderboard submissions are signed with an internal runtime salt. If a save file's JSON values are manually modified without a valid signature, the game permits offline play but disables competitive cloud leaderboard submission.
-2. **Server-Side Heuristic Bounds Checking**:
-   - The Cloudflare Pages Function verifies sortie validity:
-     - `completion_time_sec >= mission_min_theoretical_time`
-     - `score <= mission_max_theoretical_score`
-     - Discards impossible submissions automatically.
-3. **Pilot Authentication Nonce**:
-   - WebSocket sessions require the session room code displayed on the host screen, preventing unauthorized network hijacking on public WiFi.
-
----
-
-## 6. Implementation Deliverables
-
-1. `website/functions/api/`: Cloudflare Pages serverless endpoints.
-2. `website/src/controller.html` & `website/src/controller.js`: Mobile touch & gyro HOTAS PWA.
-3. `godot_project/network_controller_server.gd`: Godot WebSocket listener translating mobile frames into `SpaceshipController` input events.
-4. `godot_project/qr_display.gd`: Pure GDScript QR code renderer for in-game lobbies.
+* `website/functions/api/`: the API
+* `website/controller.html`, `website/src/controller.js`: the controller page
+  (`scripts/bundle-standalone-controller.js` builds the single-file copy the
+  game serves)
+* `godot_project/network_controller_server.gd`: HTTP and WebSocket server, and
+  input routing to `SpaceshipController`
+* `godot_project/qr_code.gd`, `qr_join_dialog.tscn`: QR generation and the
+  pairing dialog

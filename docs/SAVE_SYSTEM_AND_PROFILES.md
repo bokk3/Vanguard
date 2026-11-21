@@ -1,36 +1,39 @@
-# Vanguard Save Game System, Sovereign Profiles & Zero-Cost Cloud Sync 💾☁️
+# Saves, Profiles and Cloud Sync
 
-Comprehensive technical documentation for the Project Vanguard Save Game System, offline state serialization, cryptographic integrity sealing, and zero-cost cloud profile persistence.
-
----
-
-## 1. Storage Location & Accessibility
-
-The save system stores all sortie and campaign data in human-readable, indented JSON in an isolated `saves/` directory.
-
-| Context | Path | Notes |
-| :--- | :--- | :--- |
-| **Godot Virtual Path** | `user://saves/vanguard_savegame.json` | Isolated from engine config (`user://settings.cfg`) |
-| **Windows OS Resolved Path** | `%APPDATA%\Godot\app_userdata\Project Vanguard\saves\vanguard_savegame.json` | Directly accessible in Windows Explorer for backups & modding |
-| **Default Slot Name** | `vanguard_savegame` | Expandable to multi-slot profiles (`slot_1`, `slot_2`) |
-| **Web Cloud Backup** | `https://project-vanguard.pages.dev/api/pilot/sync` | Encrypted, zero-cost cloud sync powered by Cloudflare D1 |
+How the game saves locally, and how optional pilot accounts sync progress to
+the website backend. The code is in
+[`save_manager.gd`](../godot_project/save_manager.gd) (local saves) and
+[`auth_manager.gd`](../godot_project/auth_manager.gd) (accounts and sync).
 
 ---
 
-## 2. JSON Save Schema Breakdown (v0.8.0)
+## 1. Where saves live
+
+| | Path |
+| :--- | :--- |
+| Godot path | `user://saves/vanguard_savegame.json` (settings are separate, in `user://settings.cfg`) |
+| Windows | `%APPDATA%\Godot\app_userdata\Project Vanguard\saves\vanguard_savegame.json` |
+| Slot name | `vanguard_savegame` (the API takes a slot name, but the game only uses this one) |
+
+Saves are indented JSON, so you can read and edit them by hand. They are not
+signed or encrypted.
+
+---
+
+## 2. Save format
+
+`format_version` is 1. `game_version` is taken from `project.godot`.
 
 ```json
 {
   "format_version": 1,
-  "game_version": "0.8.0",
-  "timestamp": "2026-09-25T13:30:00Z",
-  "display_date": "2026-09-25 13:30",
+  "game_version": "0.9.7",
+  "timestamp": "2026-09-25T13:30:00",
+  "display_date": "2026-09-25 13:30:00",
   "profile": {
     "callsign": "VANGUARD-LEAD",
     "squadron": "404th Vanguard Strike Wing",
-    "rank": "FLIGHT LIEUTENANT",
-    "pilot_id": "vng-usr-8849-ace",
-    "auth_token": "cf_edge_jwt_token_sample"
+    "rank": "LIEUTENANT"
   },
   "sortie": {
     "mission_id": "M01",
@@ -38,17 +41,7 @@ The save system stores all sortie and campaign data in human-readable, indented 
     "theater": "Sub-Cloud Interception Sector 07",
     "scene_file": "res://main.tscn"
   },
-  "campaign": {
-    "unlocked_mission_id": "M02",
-    "mission_records": {
-      "M01": {
-        "completed": true,
-        "high_score": 14200,
-        "best_time_sec": 184.2,
-        "rank": "S"
-      }
-    }
-  },
+  "campaign": { "...": "MissionManager.get_save_data()" },
   "ship": {
     "position": [0.0, 42.5, -80.0],
     "rotation": [0.0, 3.14159, 0.0],
@@ -70,101 +63,79 @@ The save system stores all sortie and campaign data in human-readable, indented 
       "health": 75.0,
       "global_pos": [-120.0, 75.0, -320.0]
     }
-  },
-  "security": {
-    "hmac_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   }
 }
 ```
 
 ---
 
-## 3. Core Architecture & Hybrid Cloud Sync
+## 3. Architecture
 
 ```mermaid
 flowchart TD
-    subgraph Storage [Disk Persistence (Offline First)]
+    subgraph Local [On disk]
         JSON[user://saves/vanguard_savegame.json]
-        HMAC[HMAC-SHA256 Integrity Verification]
-        JSON <--> HMAC
     end
 
-    subgraph Manager [SaveManager Autoload Singleton]
-        SM[save_manager.gd]
-        SM <-->|Read / Write Pretty JSON| JSON
+    subgraph Game [Autoloads]
+        SM[SaveManager]
+        AM[AuthManager]
+        SM <-->|read / write JSON| JSON
     end
 
-    subgraph Cloud [Zero-Cost Cloud Edge - project-vanguard.pages.dev]
-        CF[Cloudflare Pages Functions: /api/pilot/sync]
-        D1[("Cloudflare D1: SQLite Edge Database\nFree: 5M reads/day, 100k writes/day")]
+    subgraph Cloud [project-vanguard.pages.dev]
+        CF[Pages Function: /api/pilot/sync]
+        D1[(Cloudflare D1)]
         CF <--> D1
-        SM -.->|Asynchronous HTTPRequest| CF
     end
 
-    subgraph WebPortal [Web Browser Client]
-        Web[project-vanguard.pages.dev/pilot]
-        Drop[Client-Side Drag & Drop Save Inspector]
-        JSON -.->|User inspects local save file| Drop
-        Drop --> Web
-    end
+    AM -.->|HTTPRequest GET / POST| CF
 ```
 
 ---
 
-## 4. Pilot Identity & Cloud Synchronization
+## 4. Accounts and cloud sync
 
-### 4.1 $0 Cloud Architecture (Cloudflare Pages + D1)
-Project Vanguard uses a **Sovereign Pilot model**:
-* **100% Offline Capability**: Pilots retain complete ownership of their local JSON save file. The game requires zero network connection to launch, save, or play.
-* **Optional Cloud Link**: When connected to the internet, pilots can link their callsign to their free account on `project-vanguard.pages.dev`:
-  1. Pilot signs up on `project-vanguard.pages.dev` with Callsign & Password.
-  2. In-game, pilot clicks **"Link Account"** and enters their credentials (or uses a 6-character link code).
-  3. Sortie debrief scores, campaign progression, and medal unlocks automatically sync to Cloudflare D1 via non-blocking background `HTTPRequest`.
+The game works fully offline. An account is optional:
 
-### 4.2 Web Dossier Save Inspector ($0 Server Compute)
-On the live portal (`https://project-vanguard.pages.dev`), pilots can drag and drop their `vanguard_savegame.json` directly into the browser:
-* The web app uses the browser's native `FileReader` API.
-* Parses combat stats, weapon accuracy, mission completion trees, and flight hours.
-* **100% Client-Side**: Consumes zero cloud compute and zero server bandwidth.
+1. Register in game (login dialog) or on the website with a callsign,
+   password and email.
+2. Log in from the game. The server and the website's pilot page also
+   support device link codes (`/api/auth/link`), but the game doesn't
+   request one yet.
+3. `AuthManager.sync_cloud_save()` POSTs stats and progress to
+   `/api/pilot/sync`, and `GET /api/pilot/sync` pulls stats, Stars and rewards
+   back down.
 
----
-
-## 5. UI Integrations
-
-### Home Menu (`res://home_menu.tscn`)
-* Automatically checks `SaveManager.has_save()`.
-* When a save exists:
-  * Reveals **`[ 01 ] CONTINUE SORTIE`** button (styled with glowing primary cyan border).
-  * Prompts **`[ 02 ] NEW SORTIE`** as second option.
-  * Sidebar status box dynamically displays:
-    `ACTIVE SORTIE: 2026-09-25 13:30`
-    `HULL INTEGRITY: 85%`
-    `MISSILES ARMED: 3/4`
-* When no save exists:
-  * Displays **`[ 01 ] DEPLOY SORTIE`** directly.
-
-### Tactical Pause Menu (`res://pause_menu.tscn`)
-* Pressing `ESC` during flight opens the tactical pause dialog.
-* **`[ 02 ] SAVE SORTIE`**:
-  * Calls `SaveManager.save_game()`.
-  * Triggers an animated tactical confirmation toast:
-    `// SORTIE SAVED // SECURE SYNC COMPLETE` in tactical neon green.
-  * Enables the **`[ 03 ] LOAD LAST SAVE`** button immediately.
-* **`[ 03 ] LOAD LAST SAVE`**:
-  * Calls `SaveManager.apply_save_to_current_scene()`.
-  * Instantly restores position, speed, vitals, and ordnance, unpausing the simulation.
+Passwords are hashed with PBKDF2-SHA256 (100,000 iterations) on the server. See
+[ZERO_COST_INFRASTRUCTURE_AND_CONTROLLER_SPEC.md](ZERO_COST_INFRASTRUCTURE_AND_CONTROLLER_SPEC.md)
+for the API and schema.
 
 ---
 
-## 6. Semantic Versioning Strategy
+## 5. Menus
 
-Project Vanguard follows [Semantic Versioning 2.0.0](https://semver.org/):
-* **MAJOR**: Incompatible architectural milestones or engine conversions (e.g., Godot -> UE5 port).
-* **MINOR**: New gameplay features, UI overhauls, or subsystems (e.g., `v0.8.0` Split-Screen, LAN Dogfights & Cloud Architecture).
-* **PATCH**: Bug fixes, control adjustments, or visual polish.
+### Home menu (`home_menu.tscn`)
+* If `SaveManager.has_save()` is true, it shows a **Continue** button and a
+  summary of the save (date, hull, missiles).
+* Otherwise it starts a new sortie.
 
-### Version Single Source of Truth
-1. Root `VERSION` file: `0.8.0`
-2. Project Configuration: `config/version="0.8.0"` in `godot_project/project.godot`
-3. Engine Runtime: Retrieved via `ProjectSettings.get_setting("application/config/version")`
-4. Changelog: Tracked in `CHANGELOG.md` following [Keep a Changelog](https://keepachangelog.com/).
+### Pause menu (`pause_menu.tscn`, Esc)
+* **Save Sortie** calls `SaveManager.save_game()` and shows a confirmation toast.
+* **Load Last Save** calls `SaveManager.apply_save_to_current_scene()`, which
+  restores position, speed, vitals and missiles, then unpauses.
+
+---
+
+## 6. Versioning
+
+Releases follow [Semantic Versioning](https://semver.org/). The version appears
+in several places, and a release bump should update all of them:
+
+1. `VERSION`
+2. `config/version` in `godot_project/project.godot`. The game reads it at
+   runtime with `ProjectSettings.get_setting("application/config/version")`.
+3. `application/version` and `short_version` for macOS in
+   `godot_project/export_presets.cfg`
+4. `website/package.json` and the version strings in `website/index.html`
+5. `CHANGELOG.md`

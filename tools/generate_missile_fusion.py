@@ -13,6 +13,9 @@ import os
 import math
 import traceback
 
+# Repo root; set VANGUARD_ROOT to override when the script runs from elsewhere.
+PROJECT_ROOT = os.environ.get("VANGUARD_ROOT") or os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 print(">>> Generating Precision Strike Missile & Pylon in Fusion 360...")
 
 try:
@@ -208,7 +211,7 @@ try:
     # ----------------------------------------------------
     print("[5/5] Exporting STEP and STL assets...")
     exportMgr = design.exportManager
-    output_dir = r"c:\Users\Boris\Documents\antigravity\lucid-davinci\assets\cad\vehicles"
+    output_dir = os.path.join(PROJECT_ROOT, "assets", "cad", "vehicles")
     os.makedirs(output_dir, exist_ok=True)
 
     step_path = os.path.join(output_dir, "Vanguard_Strike_Missile.step")

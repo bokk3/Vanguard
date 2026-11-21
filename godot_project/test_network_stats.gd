@@ -23,7 +23,7 @@ func _process(delta: float) -> bool:
 		print("[PASS] NetworkManager singleton active in root.")
 
 		# 1. Verify default baseline values
-		assert(net_mgr.registered_pilots >= 1420, "Baseline registered pilots must be at least 1,420!")
+		assert(net_mgr.registered_pilots >= 0, "Registered pilot count must be non-negative!")
 		assert(net_mgr.online_pilots >= 1, "Baseline online pilots must be at least 1!")
 		assert(net_mgr.active_lobbies >= 0, "Active lobbies must be non-negative!")
 		print("[PASS] Default baseline fleet counters verified: %d roster, %d online, %d lobbies." % [

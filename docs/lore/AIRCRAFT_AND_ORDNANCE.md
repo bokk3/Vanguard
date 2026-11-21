@@ -1,4 +1,4 @@
-# 🛸 Aircraft & Ordnance Dossiers
+# Aircraft & Ordnance Dossiers
 
 All operational aerospace craft in Project Vanguard are precision-engineered to bridge aerodynamic atmospheric flight with vacuum combat readiness.
 

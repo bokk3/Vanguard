@@ -19,6 +19,9 @@ import math
 import adsk.core
 import adsk.fusion
 
+# Repo root; set VANGUARD_ROOT to override when the script runs from elsewhere.
+PROJECT_ROOT = os.environ.get("VANGUARD_ROOT") or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 def build_detailed_spaceship():
     app = adsk.core.Application.get()
@@ -360,7 +363,7 @@ def build_detailed_spaceship():
     # -------------------------------------------------------------
     # 10. Automated STEP Export
     # -------------------------------------------------------------
-    export_dir = r"c:\Users\Boris\Documents\antigravity\lucid-davinci\Exports"
+    export_dir = os.path.join(PROJECT_ROOT, "Exports")
     os.makedirs(export_dir, exist_ok=True)
     step_path = os.path.join(export_dir, "Spaceship_Interceptor_HD.step")
     

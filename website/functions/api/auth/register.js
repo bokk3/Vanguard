@@ -10,6 +10,7 @@ import {
     generateSalt,
     hashPassword,
     createPilotToken,
+    getAuthSecret,
 } from "../_utils.js";
 import { ensureVerificationSchema } from "../_db_utils.js";
 import {
@@ -55,8 +56,11 @@ export async function onRequestPost({ request, env }) {
         return errorResponse("Password must be at least 8 characters.", 400);
     }
 
-    const rank = body.rank || "FLIGHT LIEUTENANT";
-    const squadron = body.squadron || "404th Vanguard Strike Wing";
+    // Rank is assigned by the server. Squadron is free text shown on the
+    // leaderboard, so keep it to plain characters.
+    const rank = "FLIGHT LIEUTENANT";
+    const rawSquadron = typeof body.squadron === "string" ? body.squadron.trim() : "";
+    const squadron = /^[A-Za-z0-9 '._-]{2,40}$/.test(rawSquadron) ? rawSquadron : "404th Vanguard Strike Wing";
 
     try {
         // 2. Check for duplicate callsign or email
@@ -84,7 +88,7 @@ export async function onRequestPost({ request, env }) {
         // 5. Generate 6-digit in-game verification code & 24h HMAC verification token
         const verificationCode = generateVerificationCode();
         const verificationExpiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 mins
-        const verificationToken = await createVerificationToken(pilotId, email, env.AUTH_SECRET);
+        const verificationToken = await createVerificationToken(pilotId, email, getAuthSecret(env));
 
         // 6. Atomic insertion into pilots & initial pilot_records
         const batch = await env.DB.batch([
@@ -118,7 +122,7 @@ export async function onRequestPost({ request, env }) {
                 squadron,
                 email_verified: false,
             },
-            env.AUTH_SECRET
+            getAuthSecret(env)
         );
 
         return jsonResponse(

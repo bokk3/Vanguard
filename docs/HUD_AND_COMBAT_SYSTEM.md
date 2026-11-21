@@ -1,12 +1,16 @@
-# Vanguard Tactical HUD & Combat Telemetry System
+# HUD and Combat Telemetry
 
-A military sci-fi Heads-Up Display (HUD) and decoupled combat telemetry architecture built for high-speed spaceflight and dogfighting. Implemented natively in Godot 4.x and architected for seamless porting to Unreal Engine 5 (UMG / Slate / Niagara).
+The HUD and the combat state behind it (shields, hull, afterburner heat,
+missile lock). Game logic lives in
+[`combat_telemetry.gd`](../godot_project/combat_telemetry.gd), and drawing in
+[`hud.gd`](../godot_project/hud.gd). Section 4 maps each piece to Unreal
+Engine 5.
 
 ---
 
 ## 1. Architectural Overview
 
-The combat HUD is built around strict separation between **telemetry simulation** (flight logic, locking FSM, capacitor math) and **visual presentation** (vector canvas rendering, SVG widgets).
+`CombatTelemetry` holds the state and does the maths: lock state machine, capacitor and damage. The HUD only reads that state and draws it with `_draw()`.
 
 ```mermaid
 flowchart TD
@@ -30,60 +34,48 @@ flowchart TD
 
 ---
 
-## 2. In-Game Controls & Keybindings
+## 2. Controls
 
-The controller dynamically auto-detects keyboard layout (`AZERTY` on Belgian/French systems, `QWERTY` elsewhere) at startup and supports runtime switching:
-
-| Function | AZERTY Binding | QWERTY Binding | Additional Controls |
-| :--- | :--- | :--- | :--- |
-| **Throttle Forward** | `Z` | `W` | Physical Scancode `KEY_W` |
-| **Brake / Reverse** | `S` | `S` | Smooth deceleration |
-| **Roll Left / Right** | `Q` / `D` | `A` / `D` | Aileron banking |
-| **Yaw Rudder** | `A` / `E` | `Q` / `E` | Horizontal yaw turning |
-| **Pitch Nose** | Mouse Y / `Up` / `Down` | Mouse Y / `Up` / `Down` | Inverted or direct flight stick |
-| **Nitro Afterburner** | `L-SHIFT` (Hold) | `L-SHIFT` (Hold) | Drains Nitro Capacitor |
-| **Fire Missile** | `SPACE` or `ENTER` | `SPACE` or `ENTER` | Requires Missile Lock |
-| **Toggle Radar Style** | `R` | `R` | Toggles Circular Radar Disc |
-| **Damage Test Hit** | `H` | `H` | Simulates -25 HP hit on Shields/Hull |
-| **Toggle AZERTY/QWERTY**| `F1` | `F1` | Instant layout switch |
-| **Release / Capture Mouse**| `ESC` | `ESC` | Unlocks cursor |
+Key and gamepad bindings are listed in
+[CONTROLS_AND_PHYSICS.md](CONTROLS_AND_PHYSICS.md). The HUD-specific keys are
+**R** (show or hide the radar) and **H** (debug: apply a 25 HP hit to yourself).
 
 ---
 
 ## 3. Core HUD Components
 
 ### 3.1 Top Compass Horizon Ribbon
-* **Visual Anchor:** Positioned at top-center of the screen.
+* Sits at the top centre of the screen.
 * **Heading Tape:** Ticks every 15°, labeled with cardinal headings (`N`, `E`, `S`, `W`) and numerical degrees (`000°` - `359°`).
 * **Target Beacons:**
   * **Hostiles / Enemies:** Marked in Tactical Crimson Red (`#FF1744`) with downward indicator chevrons.
   * **Objectives / Beacons:** Marked in Mission Gold (`#FFD700`) with diamond markers.
-* **Bearing Angle:** Dynamically mapped relative to the player's forward nose vector.
+* Bearings are relative to the ship's nose.
 
 ### 3.2 Toggleable Circular Radar Disc
-* **Activation:** Toggled on/off at any time using the `R` key.
-* **Projection:** Polar top-down radar projection centered on the player craft.
-* **Range Rings:** Concentric rings representing 100m, 200m, and 300m range boundaries.
-* **Relative Elevation Blips:** Displays azimuth and distance to all targets within 350m radius.
+* Toggled with `R`.
+* Top-down polar view centred on the player, with the seeker cone drawn on it.
+* Range is `max_radar_range_m` (3000 m by default). The rings are at one
+  third, two thirds and full range.
 
 ### 3.3 Dynamic Screen-Space Target Lock-On System
-* **Acquisition Cone:** Evaluates all active hostile entities within a 45° forward view cone.
-* **Screen Projection:** Translates 3D world coordinates to 2D screen coordinates using `Camera3D.unproject_position()`.
-* **Lock State Machine:**
-  1. **Acquiring (0% - 99%):** Segmented cyan bracket with circular loading reticle that fills over 1.4 seconds.
-  2. **Solid Lock (100%):** Brackets contract into high-contrast crimson/gold locked box with diamond lead reticle.
-  3. **Off-Screen Tracking:** If the target maneuvers off-screen, directional chevrons lock to the viewport edge pointing toward the target with distance indicators.
+* Considers hostiles inside a 35° half-angle cone ahead of the nose (`seeker_cone_deg`).
+* Positions are projected to the screen with `Camera3D.unproject_position()`.
+* Lock states:
+  1. **Acquiring:** a cyan bracket with a progress ring that fills over 1.2 s (`lock_duration`).
+  2. **Locked:** the bracket tightens into a red/gold box with a lead diamond.
+  3. **Off-screen:** a chevron on the screen edge points at the target and shows its distance.
 
 ### 3.4 Nitro & Afterburner Capacitor
 * **Capacity:** 100 units max.
 * **Drain Rate:** 24 units/sec (~4.2 seconds of continuous afterburner thrust).
 * **Recharge Rate:** 18 units/sec (~5.5 seconds recovery time).
-* **Overheat Penalty:** If capacitor hits 0%, an emergency overheat lockout locks afterburner for 3.0 seconds accompanied by a flashing red visual alarm.
+* **Overheat:** emptying the capacitor locks the afterburner for 3.0 seconds and flashes a red warning.
 
 ### 3.5 Unified Shield & Hull Vitals Panel
-* **Shield Halo:** 100 HP max, regenerates automatically at 15 HP/sec after 4 seconds of taking no damage.
-* **Hull Core:** 100 HP max structural integrity. Absorbs kinetic damage when shields deplete.
-* **Testing Key:** Press `H` to inflict simulated 25 HP damage and observe shield depletion, flash response, and regenerative recharge.
+* **Shield:** 100 HP. Regenerates at 15 HP/s after 4 seconds without taking damage.
+* **Hull:** 100 HP. Takes damage once the shield is empty.
+* **Debug:** `H` applies a 25 HP hit.
 
 ### 3.6 Ordnance Bay
 * **Vanguard Strike Missiles:** 4x ready rack. Displays missile status (armed, locked, fired).
@@ -93,7 +85,7 @@ The controller dynamically auto-detects keyboard layout (`AZERTY` on Belgian/Fre
 
 ## 4. Cross-Engine Porting Guide (Unreal Engine 5)
 
-This HUD was designed to port 1:1 into Unreal Engine 5:
+Suggested Unreal Engine 5 equivalents:
 
 | Godot 4 System | Unreal Engine 5 Equivalent |
 | :--- | :--- |
@@ -110,25 +102,25 @@ This HUD was designed to port 1:1 into Unreal Engine 5:
 ## 5. Multi-Player & Split-Screen HUD Telemetry
 
 ### Dual-Viewport Avionics Binding
-To support split-screen dogfights and campaign drop-in co-op without telemetry cross-talk, the HUD system uses dynamic instance binding:
+Each HUD instance is bound to one ship, so split-screen players don't read each other's state:
 ```gdscript
 hud_instance.bind_to_ship(ship_node, camera_node, player_id)
 ```
-- **Independent Viewport Rendering:** Each player's HUD is embedded inside their respective `SubViewport/HUD` `CanvasLayer`, ensuring reticle unprojection calculations (`unproject_position`) use that player's viewport camera and aspect ratio.
-- **Player Identification & Color Theming:**
+- Each player's HUD sits in their own `SubViewport/HUD` `CanvasLayer`, so `unproject_position` uses that player's camera and aspect ratio.
+- Colours per player:
   - **Player 1 (Flight Lead):** Cyan/Sky Blue tactical instrumentation (`#00E5FF`).
   - **Player 2 Co-Op Wingman:** Solar Amber/Gold avionics (`#FFB300`) with wingman formation telemetry.
   - **Player 2 PvP Aggressor:** Crimson/Amber dogfight avionics (`#FF3D00`) with direct lock-on against Player 1.
 
 ### Multi-Target Radar Symbology
-The 350m tactical radar identifies all contacts in 3D battlespace:
+Radar contact symbols:
 - **Crimson Diamond (`#FF2638`):** Hostile combat drones, strike craft, and PvP opponents in group `"enemies"`.
 - **Amber Cross (`#FFB300`):** Friendly wingman (Player 2) in group `"player"` / `"radar_targets"`.
 - **Emerald Chevron (`#00E676`):** Friendly mission targets (e.g. Olympus-4 transport, SOC Dauntless).
 - **Gold Ring (`#FFD700`):** Tactical navigation beacons and canyon pylon gates.
 
 ### Damage Pipeline & Combat Feedback
-Incoming hostile rounds and collisions process through an integrated multi-sensory feedback pipeline:
+When the player is hit (by enemy fire or a collision):
 1. **Shield Absorption:** Shields deplete first (`telemetry.current_shield`).
 2. **Hull Bleed:** Damage beyond available shields damages the structural hull (`telemetry.current_hull`).
 3. **Cockpit Trauma:** Screen trauma shaking scales up to `1.0` and decays smoothly.
@@ -136,7 +128,7 @@ Incoming hostile rounds and collisions process through an integrated multi-senso
 5. **HUD Alarm:** Flashes red warning banner: `// WARNING: HIT -X HP //`.
 
 ### Co-Op Field Respawn System
-In campaign co-op sorties, catastrophic destruction of a single aircraft does not trigger mission failure. A 5-second emergency airframe repair countdown begins on the downed player's HUD. Upon completion, the wingman respawns in formation alongside the surviving flight lead with full shields, repaired hull, and replenished ordnance. Only the loss of both flight elements fails the sortie (`SORTIE_WIPED`).
+In campaign co-op, losing one ship doesn't fail the mission. The downed player sees a 5-second countdown, then respawns next to the surviving player with full shields, hull and missiles. The sortie fails (`SORTIE_WIPED`) only if both ships are down at once.
 
 ---
 
@@ -144,12 +136,10 @@ In campaign co-op sorties, catastrophic destruction of a single aircraft does no
 
 * **Split-Screen & Co-Op Headless Test:**
   ```powershell
-  godot_console --headless --path godot_project -s test_campaign_coop.gd
-  godot_console --headless --path godot_project -s test_split_screen.gd
+  godot --headless --path godot_project -s test_campaign_coop.gd
+  godot --headless --path godot_project -s test_split_screen.gd
   ```
 * **Full PvP & Networking Suite:**
   ```powershell
-  godot_console --headless --path godot_project -s test_pvp_system.gd
+  godot --headless --path godot_project -s test_pvp_system.gd
   ```
-* **Interactive Playtest:**
-  Double-click `Launch_Godot_Vanguard.bat` on the Windows Desktop.
